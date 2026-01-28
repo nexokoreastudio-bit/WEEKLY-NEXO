@@ -34,6 +34,15 @@
                     <button id="next-edition" title="다음 발행분">▶</button>
                 </div>
                 <p class="edition-nav-hint">발행물을 날짜별로 선택하여 보실 수 있습니다</p>
+                
+                <!-- 검색 기능 -->
+                <div class="search-section" style="display: none;">
+                    <p class="search-hint">과거 발행물에서 키워드로 검색할 수 있습니다</p>
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="예: ChatGPT, 4K, 무선미러링, 프로모션..." class="search-input">
+                        <button id="search-btn" class="search-btn" title="검색">🔍</button>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -44,6 +53,18 @@
                 <div class="headline-group">
                     <h2 class="main-headline" id="main-headline">넥소 전자칠판, 노원지구 협력업체를 위한 '스마트 교육'의 마침표를 찍다</h2>
                     <p class="sub-headline" id="sub-headline">압도적인 4K UHD 해상도와 제로갭 본딩 기술로 완성된 차세대 인터랙티브 디스플레이</p>
+                    
+                    <!-- 소셜 공유 버튼 -->
+                    <div class="social-share-buttons">
+                        <button class="share-btn share-kakao" onclick="shareToKakao()" title="카카오톡으로 공유">
+                            <span class="share-icon">💬</span>
+                            <span class="share-text">카카오톡</span>
+                        </button>
+                        <button class="share-btn share-link" onclick="copyToClipboard()" title="링크 복사">
+                            <span class="share-icon">🔗</span>
+                            <span class="share-text">링크 복사</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Hero Image -->
@@ -380,6 +401,157 @@
     <script src="js/edition-manager.js"></script>
     <script>
         // EditionManager는 자동으로 초기화됩니다
+        
+        // 검색 기능
+        let searchTimeout;
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        
+        function performSearch() {
+            const query = searchInput.value.trim().toLowerCase();
+            if (!query) {
+                // 검색어가 없으면 현재 발행물로 복귀
+                if (window.EditionManager && window.EditionManager.currentEdition) {
+                    window.EditionManager.loadEdition(window.EditionManager.currentEdition.id);
+                }
+                return;
+            }
+            
+            // 모든 발행물에서 검색
+            if (typeof EDITIONS_DATA === 'undefined' || !EDITIONS_DATA.editions) {
+                alert('발행물 데이터를 불러올 수 없습니다.');
+                return;
+            }
+            
+            const results = EDITIONS_DATA.editions.filter(edition => {
+                const searchText = (
+                    edition.title + ' ' +
+                    edition.headline + ' ' +
+                    edition.subHeadline + ' ' +
+                    (edition.content?.main || '') + ' ' +
+                    (edition.content?.features?.join(' ') || '') + ' ' +
+                    (edition.updates?.map(u => u.description).join(' ') || '') + ' ' +
+                    (edition.achievements?.map(a => a.title + ' ' + a.description).join(' ') || '')
+                ).toLowerCase();
+                
+                return searchText.includes(query);
+            });
+            
+            if (results.length === 0) {
+                alert(`"${query}"에 대한 검색 결과가 없습니다.`);
+                return;
+            }
+            
+            // 첫 번째 결과로 이동
+            if (window.EditionManager) {
+                window.EditionManager.loadEdition(results[0].id);
+                
+                // 검색어 하이라이트
+                setTimeout(() => {
+                    highlightSearchTerm(query);
+                }, 300);
+            }
+        }
+        
+        function highlightSearchTerm(term) {
+            const mainContent = document.getElementById('hero-desc');
+            if (mainContent) {
+                const text = mainContent.textContent;
+                const regex = new RegExp(`(${term})`, 'gi');
+                mainContent.innerHTML = text.replace(regex, '<span class="search-highlight">$1</span>');
+            }
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+        }
+        
+        if (searchBtn) {
+            searchBtn.addEventListener('click', performSearch);
+        }
+        
+        // 소셜 공유 기능
+        function shareToKakao() {
+            const currentUrl = window.location.href;
+            const title = document.getElementById('main-headline')?.textContent || 'NEXO Weekly';
+            const description = document.getElementById('sub-headline')?.textContent || '';
+            
+            // 카카오톡 공유 (모바일)
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: description,
+                    url: currentUrl
+                }).catch(err => console.log('공유 취소됨:', err));
+            } else {
+                // 데스크톱: 카카오톡 링크 복사 안내
+                copyToClipboard();
+                alert('링크가 복사되었습니다. 카카오톡에서 붙여넣기 하세요.');
+            }
+        }
+        
+        function copyToClipboard() {
+            const currentUrl = window.location.href;
+            const title = document.getElementById('main-headline')?.textContent || 'NEXO Weekly';
+            
+            const textToCopy = `${title}\n${currentUrl}`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showCopyNotification();
+                }).catch(err => {
+                    console.error('클립보드 복사 실패:', err);
+                    fallbackCopyToClipboard(textToCopy);
+                });
+            } else {
+                fallbackCopyToClipboard(textToCopy);
+            }
+        }
+        
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showCopyNotification();
+            } catch (err) {
+                alert('링크 복사에 실패했습니다. 수동으로 복사해주세요:\n' + text);
+            }
+            document.body.removeChild(textArea);
+        }
+        
+        function showCopyNotification() {
+            const notification = document.createElement('div');
+            notification.textContent = '✅ 링크가 복사되었습니다!';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--nexo-navy);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-size: 14px;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
     </script>
 </body>
 </html>
