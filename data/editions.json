@@ -1,0 +1,206 @@
+{
+  "editions": [
+    {
+      "id": "2026-02-05",
+      "date": "2026년 2월 5일 목요일",
+      "volume": "VOL. 2026-02",
+      "title": "넥소 전자칠판, AI 기반 개인 맞춤형 학습 시대를 열다",
+      "headline": "넥소 전자칠판, AI 기반 개인 맞춤형 학습 시대를 열다",
+      "subHeadline": "OpenAI ChatGPT 통합으로 교육 혁신의 새로운 장을 시작합니다",
+      "updates": [
+        {
+          "category": "소프트웨어",
+          "version": "UMIND v2.2.0",
+          "description": "OpenAI ChatGPT 통합 및 개인 맞춤형 학습 기능 추가",
+          "date": "2026-02-01"
+        },
+        {
+          "category": "소프트웨어",
+          "version": "AI Assistant 업그레이드",
+          "description": "Google Assistant, DeepSeek 통합 AI Assistant 탑재",
+          "date": "2026-02-02"
+        },
+        {
+          "category": "서비스",
+          "version": "교육 기관 특화 패키지",
+          "description": "학교 및 학원 대상 맞춤형 설치 및 교육 서비스 제공",
+          "date": "2026-02-03"
+        }
+      ],
+      "content": {
+        "main": "넥소는 OpenAI ChatGPT를 통합하여 교육 현장에 혁신을 가져왔습니다. 질문을 입력하면 즉시 답변하고 실시간 피드백을 제공하는 AI 파트너로서, 선생님을 돕고 학생과 소통하는 새로운 교육 환경을 만들어갑니다. 수학 문제 풀이 단계 제안, 외국어 발음과 문법 교정 등 다양한 AI 기능을 통해 개인 맞춤형 학습이 가능해졌습니다.",
+        "features": [
+          "OpenAI ChatGPT 통합",
+          "개인 맞춤형 학습 지원",
+          "실시간 AI 피드백"
+        ]
+      },
+      "stats": {
+        "totalInstallations": 165,
+        "activeUsers": 1350,
+        "contentUpdates": 52
+      },
+      "achievements": [
+        {
+          "type": "innovation",
+          "category": "혁신",
+          "title": "OpenAI ChatGPT 통합 완료",
+          "description": "교육 현장에 AI 기반 개인 맞춤형 학습 환경을 제공하는 ChatGPT 통합을 완료했습니다. 학생들의 질문에 즉시 답변하고 실시간 피드백을 제공합니다.",
+          "date": "2026-02-01",
+          "value": "ChatGPT 통합",
+          "milestone": "AI 혁신"
+        },
+        {
+          "type": "product",
+          "category": "제품 출시",
+          "title": "UMIND v2.2.0 출시",
+          "description": "AI 기능이 강화된 UMIND v2.2.0을 출시하여 수학 문제 풀이, 외국어 교정 등 다양한 교육 도구를 제공합니다.",
+          "date": "2026-02-01",
+          "value": "v2.2.0",
+          "milestone": "소프트웨어 업그레이드"
+        },
+        {
+          "type": "growth",
+          "category": "성장",
+          "title": "설치 대수 165대 달성",
+          "description": "전국 교육기관 및 기업에 넥소 전자칠판이 165대 설치되어 스마트 교육 환경 구축에 기여하고 있습니다.",
+          "date": "2026-02-05",
+          "value": "165대",
+          "milestone": "성장 이정표"
+        }
+      ]
+    },
+    {
+      "id": "2026-01-28",
+      "date": "2026년 1월 28일 목요일",
+      "volume": "VOL. 2026-01",
+      "title": "넥소 전자칠판, 교육·오피스 혁신의 새로운 표준",
+      "headline": "넥소 전자칠판, 교육·오피스 혁신의 새로운 표준",
+      "updates": [
+        {
+          "category": "소프트웨어",
+          "version": "UMIND v2.1.0",
+          "description": "새로운 수학 도구 추가 및 성능 최적화",
+          "date": "2026-01-25"
+        },
+        {
+          "category": "하드웨어",
+          "version": "NX-H Series",
+          "description": "Wi-Fi 6 지원 및 AI 기능 강화",
+          "date": "2026-01-20"
+        }
+      ],
+      "content": {
+        "main": "넥소(NEXO)는 단순한 디스플레이를 넘어선 'All-in-One Smart Solution'을 제시한다. 교육 환경에서는 학생들의 집중력을 높이는 인터랙티브 도구로, 비즈니스 환경에서는 효율적인 협업을 위한 스마트 허브로 자리잡고 있다.",
+        "features": [
+          "압도적 4K UHD 해상도",
+          "무반사 강화유리 & 제로갭 본딩",
+          "스마트 미러링 & 판서"
+        ]
+      },
+      "stats": {
+        "totalInstallations": 150,
+        "activeUsers": 1200,
+        "contentUpdates": 45
+      },
+      "achievements": [
+        {
+          "type": "product",
+          "category": "제품 출시",
+          "title": "NX-H Series Wi-Fi 6 지원 모델 출시",
+          "description": "최신 Wi-Fi 6 기술을 탑재하여 더욱 빠르고 안정적인 무선 연결을 제공하는 NX-H Series를 출시했습니다.",
+          "date": "2026-01-20",
+          "value": "Wi-Fi 6",
+          "milestone": "기술 혁신"
+        },
+        {
+          "type": "partnership",
+          "category": "협력",
+          "title": "2026 노원지구 협력업체 공동구매 프로모션",
+          "description": "노원지구 협력업체를 대상으로 한 특별 공동구매 프로모션을 통해 더 많은 기관이 넥소 전자칠판을 도입할 수 있도록 지원합니다.",
+          "date": "2026-01-25",
+          "value": "특별 할인",
+          "milestone": "마케팅"
+        },
+        {
+          "type": "innovation",
+          "category": "혁신",
+          "title": "UMIND v2.1.0 수학 도구 강화",
+          "description": "새로운 수학 도구를 추가하고 성능을 최적화하여 교육 현장에서 더욱 효율적인 수업이 가능하도록 개선했습니다.",
+          "date": "2026-01-25",
+          "value": "v2.1.0",
+          "milestone": "소프트웨어"
+        }
+      ]
+    },
+    {
+      "id": "2026-01-21",
+      "date": "2026년 1월 21일 목요일",
+      "volume": "VOL. 2025-52",
+      "title": "넥소 전자칠판 신규 모델 출시 및 공동구매 프로모션 시작",
+      "headline": "넥소 전자칠판 신규 모델 출시 및 공동구매 프로모션 시작",
+      "updates": [
+        {
+          "category": "하드웨어",
+          "version": "NX-P Series 110인치",
+          "description": "초대형 전자칠판 신규 출시 - 대강당 및 전시장 특화",
+          "date": "2026-01-18"
+        },
+        {
+          "category": "소프트웨어",
+          "version": "UMIND v2.0.5",
+          "description": "3D 도형 인식 기능 개선 및 UI/UX 업데이트",
+          "date": "2026-01-15"
+        },
+        {
+          "category": "서비스",
+          "version": "공동구매 프로모션",
+          "description": "2026 노원지구 협력업체 대상 특별 할인 이벤트 시작",
+          "date": "2026-01-20"
+        }
+      ],
+      "content": {
+        "main": "넥소는 110인치 초대형 전자칠판 NX-P Series를 출시하며 대형 강당 및 전시장 시장에 진출했다. 동시에 2026 노원지구 협력업체를 대상으로 한 공동구매 프로모션을 시작하여 더 많은 기관이 넥소 전자칠판을 도입할 수 있도록 지원한다.",
+        "features": [
+          "110인치 초대형 디스플레이",
+          "32GB RAM / 512GB ROM",
+          "대강당/전시장 특화 기능"
+        ]
+      },
+      "stats": {
+        "totalInstallations": 140,
+        "activeUsers": 1100,
+        "contentUpdates": 38
+      },
+      "achievements": [
+        {
+          "type": "product",
+          "category": "제품 출시",
+          "title": "NX-P Series 110인치 초대형 모델 출시",
+          "description": "대강당 및 전시장 특화를 위한 110인치 초대형 전자칠판 NX-P Series를 출시하여 대형 공간 시장에 진출했습니다.",
+          "date": "2026-01-18",
+          "value": "110인치",
+          "milestone": "신규 시장 진출"
+        },
+        {
+          "type": "innovation",
+          "category": "혁신",
+          "title": "UMIND 3D 도형 인식 기능 개선",
+          "description": "3D 도형 인식 기능을 개선하고 UI/UX를 업데이트하여 더욱 직관적이고 사용하기 편한 판서 환경을 제공합니다.",
+          "date": "2026-01-15",
+          "value": "v2.0.5",
+          "milestone": "기능 개선"
+        },
+        {
+          "type": "partnership",
+          "category": "협력",
+          "title": "SMMT & NEXO 공동구매 프로모션 시작",
+          "description": "SMMT와의 협력을 통해 노원지구 협력업체 대상 특별 할인 이벤트를 시작하여 더 많은 기관이 넥소 전자칠판을 도입할 수 있도록 지원합니다.",
+          "date": "2026-01-20",
+          "value": "특별 프로모션",
+          "milestone": "전략적 제휴"
+        }
+      ]
+    }
+  ]
+}

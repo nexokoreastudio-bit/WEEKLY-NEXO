@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO Weekly - 관리자 에디터</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <!-- 로그인 화면 -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-box">
+            <h1>🔐 관리자 로그인</h1>
+            <p class="login-subtitle">NEXO Weekly 발행물 관리 시스템</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-password">비밀번호</label>
+                    <input type="password" id="admin-password" placeholder="관리자 비밀번호를 입력하세요" required>
+                </div>
+                <button type="submit" class="btn-primary">로그인</button>
+            </form>
+            <p class="login-note">기본 비밀번호는 설정 파일에서 변경할 수 있습니다.</p>
+        </div>
+    </div>
+
+    <!-- 관리자 에디터 -->
+    <div id="admin-editor" class="admin-editor" style="display: none;">
+        <header class="admin-header">
+            <h1>📝 NEXO Weekly 발행물 작성</h1>
+            <div class="admin-actions">
+                <button id="logout-btn" class="btn-secondary">로그아웃</button>
+                <a href="index.html" class="btn-secondary" target="_blank">사이트 보기</a>
+            </div>
+        </header>
+
+        <div class="admin-container">
+            <div class="editor-wrapper">
+                <!-- 간단한 에디터 -->
+                <div class="editor-section">
+                    <div class="editor-header">
+                        <h2>✍️ 발행물 작성</h2>
+                        <p class="editor-hint">네이버 블로그처럼 자유롭게 작성하세요. 텍스트와 이미지만 입력하면 자동으로 웹사이트 형식에 맞게 변환됩니다.</p>
+                    </div>
+
+                    <form id="edition-form" class="edition-form">
+                        <!-- 기본 정보 (최소한만) -->
+                        <div class="form-section simple-section">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="edition-date">발행일 (목요일) *</label>
+                                    <input type="date" id="edition-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edition-title">제목 *</label>
+                                    <input type="text" id="edition-title" placeholder="예: 목요일엔 넥소! 🏢 스마트 오피스의 시작" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 리치 텍스트 에디터 -->
+                        <div class="form-section editor-content-section">
+                            <label for="content-editor" class="editor-label">내용 작성 *</label>
+                            <div class="editor-toolbar">
+                                <button type="button" class="toolbar-btn" onclick="insertText('✅ ', 'content-editor')" title="체크리스트">✅</button>
+                                <button type="button" class="toolbar-btn" onclick="insertText('🏆 ', 'content-editor')" title="업적">🏆</button>
+                                <button type="button" class="toolbar-btn" onclick="insertText('💡 ', 'content-editor')" title="팁">💡</button>
+                                <button type="button" class="toolbar-btn" onclick="insertText('📞 ', 'content-editor')" title="연락처">📞</button>
+                                <button type="button" class="toolbar-btn" onclick="insertText('🌐 ', 'content-editor')" title="웹사이트">🌐</button>
+                                <span class="toolbar-separator">|</span>
+                                <button type="button" class="toolbar-btn" onclick="insertText('\n\n', 'content-editor')" title="줄바꿈">줄바꿈</button>
+                            </div>
+                            <textarea 
+                                id="content-editor" 
+                                class="content-editor"
+                                placeholder="예시:&#10;&#10;[목요일엔 넥소! 🏢 스마트 오피스의 시작]&#10;&#10;대표님, 우리 회사 회의실 풍경은 어떤가요? 흐릿한 빔프로젝터, 지우기 바쁜 화이트보드, 복잡한 케이블... 🤯&#10;이제 넥소(NEXO) 전자칠판 하나로 스마트하게 바꾸세요!&#10;&#10;✅ All-in-One 솔루션: PC + 모니터 + 칠판 + 카메라가 하나로 통합되었습니다.&#10;✅ 압도적 화질: 4K UHD 해상도로 작은 글씨도 선명하게, 4,800만 화소 AI 카메라로 화상 회의도 완벽하게 지원합니다.&#10;✅ 무선 미러링: 노트북, 태블릿, 스마트폰 등 최대 9대 기기를 선 없이 동시에 연결하세요.&#10;&#10;🏆 검증된 실적: 메가스터디, 종로학원 등 전국 학원 납품 1위, 소상공인진흥공단 기술 공급 1위의 기술력으로 만듭니다.&#10;&#10;💡 톡방 멤버 특별 제안: 사무실 이전을 앞두고 계시거나, 스마트한 회의 환경이 필요하신 대표님들은 편하게 문의 주세요.&#10;&#10;📞 문의: (전화번호 기재)&#10;🌐 홈페이지: www.nexokorea.com"
+                                required></textarea>
+                            <div class="editor-footer">
+                                <small>💡 팁: 이모지와 특수 기호를 사용하면 자동으로 구조화됩니다. ✅는 업데이트, 🏆는 업적, 💡는 특별 제안으로 인식됩니다.</small>
+                            </div>
+                        </div>
+
+                        <!-- 이미지 업로드 (간단하게) -->
+                        <div class="form-section image-section">
+                            <label class="editor-label">이미지 등록 (최대 3개)</label>
+                            <div class="image-upload-simple">
+                                <div class="image-upload-box" id="image-box-1">
+                                    <input type="file" id="image-1" accept="image/*" class="image-input-hidden" data-index="1">
+                                    <div class="image-preview-simple" id="preview-1">
+                                        <div class="image-placeholder-simple">
+                                            <span class="placeholder-icon">📷</span>
+                                            <span class="placeholder-text">Hero 이미지<br>(상단 큰 이미지)</span>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="image-1-filename" placeholder="파일명 (자동 입력)" class="image-filename-input" readonly>
+                                </div>
+                                <div class="image-upload-box" id="image-box-2">
+                                    <input type="file" id="image-2" accept="image/*" class="image-input-hidden" data-index="2">
+                                    <div class="image-preview-simple" id="preview-2">
+                                        <div class="image-placeholder-simple">
+                                            <span class="placeholder-icon">📷</span>
+                                            <span class="placeholder-text">이미지 2<br>(선택사항)</span>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="image-2-filename" placeholder="파일명" class="image-filename-input" readonly>
+                                </div>
+                                <div class="image-upload-box" id="image-box-3">
+                                    <input type="file" id="image-3" accept="image/*" class="image-input-hidden" data-index="3">
+                                    <div class="image-preview-simple" id="preview-3">
+                                        <div class="image-placeholder-simple">
+                                            <span class="placeholder-icon">📷</span>
+                                            <span class="placeholder-text">이미지 3<br>(선택사항)</span>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="image-3-filename" placeholder="파일명" class="image-filename-input" readonly>
+                                </div>
+                            </div>
+                            <div class="image-note-simple">
+                                <p>📸 이미지 파일을 선택하면 파일명이 자동으로 입력됩니다. 선택한 파일을 <code>assets/images/</code> 폴더에 복사하는 것을 잊지 마세요!</p>
+                            </div>
+                        </div>
+
+                        <!-- 제출 버튼 -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary btn-large">✅ 발행물 등록</button>
+                            <button type="button" class="btn-secondary" onclick="previewParsed()">👁️ 미리보기</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 미리보기 패널 (선택사항) -->
+                <div class="preview-panel" id="preview-panel" style="display: none;">
+                    <h3>📋 자동 파싱 결과 미리보기</h3>
+                    <div id="parsed-preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 성공 메시지 -->
+        <div id="success-message" class="success-message" style="display: none;">
+            <div class="message-content">
+                <span class="message-icon">✅</span>
+                <h3>발행물이 성공적으로 등록되었습니다!</h3>
+                <div id="success-details"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin-editor.js"></script>
+</body>
+</html>

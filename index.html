@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXO Weekly Edition - 매주 목요일 발행</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="paper">
+        <!-- Header -->
+        <header class="magazine-header">
+            <div class="top-meta">
+                <span id="current-volume">VOL. 2026-W05</span>
+                <span id="current-date">2026.01.28 THURSDAY</span>
+                <span>SPECIAL EDITION</span>
+            </div>
+            
+            <div class="brand-logo-area">
+                <div class="logo-container">
+                    <img src="assets/images/nexo_logo_black.png" alt="NEXO 로고" class="nexo-logo">
+                    <h1>WEEKLY</h1>
+                </div>
+                <div class="concept-badge">
+                    <span class="concept-icon">📰</span>
+                    <span class="concept-text">전자칠판 = 전자신문 | 매주 목요일, 정보의 새로운 전달 방식</span>
+                </div>
+                <div class="edition-nav">
+                    <button id="prev-edition" title="이전 발행분">◀</button>
+                    <select id="edition-select">
+                        <option value="">최신호 보기</option>
+                    </select>
+                    <button id="next-edition" title="다음 발행분">▶</button>
+                </div>
+                <p class="edition-nav-hint">발행물을 날짜별로 선택하여 보실 수 있습니다</p>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <main>
+                <!-- Headline Group -->
+                <div class="headline-group">
+                    <h2 class="main-headline" id="main-headline">넥소 전자칠판, 노원지구 협력업체를 위한 '스마트 교육'의 마침표를 찍다</h2>
+                    <p class="sub-headline" id="sub-headline">압도적인 4K UHD 해상도와 제로갭 본딩 기술로 완성된 차세대 인터랙티브 디스플레이</p>
+                </div>
+
+                <!-- Hero Image -->
+                <div class="hero-section">
+                    <div class="hero-image" id="hero-image-container">
+                        <img id="hero-image" src="assets/images/2.png" alt="NEXO Smart Display">
+                        <div class="hero-caption" id="hero-caption">▲ NEXO Smart Display</div>
+                    </div>
+                    <div class="hero-text">
+                        <p class="lead-text">압도적인 4K UHD 화질과 AI 기술의 결합</p>
+                        <p class="hero-desc" id="hero-desc">
+                            넥소(NEXO)는 단순한 디스플레이를 넘어선 'All-in-One Smart Solution'을 제시한다. 
+                            전자신문의 개념처럼, 매주 목요일 새로운 정보와 콘텐츠를 업데이트하며 
+                            교육 환경에서는 학생들의 집중력을 높이는 인터랙티브 도구로, 비즈니스 환경에서는 효율적인 협업을 위한 스마트 허브로 자리잡고 있다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Editorial Image -->
+                <div class="editorial-image-section">
+                    <img src="assets/images/whiteboard-size.jpg" alt="전자칠판 사이즈 안내" class="editorial-image">
+                </div>
+
+                <!-- Concept Section -->
+                <div class="concept-section">
+                    <div class="concept-box">
+                        <div class="concept-icon-large">🖥️</div>
+                        <div class="concept-content">
+                            <h3 class="concept-title">왜 '전자칠판'인가? (Editorial)</h3>
+                            <p class="concept-description">
+                                넥소 전자칠판은 단순한 디스플레이가 아닙니다. <strong>교육과 비즈니스 현장에서 정보를 전달하고 소통하는 혁신적인 매체</strong>입니다.
+                                전통적인 칠판이나 화이트보드의 한계를 넘어, <strong>디지털 기술과 AI를 결합한 차세대 협업 도구</strong>로 진화했습니다.
+                            </p>
+                            
+                            <div class="concept-reasons">
+                                <h4>전자칠판을 선택해야 하는 이유</h4>
+                                <div class="reasons-grid">
+                                    <div class="reason-item">
+                                        <div class="reason-icon">📊</div>
+                                        <h5>실시간 정보 업데이트</h5>
+                                        <p>매주 목요일 새로운 콘텐츠와 정보를 업데이트하여 항상 최신 정보를 제공합니다. 정적 칠판과 달리 살아있는 정보 전달 매체입니다.</p>
+                                    </div>
+                                    <div class="reason-item">
+                                        <div class="reason-icon">🤝</div>
+                                        <h5>협업과 소통의 중심</h5>
+                                        <p>여러 명이 동시에 판서하고, 무선 미러링으로 다양한 기기를 연결하여 효율적인 협업 환경을 만듭니다.</p>
+                                    </div>
+                                    <div class="reason-item">
+                                        <div class="reason-icon">🧠</div>
+                                        <h5>AI 기반 스마트 솔루션</h5>
+                                        <p>OpenAI ChatGPT 통합으로 실시간 피드백과 개인 맞춤형 학습을 지원하는 지능형 교육 도구입니다.</p>
+                                    </div>
+                                    <div class="reason-item">
+                                        <div class="reason-icon">🎯</div>
+                                        <h5>All-in-One 통합 솔루션</h5>
+                                        <p>PC, 모니터, 칠판, 카메라, 마이크가 하나로 통합되어 복잡한 장비 없이 완벽한 환경을 구축합니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="concept-comparison">
+                                <h4>전통 칠판 vs 전자칠판</h4>
+                                <div class="comparison-item">
+                                    <span class="comparison-label">📝 전통 칠판/화이트보드</span>
+                                    <span class="comparison-arrow">→</span>
+                                    <span class="comparison-value">정적 정보, 지우고 다시 쓰기, 일회성</span>
+                                </div>
+                                <div class="comparison-item">
+                                    <span class="comparison-label">🖥️ 넥소 전자칠판</span>
+                                    <span class="comparison-arrow">→</span>
+                                    <span class="comparison-value">동적 정보, 저장 및 공유, 실시간 업데이트, AI 지원</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="grid-layout">
+                    <div>
+                        <div class="col-title">주요 혁신 기능</div>
+                        
+                        <!-- 동적 이미지 컨테이너 (각 발행분마다 최대 3개) -->
+                        <div id="edition-images-container"></div>
+                        
+                        <div class="feature-item">
+                            <span class="drop-cap">A</span>
+                            <h4>압도적 4K UHD 해상도</h4>
+                            <p>
+                                FHD보다 월등한 선명도를 자랑하는 4K UHD 패널을 적용하여, 작은 글씨와 복잡한 도표도 선명하게 표현한다.
+                                350~450nits의 밝기로 밝은 강의실이나 회의실에서도 최적의 시인성을 제공한다.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <h4>무반사 강화유리 & 제로갭 본딩</h4>
+                            <p>
+                                난반사를 최소화하는 최고 등급의 무반사(Anti-glare) 처리와 경도 9H의 고강도 강화유리를 적용했다. 패널과 유리
+                                사이의 간격을 없앤 제로갭(Zero-gap) 기술로 실제 종이에 쓰는 듯한 필기감을 구현했다.
+                            </p>
+                        </div>
+                        
+                        <div class="feature-item">
+                            <h4>스마트 미러링 & 판서</h4>
+                            <p>
+                                별도의 케이블 없이 노트북, 태블릿, 스마트폰 등 최대 9개 기기의 화면을 동시에 공유할 수 있다. 자체 개발된
+                                'UMIND' 판서 소프트웨어는 다양한 펜 모드와 교육용 도구(수학, 과학)를 지원한다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YouTube Videos Section -->
+                <div class="youtube-videos-section">
+                    <h3 class="videos-title">📹 넥소 전자칠판 체험 영상</h3>
+                    <div class="videos-grid">
+                        <div class="video-item">
+                            <div class="video-wrapper">
+                                <iframe 
+                                    width="100%" 
+                                    height="100%" 
+                                    src="https://www.youtube.com/embed/tRUiBVwodd8" 
+                                    title="NEXO 전자칠판 영상 1" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        </div>
+                        <div class="video-item">
+                            <div class="video-wrapper">
+                                <iframe 
+                                    width="100%" 
+                                    height="100%" 
+                                    src="https://www.youtube.com/embed/Ofl5GWPY2lQ" 
+                                    title="NEXO 전자칠판 영상 2" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        </div>
+                        <div class="video-item">
+                            <div class="video-wrapper">
+                                <iframe 
+                                    width="100%" 
+                                    height="100%" 
+                                    src="https://www.youtube.com/embed/nKYE16PydzQ" 
+                                    title="수학 쌤 필수 시청! PDF 문제 풀이 공간 부족할 때 해결법 (넥소칠판)" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                    referrerpolicy="strict-origin-when-cross-origin" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guide Section -->
+                <div class="guide-section">
+                    <h3 class="guide-title">QUICK START: 이것만은 꼭 활용하세요!</h3>
+                    <div class="guide-grid">
+                        <div class="guide-card">
+                            <h5>01. UMIND 판서 앱</h5>
+                            <p>
+                                직관적인 UI로 누구나 쉽게 사용 가능합니다. 수학/과학 도구 및 2D/3D 도형 인식을 지원하여 전문적인 수업이
+                                가능합니다.
+                            </p>
+                        </div>
+                        <div class="guide-card">
+                            <h5>02. 무선 미러링 (E-share)</h5>
+                            <p>
+                                Eshare 앱을 통해 안드로이드, iOS, 윈도우, 맥 등 모든 OS를 지원합니다. 발표자의 화면을 실시간으로 칠판에
+                                전송하세요.
+                            </p>
+                        </div>
+                        <div class="guide-card">
+                            <h5>03. AI 음성/화면 녹화</h5>
+                            <p>
+                                회의나 수업 전체를 녹화하여 보관할 수 있습니다. 고성능 마이크가 내장되어 있어 별도의 장비 없이 음성까지
+                                선명하게 기록됩니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Promotion Section -->
+                <div class="event-promotion-section">
+                    <div class="event-header">
+                        <div class="event-badge">🔥 진행중</div>
+                        <h3 class="event-title">💎 노원지구 협력업체 특별 프로모션</h3>
+                        <p class="event-subtitle">최저가 프로모션으로 스마트 오피스 환경을 구축하세요</p>
+                    </div>
+                    <div class="event-content">
+                        <div class="event-highlight">
+                            <div class="highlight-icon">💰</div>
+                            <div class="highlight-text">
+                                <h4>웹사이트를 통해 카카오톡 문의 시</h4>
+                                <p class="highlight-main">특별 최저가 프로모션 적용</p>
+                                <p class="highlight-desc">이 웹사이트를 통해 카카오톡으로 문의해주시는 노원지구 협력업체 고객님께는 최저가 프로모션이 자동으로 적용됩니다.</p>
+                            </div>
+                        </div>
+                        <div class="event-benefits">
+                            <h4>프로모션 혜택</h4>
+                            <ul class="benefits-list">
+                                <li>✅ 노원지구 협력업체 전용 특별 할인가</li>
+                                <li>✅ 웹사이트 경유 카톡 문의 시 자동 적용</li>
+                                <li>✅ 추가 설치 및 A/S 서비스 지원</li>
+                                <li>✅ 맞춤형 솔루션 컨설팅 제공</li>
+                            </ul>
+                        </div>
+                        <div class="event-cta">
+                            <a href="https://open.kakao.com/o/gsXGYodi" class="event-btn" target="_blank">
+                                <span class="btn-icon">💬</span>
+                                <span class="btn-text">카카오톡으로 문의하기</span>
+                                <span class="btn-arrow">→</span>
+                            </a>
+                            <p class="event-note">💡 웹사이트를 통해 문의하시면 프로모션 가격이 자동으로 적용됩니다</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Updates Section -->
+                <div class="updates-section" id="updates-section">
+                    <div class="updates-header">
+                        <h3 class="updates-title">📋 이번 호 주요 업데이트</h3>
+                        <span class="updates-badge" id="updates-count">0</span>
+                    </div>
+                    <div class="updates-grid" id="updates-grid">
+                        <!-- 동적으로 업데이트 정보가 로드됩니다 -->
+                    </div>
+                </div>
+
+                <!-- Achievements Section -->
+                <div class="achievements-section" id="achievements-section">
+                    <div class="achievements-header">
+                        <h3 class="achievements-title">🏆 넥소 주요 업적</h3>
+                        <p class="achievements-subtitle">넥소가 걸어온 혁신의 발자취와 성과를 소개합니다</p>
+                    </div>
+                    <div class="achievements-grid" id="achievements-grid">
+                        <!-- 동적으로 업적 정보가 로드됩니다 -->
+                    </div>
+                </div>
+
+                <!-- NX-Series Lineup Image (고정 이미지) -->
+                <div class="lineup-section">
+                    <img src="assets/images/9.png" alt="NX-Series 라인업" class="lineup-image">
+                </div>
+                
+                <!-- Product Specs -->
+                <div class="spec-grid">
+                    <div class="spec-card">
+                        <h4>NX-S (Standard)</h4>
+                        <p>65" / 75" / 86"<br>Android 14.0<br>8GB RAM / 128GB ROM<br>4800만 화소 AI 카메라<br>8배열 마이크 탑재</p>
+                    </div>
+                    <div class="spec-card">
+                        <h4>NX-H (High-End)</h4>
+                        <p>65" / 75" / 86" / 98"<br>Android 13 (15 Up)<br>16GB RAM / 256GB ROM<br>Wi-Fi 6, 대화형 AI 탑재<br>지문인식 보안</p>
+                    </div>
+                    <div class="spec-card" style="border-top-color: var(--nexo-cyan);">
+                        <h4>NX-P (Premium)</h4>
+                        <p><strong>110인치 초대형</strong><br>Android 15.0<br>32GB RAM / 512GB ROM<br>최고 사양 퍼포먼스<br>대강당/전시장 특화</p>
+                    </div>
+                </div>
+                
+                <!-- Hardware & Software Features -->
+                <div class="hardware-software-section">
+                    <img src="assets/images/4.png" alt="아날로그의 필기감, 디지털의 강력함" class="hardware-software-image">
+                </div>
+                
+            </main>
+
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="cta-box">
+                    <div class="cta-badge">🔥 진행중</div>
+                    <div class="cta-header">
+                        <span class="cta-icon">💎</span>
+                        <h3>노원지구 협력업체<br>특별 프로모션</h3>
+                    </div>
+                    <div class="cta-content">
+                        <p class="cta-subtitle">최저가 프로모션으로<br>스마트 오피스 환경을 구축하세요</p>
+                        <div class="cta-benefit">
+                            <span class="benefit-icon">💰</span>
+                            <span>웹사이트 경유 카톡 문의 시<br>특별 최저가 자동 적용</span>
+                        </div>
+                    </div>
+                    <div class="cta-buttons">
+                        <a href="https://open.kakao.com/o/gsXGYodi" class="btn-modern btn-kakao" target="_blank">
+                            <span class="btn-icon">💬</span>
+                            <span class="btn-text">카카오톡으로 문의하기</span>
+                            <span class="btn-arrow">→</span>
+                        </a>
+                    </div>
+                    <div class="cta-footer">
+                        <span class="cta-note">💡 웹사이트를 통해 문의하시면<br>프로모션 가격이 자동으로 적용됩니다</span>
+                    </div>
+                </div>
+
+                <div class="tips-box">
+                    <h4>💡 실전 팁</h4>
+                    <p><strong>QR 공유:</strong> 판서 내용을 즉시 PDF로 변환하여 학생들에게 전송하세요.</p>
+                    <p><strong>화면 분할:</strong> 한쪽에는 영상을, 다른 한쪽에는 판서를 동시에 진행하세요.</p>
+                    <p><strong>보안 잠금:</strong> 기본 비밀번호는 '2580'입니다.</p>
+                    <a href="https://blog.naver.com/nexokorea" target="_blank">공식 블로그 더보기 →</a>
+                </div>
+
+                <div class="tips-box">
+                    <h4>📞 연락처</h4>
+                    <p><strong>Web:</strong> <a href="https://www.nexokorea.co.kr" target="_blank">www.nexokorea.co.kr</a></p>
+                    <p><strong>Blog:</strong> <a href="https://blog.naver.com/nexokorea" target="_blank">blog.naver.com/nexokorea</a></p>
+                    <p><strong>Tel:</strong> 032-569-5771~2</p>
+                    <p><strong>Addr:</strong> 인천 서구 보듬로 158 블루텍</p>
+                </div>
+                
+            </aside>
+        </div>
+
+        <footer>
+            (주)넥소 | 인천 서구 보듬로 158 블루텍 | Tel: 032-569-5771~2 | www.nexokorea.co.kr | Digital Transformation Partner
+        </footer>
+    </div>
+
+    <!-- 모바일 고정 문의 버튼 -->
+    <div class="mobile-fixed-buttons">
+        <a href="https://smmt.kr/2026_nexo" class="mobile-btn mobile-btn-primary" target="_blank">공동구매</a>
+        <a href="https://open.kakao.com/o/gsXGYodi" class="mobile-btn mobile-btn-kakao" target="_blank">카카오톡 문의</a>
+    </div>
+
+    <script src="js/editions-data.js"></script>
+    <script src="js/edition-manager.js"></script>
+    <script>
+        // EditionManager는 자동으로 초기화됩니다
+    </script>
+</body>
+</html>
