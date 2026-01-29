@@ -205,6 +205,7 @@ body {
   font-family: 'Noto Sans KR', sans-serif;
   transition: all 0.3s;
   color: var(--ink-black);
+  text-decoration: none; /* 링크인 경우 밑줄 제거 */
 }
 
 .share-btn:hover {

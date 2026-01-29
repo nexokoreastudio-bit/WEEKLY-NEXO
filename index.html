@@ -56,10 +56,10 @@
                     
                     <!-- 소셜 공유 버튼 -->
                     <div class="social-share-buttons">
-                        <button class="share-btn share-kakao" onclick="shareToKakao()" title="카카오톡으로 공유">
+                        <div class="share-btn share-kakao" style="cursor: not-allowed; opacity: 0.6;" title="카카오톡 문의 (준비중)">
                             <span class="share-icon">💬</span>
-                            <span class="share-text">카카오톡</span>
-                        </button>
+                            <span class="share-text">카카오톡 (준비중)</span>
+                        </div>
                         <button class="share-btn share-link" onclick="copyToClipboard()" title="링크 복사">
                             <span class="share-icon">🔗</span>
                             <span class="share-text">링크 복사</span>
@@ -280,13 +280,11 @@
                             </ul>
                         </div>
                         <div class="event-cta">
-                            <a href="https://open.kakao.com/o/gl07YOdi" class="event-btn" target="_blank">
+                            <div class="event-btn preparing-btn" style="cursor: not-allowed; opacity: 0.6;">
                                 <span class="btn-icon">💬</span>
-                                <span class="btn-text">카카오톡으로 문의하기</span>
-                                <span class="btn-arrow">→</span>
-                            </a>
-                            <p class="event-entry-code">입장코드 7878</p>
-                            <p class="event-note">💡 웹사이트를 통해 문의하시면 프로모션 가격이 자동으로 적용됩니다</p>
+                                <span class="btn-text">카카오톡 문의 (준비중)</span>
+                            </div>
+                            <p class="event-note" style="color: #ffaa00; font-weight: 600;">⏳ 카카오톡 문의 서비스 준비중입니다. 곧 만나보실 수 있습니다.</p>
                         </div>
                     </div>
                 </div>
@@ -357,25 +355,31 @@
                         </div>
                     </div>
                     <div class="cta-buttons">
-                        <a href="https://open.kakao.com/o/gl07YOdi" class="btn-modern btn-kakao" target="_blank">
+                        <div class="btn-modern btn-kakao preparing-btn" style="cursor: not-allowed; opacity: 0.6;">
                             <span class="btn-icon">💬</span>
-                            <span class="btn-text">카카오톡으로 문의하기</span>
-                            <span class="btn-arrow">→</span>
-                        </a>
-                        <p class="entry-code">입장코드 7878</p>
+                            <span class="btn-text">카카오톡 문의 (준비중)</span>
+                        </div>
+                        <p class="preparing-note" style="font-size: 12px; color: rgba(255, 255, 255, 0.7); text-align: center; margin-top: 10px;">⏳ 서비스 준비중입니다</p>
                     </div>
                     <div class="cta-footer">
                         <span class="cta-note">💡 웹사이트를 통해 문의하시면<br>프로모션 가격이 자동으로 적용됩니다</span>
                     </div>
                 </div>
 
-                <!-- 주문 입력 폼 -->
-                <div class="order-form-box">
+                <!-- 주문 입력 폼 (준비중) -->
+                <div class="order-form-box" style="opacity: 0.7; position: relative;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.9); z-index: 10; display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+                        <div style="text-align: center; padding: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">⏳</div>
+                            <h3 style="color: var(--nexo-navy); margin-bottom: 10px; font-size: 18px;">특별 프로모션 신청</h3>
+                            <p style="color: #666; font-size: 14px; margin: 0;">서비스 준비중입니다.<br>곧 만나보실 수 있습니다.</p>
+                        </div>
+                    </div>
                     <div class="order-form-header">
                         <span class="order-form-icon">📋</span>
-                        <h3>전용 공동구매 신청</h3>
+                        <h3>특별 프로모션 신청 (준비중)</h3>
                     </div>
-                    <form id="order-form" name="order-form" class="order-form" netlify netlify-honeypot="bot-field" data-netlify="true" action="/thank-you.html">
+                    <form id="order-form" name="order-form" class="order-form" netlify netlify-honeypot="bot-field" data-netlify="true" action="/thank-you.html" style="pointer-events: none;">
                         <input type="hidden" name="form-name" value="order-form">
                         <input type="hidden" name="bot-field" />
                         <div class="form-group">
@@ -457,8 +461,8 @@
 
     <!-- 모바일 고정 문의 버튼 -->
     <div class="mobile-fixed-buttons">
-        <a href="https://smmt.kr/2026_nexo" class="mobile-btn mobile-btn-primary" target="_blank">공동구매</a>
-        <a href="https://open.kakao.com/o/gl07YOdi" class="mobile-btn mobile-btn-kakao" target="_blank">카카오톡 문의</a>
+        <div class="mobile-btn mobile-btn-primary" style="cursor: not-allowed; opacity: 0.6;">공동구매 (준비중)</div>
+        <div class="mobile-btn mobile-btn-kakao" style="cursor: not-allowed; opacity: 0.6;">카카오톡 문의 (준비중)</div>
     </div>
 
     <script src="js/editions-data.js"></script>
