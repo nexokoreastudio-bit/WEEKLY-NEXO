@@ -81,14 +81,18 @@ exports.handler = async (event, context) => {
         await doc.loadInfo();
         const sheet = doc.sheetsByIndex[0]; // 첫 번째 시트 사용
 
-        // 데이터 행 생성
+        // 데이터 행 생성 (Google Sheets 컬럼명에 정확히 맞춤)
+        const regionAndSize = [];
+        if (region) regionAndSize.push(region);
+        if (size) regionAndSize.push(`${size}인치`);
+        const regionAndSizeText = regionAndSize.join(' / ') || '';
+        
         const row = {
             '제출일시': new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
             '업체명': company_name || '',
             '주문자 성함': customer_name || '',
             '연락처': phone_number || '',
-            '지역 / 설치 환경': region || '',
-            '인치 종류': size ? `${size}인치` : '',
+            '지역 / 설치 환경 인치 종류': regionAndSizeText, // Google Sheets 컬럼명에 맞춤
             '설치 방식': mount_type === 'stand' ? '이동형 스탠드' : (mount_type === 'wall' ? '벽걸이' : mount_type || ''),
             '구매 수량': quantity ? `${quantity}대` : '',
             '단가': unit_price || '',
