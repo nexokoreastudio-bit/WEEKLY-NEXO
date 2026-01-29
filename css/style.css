@@ -1165,6 +1165,31 @@ body {
   gap: 10px;
 }
 
+/* 사이드바 카카오톡 버튼 크기 조정 (원래의 80% 크기) */
+.cta-buttons .btn-kakao {
+  width: 80%;
+  padding: 11px 16px;
+  font-size: 14px;
+  border-radius: 7px;
+}
+
+.cta-buttons .btn-kakao .btn-icon {
+  font-size: 16px;
+}
+
+.cta-buttons .btn-kakao .btn-arrow {
+  font-size: 16px;
+}
+
+.entry-code {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
 .btn-modern::before {
   content: '';
   position: absolute;
@@ -1236,6 +1261,15 @@ body {
   padding: 15px 25px;
   background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(0, 229, 255, 0.2);
+}
+
+.entry-code-footer {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  letter-spacing: 0.5px;
 }
 
 .cta-note {
@@ -1694,8 +1728,18 @@ body {
   transform: translateX(5px);
 }
 
-.event-note {
+.event-entry-code {
   margin-top: 15px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.event-note {
+  margin-top: 0;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
   font-style: italic;

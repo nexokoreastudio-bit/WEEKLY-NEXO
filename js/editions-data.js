@@ -98,7 +98,7 @@ const EDITIONS_DATA = {
         {
           "filename": "2.png",
           "alt": "NEXO 스마트 디스플레이 - K-AI 미래를 위한 새로운 표준",
-          "caption": "NEXO 스마트 디스플레이"
+          "caption": "NEXO를 선택한 학원들"
         }
       ]
     }
