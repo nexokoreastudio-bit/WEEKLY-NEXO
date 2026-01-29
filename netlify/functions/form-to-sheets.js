@@ -1,5 +1,6 @@
-// Netlify Function: Netlify Forms webhook을 받아 Google Sheets에 저장
+// Netlify Function: Netlify Forms webhook 또는 직접 호출을 받아 Google Sheets에 저장
 const { GoogleSpreadsheet } = require('google-spreadsheet');
+const { JWT } = require('google-auth-library');
 
 exports.handler = async (event, context) => {
     // CORS 헤더 설정
@@ -71,28 +72,36 @@ exports.handler = async (event, context) => {
             total_price,
         } = submissionData;
 
-        // Google Sheets 연결
-        const doc = new GoogleSpreadsheet(sheetId);
-        await doc.useServiceAccountAuth({
-            client_email: clientEmail,
-            private_key: privateKey,
+        // Service Account 인증 설정 (참고 프로젝트 방식 사용)
+        const serviceAccountAuth = new JWT({
+            email: clientEmail,
+            key: privateKey.replace(/\\n/g, '\n'),
+            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
         });
 
+        // Google Sheets 연결 (인증 정보와 함께)
+        const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
         await doc.loadInfo();
-        const sheet = doc.sheetsByIndex[0]; // 첫 번째 시트 사용
+        
+        // 첫 번째 시트 사용
+        const sheet = doc.sheetsByIndex[0];
+        
+        console.log('Google Sheets 연결 성공:', {
+            title: doc.title,
+            sheetCount: doc.sheetCount,
+            sheetTitle: sheet.title
+        });
 
         // 데이터 행 생성 (Google Sheets 컬럼명에 정확히 맞춤)
-        const regionAndSize = [];
-        if (region) regionAndSize.push(region);
-        if (size) regionAndSize.push(`${size}인치`);
-        const regionAndSizeText = regionAndSize.join(' / ') || '';
-        
+        // 실제 Google Sheets 컬럼 구조:
+        // 제출일시 | 업체명 | 주문자 성함 | 연락처 | 지역 / 설치 환경 | 인치 종류 | 설치 방식 | 구매 수량 | 단가 | 총 주문 금액
         const row = {
             '제출일시': new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
             '업체명': company_name || '',
             '주문자 성함': customer_name || '',
             '연락처': phone_number || '',
-            '지역 / 설치 환경 인치 종류': regionAndSizeText, // Google Sheets 컬럼명에 맞춤
+            '지역 / 설치 환경': region || '', // 별도 컬럼
+            '인치 종류': size ? `${size}인치` : '', // 별도 컬럼
             '설치 방식': mount_type === 'stand' ? '이동형 스탠드' : (mount_type === 'wall' ? '벽걸이' : mount_type || ''),
             '구매 수량': quantity ? `${quantity}대` : '',
             '단가': unit_price || '',
