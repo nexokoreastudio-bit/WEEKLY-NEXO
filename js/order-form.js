@@ -20,14 +20,9 @@
     }
 
     function updatePriceDisplay() {
-        const totalPrice = calculateTotalPrice();
+        // 가격 표시 기능 비활성화 (총 금액 표시 안 함)
         const priceDisplay = document.getElementById('price-display');
-        const totalPriceElement = document.getElementById('total-price');
-
-        if (totalPrice > 0) {
-            priceDisplay.style.display = 'block';
-            totalPriceElement.textContent = totalPrice.toLocaleString() + '원';
-        } else {
+        if (priceDisplay) {
             priceDisplay.style.display = 'none';
         }
     }
