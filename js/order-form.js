@@ -51,7 +51,7 @@
 
         // 폼 제출 처리 - Netlify Forms 사용
         if (orderForm) {
-            orderForm.addEventListener('submit', function(e) {
+            orderForm.addEventListener('submit', async function(e) {
                 // 페이지 이동 전에 모든 로그를 즉시 출력 (큰 폰트로 강조)
                 console.log('%c=== 🚀 폼 제출 시작 ===', 'font-size: 18px; font-weight: bold; color: #00ff00; background: #000; padding: 8px; border: 2px solid #00ff00;');
                 console.log('제출 시간:', new Date().toLocaleString('ko-KR'));
