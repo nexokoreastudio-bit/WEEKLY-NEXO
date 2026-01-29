@@ -1,0 +1,19 @@
+{
+  "name": "weekly-nexo",
+  "version": "1.0.0",
+  "description": "NEXO Weekly 전자신문 플랫폼",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "google-spreadsheet": "^4.1.1"
+  },
+  "keywords": [
+    "nexo",
+    "weekly",
+    "newsletter"
+  ],
+  "author": "NEXO",
+  "license": "ISC"
+}

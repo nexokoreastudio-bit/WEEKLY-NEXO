@@ -1285,6 +1285,158 @@ body {
   white-space: normal;
 }
 
+/* 주문 입력 폼 */
+.order-form-box {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.order-form-header {
+  background: linear-gradient(135deg, var(--nexo-navy), #003d7a);
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.order-form-icon {
+  font-size: 20px;
+}
+
+.order-form-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.order-form {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.order-form .form-group {
+  margin-bottom: 15px;
+}
+
+.order-form input[type="text"],
+.order-form input[type="tel"],
+.order-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+.order-form input[type="text"]:focus,
+.order-form input[type="tel"]:focus,
+.order-form select:focus {
+  outline: none;
+  border-color: var(--nexo-navy);
+  box-shadow: 0 0 0 2px rgba(0, 31, 63, 0.1);
+}
+
+.order-form select {
+  cursor: pointer;
+  background: white;
+}
+
+.price-display {
+  background: linear-gradient(135deg, rgba(0, 31, 63, 0.05), rgba(0, 229, 255, 0.05));
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(0, 31, 63, 0.1);
+}
+
+.price-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--nexo-navy);
+}
+
+.price-amount {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--nexo-navy);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-size: 11px;
+  color: #666;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checkbox-group label {
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.order-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--nexo-navy), #003d7a);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.order-submit-btn:hover {
+  background: linear-gradient(135deg, #003d7a, var(--nexo-navy));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 31, 63, 0.3);
+}
+
+.order-submit-btn:active {
+  transform: translateY(0);
+}
+
+.order-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.order-form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.order-form::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.order-form::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 .tips-box {
   border: 1px solid #ddd;
   padding: 15px;
@@ -2083,6 +2235,11 @@ footer {
   .qr-placeholder {
     width: 60px;
     height: 60px;
+  }
+
+  /* 모바일: 주문 폼 숨김 또는 하단 고정 */
+  .order-form-box {
+    display: none; /* 모바일에서는 기본적으로 숨김 */
   }
 }
 

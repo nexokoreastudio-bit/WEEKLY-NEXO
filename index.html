@@ -369,6 +369,73 @@
                     </div>
                 </div>
 
+                <!-- 주문 입력 폼 -->
+                <div class="order-form-box">
+                    <div class="order-form-header">
+                        <span class="order-form-icon">📋</span>
+                        <h3>전용 공동구매 신청</h3>
+                    </div>
+                    <form id="order-form" name="order-form" class="order-form" netlify netlify-honeypot="bot-field" data-netlify="true" action="/thank-you.html">
+                        <input type="hidden" name="form-name" value="order-form">
+                        <input type="hidden" name="bot-field" />
+                        <div class="form-group">
+                            <input type="text" name="company_name" id="company_name" placeholder="업체명" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="customer_name" id="customer_name" placeholder="주문자 성함" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="tel" name="phone_number" id="phone_number" placeholder="연락처" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="region" id="region" placeholder="지역 / 설치 환경" required>
+                        </div>
+                        <div class="form-group">
+                            <select name="size" id="size" required>
+                                <option value="">인치 종류 선택</option>
+                                <option value="65">65인치</option>
+                                <option value="75">75인치</option>
+                                <option value="86">86인치</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select name="mount_type" id="mount_type">
+                                <option value="wall">벽걸이</option>
+                                <option value="stand">이동형 스탠드</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select name="quantity" id="quantity" required>
+                                <option value="">구매 수량</option>
+                                <option value="1">1대</option>
+                                <option value="2">2대</option>
+                                <option value="3">3대</option>
+                                <option value="4">4대</option>
+                                <option value="5">5대</option>
+                                <option value="6">6대</option>
+                                <option value="7">7대</option>
+                                <option value="8">8대</option>
+                                <option value="9">9대</option>
+                                <option value="10">10대</option>
+                            </select>
+                        </div>
+                        <div id="price-display" class="price-display" style="display: none;">
+                            <div class="price-content">
+                                <span>총 금액:</span>
+                                <span class="price-amount" id="total-price">0원</span>
+                            </div>
+                        </div>
+                        <!-- 총 금액 정보를 Netlify Forms에 전송하기 위한 hidden 필드 -->
+                        <input type="hidden" name="unit_price" id="unit_price" value="">
+                        <input type="hidden" name="total_price" id="total_price_hidden" value="">
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="agree" name="agree" required>
+                            <label for="agree">개인정보 수집 및 이용 동의 (필수)</label>
+                        </div>
+                        <button type="submit" class="order-submit-btn">신청하기</button>
+                    </form>
+                </div>
+
                 <div class="tips-box">
                     <h4>💡 실전 팁</h4>
                     <p><strong>QR 공유:</strong> 판서 내용을 즉시 PDF로 변환하여 학생들에게 전송하세요.</p>
@@ -401,6 +468,7 @@
 
     <script src="js/editions-data.js"></script>
     <script src="js/edition-manager.js"></script>
+    <script src="js/order-form.js"></script>
     <script>
         // EditionManager는 자동으로 초기화됩니다
         
@@ -498,20 +566,18 @@
         }
         
         function copyToClipboard() {
-            const currentUrl = window.location.href;
-            const title = document.getElementById('main-headline')?.textContent || 'NEXO Weekly';
-            
-            const textToCopy = `${title}\n${currentUrl}`;
+            // 기본 URL만 복사 (쿼리 파라미터 제외)
+            const baseUrl = window.location.origin;
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(textToCopy).then(() => {
+                navigator.clipboard.writeText(baseUrl).then(() => {
                     showCopyNotification();
                 }).catch(err => {
                     console.error('클립보드 복사 실패:', err);
-                    fallbackCopyToClipboard(textToCopy);
+                    fallbackCopyToClipboard(baseUrl);
                 });
             } else {
-                fallbackCopyToClipboard(textToCopy);
+                fallbackCopyToClipboard(baseUrl);
             }
         }
         
