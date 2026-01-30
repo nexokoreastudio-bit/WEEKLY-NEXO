@@ -23,12 +23,13 @@ async function generate() {
     console.error('로고 파일을 찾을 수 없습니다:', LOGO_PATH);
     process.exit(1);
   }
+  // 카카오톡 썸네일 크롭 대비: 로고를 작게 해서 사방 여백을 넉넉히 둠
   const logoResized = await sharp(LOGO_PATH)
-    .resize(520, 280, { fit: 'inside' })
+    .resize(380, 200, { fit: 'inside' })
     .toBuffer();
   const logoMeta = await sharp(logoResized).metadata();
-  const w = logoMeta.width || 520;
-  const h = logoMeta.height || 280;
+  const w = logoMeta.width || 380;
+  const h = logoMeta.height || 200;
   const x = Math.round((SIZE - w) / 2);
   const y = Math.round((SIZE - h) / 2);
 
