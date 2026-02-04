@@ -5,14 +5,17 @@
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-og-image": "node scripts/generate-og-image.js"
+    "generate-og-image": "node scripts/generate-og-image.js",
+    "setup-qrcode": "node scripts/setup-qrcode.js",
+    "postinstall": "npm run setup-qrcode || true"
   },
   "devDependencies": {
     "sharp": "^0.33.5"
   },
   "dependencies": {
     "google-auth-library": "^9.0.0",
-    "google-spreadsheet": "^4.1.1"
+    "google-spreadsheet": "^4.1.1",
+    "qrcode": "^1.5.3"
   },
   "keywords": [
     "nexo",

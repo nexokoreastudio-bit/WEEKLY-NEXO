@@ -2119,6 +2119,393 @@ body {
   line-height: 1.5;
 }
 
+/* 구독자 전용 자료 섹션 */
+.premium-download-section {
+  margin: 60px 0;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(0, 31, 63, 0.02), rgba(0, 229, 255, 0.02));
+  border-radius: 12px;
+  border: 1px solid rgba(0, 31, 63, 0.1);
+}
+
+.premium-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.premium-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin-bottom: 10px;
+  font-family: 'Noto Serif KR', serif;
+}
+
+.premium-subtitle {
+  font-size: 16px;
+  color: #666;
+}
+
+.premium-files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.premium-file-card {
+  position: relative;
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.premium-file-card:hover {
+  border-color: var(--nexo-navy);
+  box-shadow: 0 4px 12px rgba(0, 31, 63, 0.1);
+  transform: translateY(-2px);
+}
+
+.premium-file-card.locked {
+  filter: blur(3px);
+  position: relative;
+}
+
+.premium-file-card:not(.locked) {
+  filter: none;
+  cursor: pointer;
+}
+
+.premium-file-card:not(.locked):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 31, 63, 0.15);
+}
+
+.premium-file-card:not(.locked)::after {
+  content: '⬇️ 다운로드';
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  background: var(--nexo-navy);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.premium-file-card:not(.locked):hover::after {
+  opacity: 1;
+}
+
+.premium-file-card.locked .file-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 31, 63, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 12px;
+  pointer-events: all;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.premium-file-card:not(.locked) {
+  pointer-events: auto;
+}
+
+.file-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.file-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin-bottom: 10px;
+}
+
+.file-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.file-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: #999;
+}
+
+.file-type {
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.lock-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
+
+.lock-text {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.premium-cta {
+  text-align: center;
+}
+
+.premium-signup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, var(--nexo-navy), #003d7a);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.premium-signup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 31, 63, 0.3);
+}
+
+.premium-note {
+  margin-top: 15px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* 회원 가입 모달 */
+.member-signup-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  pointer-events: none;
+}
+
+.member-signup-modal:not([hidden]) {
+  pointer-events: auto;
+}
+
+.member-signup-modal[hidden] {
+  display: none !important;
+}
+
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  cursor: pointer;
+}
+
+.modal-box {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  pointer-events: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  line-height: 1;
+  z-index: 10;
+  position: relative;
+}
+
+.modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.modal-close:active {
+  background: #e0e0e0;
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+.modal-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.member-signup-form .form-group {
+  margin-bottom: 20px;
+}
+
+.member-signup-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nexo-navy);
+  margin-bottom: 8px;
+}
+
+.member-signup-form input[type="text"],
+.member-signup-form input[type="email"],
+.member-signup-form input[type="tel"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+.member-signup-form input:focus {
+  outline: none;
+  border-color: var(--nexo-navy);
+  box-shadow: 0 0 0 2px rgba(0, 31, 63, 0.1);
+}
+
+.member-signup-form .checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 25px;
+}
+
+.member-signup-form .checkbox-group input[type="checkbox"] {
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.member-signup-form .checkbox-group label {
+  font-weight: 400;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+}
+
+.modal-footer-note {
+  margin-top: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+}
+
+/* 사이드바 구독 박스 */
+.sidebar-subscribe-box {
+  background: linear-gradient(135deg, rgba(0, 31, 63, 0.05), rgba(0, 229, 255, 0.05));
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 31, 63, 0.1);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.sidebar-subscribe-box h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin-bottom: 8px;
+}
+
+.sidebar-subscribe-box p {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.sidebar-signup-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--nexo-navy), #003d7a);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.sidebar-signup-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 31, 63, 0.2);
+}
+
 .order-submit-btn {
   width: 100%;
   padding: 14px;
