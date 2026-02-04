@@ -8,11 +8,11 @@
     "generate-og-image": "node scripts/generate-og-image.js"
   },
   "devDependencies": {
-    "sharp": "^0.33.0"
+    "sharp": "^0.33.5"
   },
   "dependencies": {
-    "google-spreadsheet": "^4.1.1",
-    "google-auth-library": "^9.0.0"
+    "google-auth-library": "^9.0.0",
+    "google-spreadsheet": "^4.1.1"
   },
   "keywords": [
     "nexo",

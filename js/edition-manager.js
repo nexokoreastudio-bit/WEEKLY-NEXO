@@ -4,6 +4,24 @@ class EditionManager {
         this.editions = [];
         this.currentEdition = null;
         this.currentIndex = -1;
+        /** 관리자 미리보기 모드: URL에 ?preview=1 이 있으면 발행 전 호도 선택·본문 확인 가능 */
+        this.previewMode = false;
+    }
+
+    /** 오늘 날짜를 YYYY-MM-DD 형식으로 반환 (로컬 기준) */
+    getTodayDateString() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    /** 발행일이 지났는지 여부 (id가 YYYY-MM-DD일 때, 오늘 >= 발행일이면 공개) */
+    isPublished(edition) {
+        if (!edition || !edition.id) return false;
+        const today = this.getTodayDateString();
+        return today >= edition.id;
     }
 
     async init() {
@@ -35,17 +53,18 @@ class EditionManager {
             // 발행일 선택 드롭다운 채우기
             this.populateEditionSelector();
             
-            // URL 파라미터에서 발행분 확인
+            // URL 파라미터에서 발행분·미리보기 확인
             const urlParams = new URLSearchParams(window.location.search);
             const editionParam = urlParams.get('edition');
+            this.previewMode = urlParams.get('preview') === '1' || urlParams.get('preview') === 'true';
             
             // 최신 호 또는 URL 파라미터의 호 로드
             if (this.editions.length > 0) {
                 if (editionParam && this.editions.find(e => e.id === editionParam)) {
                     this.loadEdition(editionParam);
                 } else {
-                    // 준비중이 아닌 최신 발행물 찾기
-                    const latestPublished = this.editions.find(e => e.status !== 'preparing' && e.title !== '발행물 준비중');
+                    // 발행일이 지난 것 중 최신 호 로드 (미리 만든 호는 발행일이 되면 자동 오픈)
+                    const latestPublished = this.editions.find(e => this.isPublished(e));
                     if (latestPublished) {
                         this.loadEdition(latestPublished.id);
                     } else {
@@ -76,20 +95,20 @@ class EditionManager {
         // 기존 옵션 제거 (최신호 보기 제외)
         selector.innerHTML = '<option value="">최신호 보기</option>';
 
-        // 발행일 옵션 추가
-        console.log('발행분 개수:', this.editions.length);
-        this.editions.forEach(edition => {
+        // 발행일이 지난 호만 선택 목록에 표시 (미리보기 모드면 전체 호 표시)
+        const listEditions = this.previewMode ? this.editions : this.editions.filter(e => this.isPublished(e));
+        console.log(this.previewMode ? '미리보기 모드: 전체 발행분' : '공개된 발행분 개수:', listEditions.length, '/ 전체:', this.editions.length);
+        listEditions.forEach(edition => {
             const option = document.createElement('option');
             option.value = edition.id;
-            // 준비중 발행물 표시
+            const notYet = !this.isPublished(edition);
             if (edition.status === 'preparing' || edition.title === '발행물 준비중') {
-                option.textContent = `${edition.date} - 🔜 발행물 준비중`;
-                option.disabled = false; // 선택 가능하지만 준비중 메시지 표시
+                option.textContent = `${edition.date} - 🔜 발행물 준비중${notYet ? ' (미리보기)' : ''}`;
             } else {
-                option.textContent = `${edition.date} - ${edition.title.substring(0, 30)}...`;
+                const titlePart = `${edition.date} - ${(edition.title || '').substring(0, 28)}${(edition.title && edition.title.length > 28) ? '...' : ''}`;
+                option.textContent = notYet ? titlePart + ' 📅 미리보기' : titlePart;
             }
             selector.appendChild(option);
-            console.log('발행분 추가:', edition.id, edition.date);
         });
 
         // 선택 이벤트
@@ -97,8 +116,7 @@ class EditionManager {
             if (e.target.value) {
                 this.loadEdition(e.target.value);
             } else {
-                // 최신호 로드 (준비중 제외)
-                const latestPublished = this.editions.find(e => e.status !== 'preparing' && e.title !== '발행물 준비중');
+                const latestPublished = this.editions.find(ed => this.isPublished(ed));
                 if (latestPublished) {
                     this.loadEdition(latestPublished.id);
                 } else if (this.editions.length > 0) {
@@ -118,6 +136,19 @@ class EditionManager {
         this.currentEdition = edition;
         this.currentIndex = this.editions.findIndex(e => e.id === editionId);
 
+        // 발행일이 아직 안 된 호(미리 만든 호) → 미리보기 모드가 아니면 발행 예정 메시지만 표시
+        if (!this.isPublished(edition)) {
+            if (this.previewMode) {
+                this.showPreviewBanner(edition);
+                // 아래 본문·업데이트 등은 그대로 진행
+            } else {
+                this.showNotYetPublishedMessage(edition);
+                return;
+            }
+        } else {
+            this.hidePreviewBanner();
+        }
+
         // 준비중 발행물 체크
         if (edition.status === 'preparing' || edition.title === '발행물 준비중') {
             this.showPreparingMessage(edition);
@@ -133,10 +164,11 @@ class EditionManager {
         this.updateAchievements(edition);
         this.updateNavigation();
 
-        // URL 업데이트 (히스토리 관리)
+        // URL 업데이트 (히스토리 관리, 미리보기 모드 유지)
         if (updateURL) {
             const url = new URL(window.location);
             url.searchParams.set('edition', editionId);
+            if (this.previewMode) url.searchParams.set('preview', '1');
             window.history.pushState({ edition: editionId }, '', url);
         }
         
@@ -397,6 +429,67 @@ class EditionManager {
             return (num / 1000).toFixed(1) + 'K';
         }
         return num.toString();
+    }
+
+    /** 관리자 미리보기 배너 표시 (발행 전 호 본문 위에 노출) */
+    showPreviewBanner(edition) {
+        let el = document.getElementById('admin-preview-banner');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'admin-preview-banner';
+            el.setAttribute('role', 'status');
+            const main = document.querySelector('main');
+            if (main) main.insertBefore(el, main.firstChild);
+        }
+        el.textContent = `관리자 미리보기 · ${edition.date}에 공개 예정`;
+        el.className = 'admin-preview-banner';
+        el.style.cssText = 'display:block; background:#1a365d; color:#fff; text-align:center; padding:10px 16px; font-size:14px; font-family:\'Noto Sans KR\',sans-serif;';
+    }
+
+    /** 관리자 미리보기 배너 숨김 */
+    hidePreviewBanner() {
+        const el = document.getElementById('admin-preview-banner');
+        if (el) el.style.display = 'none';
+    }
+
+    /** 발행일이 되기 전 호(미리 만든 호) 안내 메시지 */
+    showNotYetPublishedMessage(edition) {
+        this.updateHeader(edition);
+        const headlineElement = document.getElementById('main-headline');
+        const subHeadlineElement = document.getElementById('sub-headline');
+        const descElement = document.getElementById('hero-desc');
+        if (headlineElement) headlineElement.textContent = '📅 발행 예정';
+        if (subHeadlineElement) subHeadlineElement.textContent = `${edition.date}에 공개됩니다`;
+        if (descElement) {
+            descElement.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">📅</div>
+                    <h3 style="font-size: 24px; color: var(--nexo-navy); margin-bottom: 15px; font-family: 'Noto Serif KR', serif;">
+                        ${edition.date} 발행 예정
+                    </h3>
+                    <p style="font-size: 16px; color: #666; line-height: 1.8; margin-bottom: 30px;">
+                        이 발행물은 <strong>${edition.date}</strong>에 공개됩니다.<br>
+                        매주 목요일 새로운 전자신문이 발행됩니다.
+                    </p>
+                    <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; display: inline-block;">
+                        <p style="margin: 0; font-size: 14px; color: #888;">
+                            💡 발행일이 되면 자동으로 열립니다. 다른 호를 선택해 보세요.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        const updatesSection = document.getElementById('updates-section');
+        const achievementsSection = document.getElementById('achievements-section');
+        if (updatesSection) updatesSection.style.display = 'none';
+        if (achievementsSection) achievementsSection.style.display = 'none';
+        const heroImage = document.getElementById('hero-image-container');
+        if (heroImage) heroImage.style.display = 'none';
+        this.updateNavigation();
+        const url = new URL(window.location);
+        url.searchParams.set('edition', edition.id);
+        window.history.pushState({ edition: edition.id }, '', url);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     showPreparingMessage(edition) {
