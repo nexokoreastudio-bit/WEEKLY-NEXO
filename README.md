@@ -28,14 +28,17 @@ WEEKLY-NEXO/
 │   └── style.css       # 스타일시트
 ├── js/
 │   ├── editions-data.js     # 발행 이력 데이터 (JavaScript)
-│   └── edition-manager.js  # 발행일 관리 시스템
+│   └── edition-manager.js  # 발행일·매거진·쌤 도구함 관리
 ├── data/
-│   └── editions.json   # 발행 이력 데이터 (참고용, 현재 미사용)
+│   └── editions.json   # 발행 이력 (참고용)
 ├── assets/
-│   └── images/         # 이미지 파일 저장소
-├── archive/            # 과거 발행분 보관
+│   ├── images/         # 이미지 저장소
+│   └── downloads/     # 쌤 도구함 다운로드 자료 (DOWNLOAD_FILES_GUIDE.md 참고)
+├── DOCS_INDEX.md       # 문서 목록 (용도별 정리)
 └── README.md           # 프로젝트 설명서
 ```
+
+**문서가 많을 때**: **`DOCS_INDEX.md`**에서 용도별로 문서를 찾을 수 있습니다.
 
 ## 주요 기능
 
@@ -63,6 +66,10 @@ WEEKLY-NEXO/
 - 발행물 검색 기능
 
 ## 사용 방법
+
+### 🧪 테스트 모드 (개발용)
+
+URL에 **`?test=1`**을 붙이면 테스트 모드가 켜집니다. 검색 UI가 노출되고 상단에 "테스트 모드" 배너가 표시됩니다. 자세한 내용은 **`TEST_MODE.md`**를 참고하세요.
 
 ### 🎯 빠른 시작: 관리자 에디터 사용
 

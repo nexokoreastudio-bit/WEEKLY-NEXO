@@ -2,6 +2,15 @@
 
 매주 목요일 새로운 전자신문을 발행하기 위한 단계별 가이드입니다.
 
+## 👁️ 발행물을 보는 방법 (요약)
+
+| 상황 | 방법 |
+|------|------|
+| **로컬에서 보기** | 프로젝트 폴더에서 `index.html`을 브라우저로 열거나, `npx serve` 또는 `python3 -m http.server 3000` 후 `http://localhost:3000` 접속 |
+| **이미 발행된 호** | 페이지 접속 → 상단 발행물 선택 드롭다운에서 해당 호 선택 |
+| **아직 발행 전 호(미리보기)** | URL에 `?preview=1` 붙이기 (예: `index.html?preview=1`). 드롭다운에 모든 호가 보이며, 발행 전 호를 선택해 본문 확인 가능 |
+| **특정 호만 바로 열기** | `?preview=1&edition=2026-02-05` 처럼 `edition=YYYY-MM-DD` 추가 시 해당 호가 바로 로드됨 |
+
 ## 📅 미리 만들고, 발행일이 되면 자동 오픈
 
 - **발행일 = `id` 날짜**: 각 호의 `id`(예: `2026-02-12`)가 **그 목요일의 발행일**입니다.
@@ -26,7 +35,7 @@
    아직 공개되지 않은 호를 볼 때는 본문 위에 **"관리자 미리보기 · OOO년 O월 O일 목요일에 공개 예정"** 배너가 표시됩니다.
 
 4. **특정 호만 바로 보기**  
-   `?preview=1&edition=2026-02-06` 처럼 **preview=1** 과 **edition=발행일** 을 함께 쓰면 해당 호가 바로 로드됩니다.
+   `?preview=1&edition=2026-02-05` 처럼 **preview=1** 과 **edition=발행일** 을 함께 쓰면 해당 호가 바로 로드됩니다.
 
 일반 독자는 `preview=1` 없이 접속하므로, 발행 전 호는 목록에 보이지 않고 URL로 직접 들어가도 "발행 예정" 메시지만 보입니다.
 
@@ -117,6 +126,16 @@ const EDITIONS_DATA = {
 - ✅ `stats`: 통계 객체
 - ✅ `achievements`: 업적 배열 (최소 1개)
 - ✅ `images`: 이미지 배열 (최대 3개, 선택사항)
+
+### 선택 필드 (리뉴얼 스키마)
+
+호별로 **매거진(칼럼/기사)**·**NEXO 쌤 도구함**을 넣고 싶을 때만 추가합니다. 없어도 발행분은 정상 표시됩니다. 자세한 계획은 `RENEWAL_PLAN.md` 참고.
+
+- **`articles`** (선택): 칼럼·기사 배열.  
+  - `{ type: 'column' | 'news', title: string, author: string, content: string(HTML), tags: string[] }`
+- **`tools`** (선택): 도구·자료 배열.  
+  - 위젯: `{ type: 'widget', name: string, title: string, icon: string }`  
+  - 다운로드: `{ type: 'download', title: string, url: string, fileType: string }`
 
 ### 4단계: 파일 저장 및 확인
 

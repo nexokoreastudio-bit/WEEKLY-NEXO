@@ -1,11 +1,16 @@
 // 발행일 관리 및 콘텐츠 로드 시스템
+/** 관리자 미리보기용 비밀번호 (admin-editor와 동일하게 변경 가능) */
+const ADMIN_PREVIEW_PASSWORD = 'nexo2026';
+
 class EditionManager {
     constructor() {
         this.editions = [];
         this.currentEdition = null;
         this.currentIndex = -1;
-        /** 관리자 미리보기 모드: URL에 ?preview=1 이 있으면 발행 전 호도 선택·본문 확인 가능 */
+        /** 관리자 미리보기 모드: URL ?preview=1 또는 관리자 로그인 시 발행 전 호 노출 */
         this.previewMode = false;
+        /** 호별 목록 뷰 표시 여부 (리스트식 미리보기) */
+        this.listViewActive = false;
     }
 
     /** 오늘 날짜를 YYYY-MM-DD 형식으로 반환 (로컬 기준) */
@@ -53,28 +58,40 @@ class EditionManager {
             // 발행일 선택 드롭다운 채우기
             this.populateEditionSelector();
             
-            // URL 파라미터에서 발행분·미리보기 확인
+            // URL 파라미터에서 발행분·미리보기 확인 (관리자 로그인 시에도 미리보기 적용)
             const urlParams = new URLSearchParams(window.location.search);
             const editionParam = urlParams.get('edition');
-            this.previewMode = urlParams.get('preview') === '1' || urlParams.get('preview') === 'true';
+            this.previewMode = urlParams.get('preview') === '1' || urlParams.get('preview') === 'true' ||
+                (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('admin-authenticated') === 'true');
             
-            // 최신 호 또는 URL 파라미터의 호 로드
+            // 최신 호 또는 URL 파라미터의 호 로드 (본문 데이터 준비)
             if (this.editions.length > 0) {
                 if (editionParam && this.editions.find(e => e.id === editionParam)) {
-                    this.loadEdition(editionParam);
+                    this.loadEdition(editionParam, true);
                 } else {
-                    // 발행일이 지난 것 중 최신 호 로드 (미리 만든 호는 발행일이 되면 자동 오픈)
+                    // 홈 접속(edition 없음): 내부적으로만 최신호 로드, URL은 index 유지
                     const latestPublished = this.editions.find(e => this.isPublished(e));
-                    if (latestPublished) {
-                        this.loadEdition(latestPublished.id);
-                    } else {
-                        this.loadEdition(this.editions[0].id);
-                    }
+                    const toLoad = latestPublished || this.editions[0];
+                    this.loadEdition(toLoad.id, false);
                 }
             }
             
             // 네비게이션 버튼 이벤트
             this.setupNavigation();
+            
+            // 호별 목록 토글 (리스트식 미리보기)
+            this.setupEditionListToggle();
+            
+            // 로고 클릭 시 홈(목록 뷰)으로, URL을 index로 정리
+            this.setupLogoHomeLink();
+            
+            // 관리자 로그인 (네이버 카페처럼 로그인 시 발행 예정 미리보기)
+            this.setupAdminLogin();
+            this.updateAdminAuthUI();
+            
+            // 처음 들어왔을 때는 호별 목록을 먼저 표시, URL을 edition 없이 유지
+            this.showListView();
+            if (!editionParam) this.replaceStateToHome();
             
             // 브라우저 뒤로가기/앞으로가기 지원
             window.addEventListener('popstate', (e) => {
@@ -161,8 +178,25 @@ class EditionManager {
         this.updateContent(edition);
         this.updateImages(edition);
         this.updateUpdates(edition);
-        this.updateAchievements(edition);
         this.updateNavigation();
+        // 리뉴얼: articles/tools 렌더링 및 섹션 표시 (RENEWAL_PLAN 3단계)
+        if (edition.articles && edition.articles.length > 0) {
+            this.renderArticles(edition);
+            const articlesSection = document.getElementById('articles-section');
+            if (articlesSection) articlesSection.style.display = 'block';
+        } else {
+            const gridEditor = document.getElementById('articles-grid-editor');
+            const gridColumns = document.getElementById('articles-grid-columns');
+            if (gridEditor) gridEditor.innerHTML = '';
+            if (gridColumns) gridColumns.innerHTML = '';
+            const groupEditor = document.getElementById('magazine-group-editor');
+            const groupColumns = document.getElementById('magazine-group-columns');
+            if (groupEditor) groupEditor.style.display = 'none';
+            if (groupColumns) groupColumns.style.display = 'none';
+            const articlesSection = document.getElementById('articles-section');
+            if (articlesSection) articlesSection.style.display = 'none';
+        }
+        this.updateToolsSidebar(edition);
 
         // URL 업데이트 (히스토리 관리, 미리보기 모드 유지)
         if (updateURL) {
@@ -172,8 +206,200 @@ class EditionManager {
             window.history.pushState({ edition: editionId }, '', url);
         }
         
+        // 목록 뷰였다면 본문 뷰로 전환
+        this.showEditionView();
+        
         // 페이지 상단으로 스크롤
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /** URL을 홈(index)으로 정리 — edition 파라미터 제거 */
+    replaceStateToHome() {
+        const url = new URL(window.location);
+        url.searchParams.delete('edition');
+        const cleanSearch = url.searchParams.toString();
+        const newUrl = url.pathname + (cleanSearch ? '?' + cleanSearch : '');
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    /** 리스트식 미리보기: 호별 목록 표시 (홈이면 URL을 index로 유지) */
+    showListView() {
+        this.listViewActive = true;
+        const listView = document.getElementById('edition-list-view');
+        const contentWrap = document.getElementById('edition-content-wrap');
+        const toggleBtn = document.getElementById('edition-list-toggle');
+        if (listView) listView.hidden = false;
+        if (contentWrap) contentWrap.hidden = true;
+        if (toggleBtn) {
+            toggleBtn.textContent = '본문 보기';
+            toggleBtn.setAttribute('title', '현재 호 본문으로 돌아가기');
+        }
+        this.renderEditionList();
+        this.replaceStateToHome();
+    }
+
+    setupLogoHomeLink() {
+        const logoLink = document.querySelector('.logo-home-link');
+        if (!logoLink) return;
+        logoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showListView();
+        });
+    }
+
+    /** 본문 뷰 표시 */
+    showEditionView() {
+        this.listViewActive = false;
+        const listView = document.getElementById('edition-list-view');
+        const contentWrap = document.getElementById('edition-content-wrap');
+        const toggleBtn = document.getElementById('edition-list-toggle');
+        if (listView) listView.hidden = true;
+        if (contentWrap) contentWrap.hidden = false;
+        if (toggleBtn) {
+            toggleBtn.textContent = '📋 호별 목록';
+            toggleBtn.setAttribute('title', '호별 목록으로 보기');
+        }
+    }
+
+    setupEditionListToggle() {
+        const toggleBtn = document.getElementById('edition-list-toggle');
+        if (!toggleBtn) return;
+        toggleBtn.addEventListener('click', () => {
+            if (this.listViewActive) {
+                this.showEditionView();
+            } else {
+                this.showListView();
+            }
+        });
+    }
+
+    /** 본문 HTML에서 텍스트만 추출 (요약용) */
+    getExcerptFromContent(edition, maxLen = 100) {
+        if (!edition || !edition.content || !edition.content.main) return '';
+        const html = edition.content.main;
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const text = (div.textContent || div.innerText || '').replace(/\s+/g, ' ').trim();
+        return text.length > maxLen ? text.slice(0, maxLen) + '…' : text;
+    }
+
+    renderEditionList() {
+        const container = document.getElementById('edition-list-container');
+        if (!container) return;
+        const listEditions = this.previewMode ? this.editions : this.editions.filter(e => this.isPublished(e));
+        container.innerHTML = listEditions.map(edition => {
+            const isPreparing = edition.status === 'preparing' || edition.title === '발행물 준비중';
+            const notYet = !this.isPublished(edition);
+            const thumbSrc = edition.images && edition.images[0]
+                ? (edition.images[0].src || `assets/images/${edition.images[0].filename || edition.images[0]}`)
+                : 'assets/images/2.png';
+            const thumbAlt = edition.images && edition.images[0] ? (edition.images[0].alt || '') : 'NEXO Weekly';
+            const category = edition.volume || `VOL. ${edition.id}`;
+            const title = isPreparing ? '발행물 준비중' : (edition.headline || edition.title || edition.id);
+            const excerpt = isPreparing ? '' : (edition.subHeadline || this.getExcerptFromContent(edition, 90));
+            const dateLabel = edition.date || edition.id;
+            const badge = notYet ? ' 📅 미리보기' : (isPreparing ? ' 🔜 준비중' : '');
+            return `
+                <article class="edition-list-card" data-edition-id="${edition.id}" role="button" tabindex="0">
+                    <div class="edition-list-card-text">
+                        <span class="edition-list-card-category">${category}${badge}</span>
+                        <h3 class="edition-list-card-title">${title}</h3>
+                        ${excerpt ? `<p class="edition-list-card-excerpt">${excerpt}</p>` : ''}
+                        <span class="edition-list-card-meta">${dateLabel}</span>
+                    </div>
+                    <div class="edition-list-card-thumb">
+                        <img src="${thumbSrc}" alt="${thumbAlt}" loading="lazy">
+                    </div>
+                </article>
+            `;
+        }).join('');
+        container.querySelectorAll('.edition-list-card').forEach(card => {
+            const id = card.getAttribute('data-edition-id');
+            const open = () => this.loadEdition(id);
+            card.addEventListener('click', open);
+            card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+        });
+    }
+
+    /** 관리자 로그인 시 미리보기 모드 갱신 (호별 목록·드롭다운에 발행 예정 노출) */
+    refreshPreviewState() {
+        this.previewMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('admin-authenticated') === 'true';
+        this.populateEditionSelector();
+        if (this.listViewActive) this.renderEditionList();
+    }
+
+    /** 관리자 로그인 UI (네이버 카페처럼 로그인 시 발행 예정 미리보기) */
+    setupAdminLogin() {
+        const modal = document.getElementById('admin-login-modal');
+        const btnOpen = document.getElementById('admin-login-open');
+        const btnLogout = document.getElementById('admin-logout');
+        const inputPass = document.getElementById('admin-login-password');
+        const btnConfirm = document.getElementById('admin-login-confirm');
+        const btnCancel = document.getElementById('admin-login-cancel');
+        if (!modal || !btnConfirm) return;
+
+        if (btnOpen) {
+            btnOpen.addEventListener('click', () => {
+                modal.hidden = false;
+                if (inputPass) { inputPass.value = ''; inputPass.focus(); }
+            });
+        }
+        if (btnCancel) {
+            btnCancel.addEventListener('click', () => { modal.hidden = true; });
+        }
+        const backdrop = modal.querySelector('.admin-login-modal-backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', () => { modal.hidden = true; });
+        }
+        const tryLogin = () => {
+            const pwd = inputPass ? inputPass.value.trim() : '';
+            if (pwd === ADMIN_PREVIEW_PASSWORD) {
+                if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('admin-authenticated', 'true');
+                modal.hidden = true;
+                this.refreshPreviewState();
+                this.updateAdminAuthUI();
+            } else {
+                if (inputPass) inputPass.select();
+                alert('비밀번호가 올바르지 않습니다.');
+            }
+        };
+        btnConfirm.addEventListener('click', tryLogin);
+        if (inputPass) {
+            inputPass.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
+        }
+        if (btnLogout) {
+            btnLogout.addEventListener('click', () => {
+                if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('admin-authenticated');
+                window.location.reload();
+            });
+        }
+    }
+
+    /** 관리자 로그인/로그아웃 버튼 표시 갱신 */
+    updateAdminAuthUI() {
+        const area = document.getElementById('admin-auth-area');
+        const isAdmin = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('admin-authenticated') === 'true';
+        if (!area) return;
+        if (isAdmin) {
+            area.innerHTML = '<span class="admin-badge">관리자 (미리보기)</span> <button type="button" id="admin-logout" class="admin-logout-btn">로그아웃</button>';
+            const logoutBtn = document.getElementById('admin-logout');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('admin-authenticated');
+                    window.location.reload();
+                });
+            }
+        } else {
+            area.innerHTML = '<button type="button" id="admin-login-open" class="admin-login-btn">관리자 로그인</button>';
+            const openBtn = document.getElementById('admin-login-open');
+            if (openBtn && document.getElementById('admin-login-modal')) {
+                openBtn.addEventListener('click', () => {
+                    document.getElementById('admin-login-modal').hidden = false;
+                    const inputPass = document.getElementById('admin-login-password');
+                    if (inputPass) { inputPass.value = ''; inputPass.focus(); }
+                });
+            }
+        }
     }
 
     updateHeader(edition) {
@@ -201,6 +427,7 @@ class EditionManager {
     updateHeadline(edition) {
         const headlineElement = document.getElementById('main-headline');
         const subHeadlineElement = document.getElementById('sub-headline');
+        const leadElement = document.getElementById('lead-text');
         
         if (headlineElement) {
             headlineElement.textContent = edition.headline;
@@ -208,6 +435,10 @@ class EditionManager {
         
         if (subHeadlineElement && edition.subHeadline) {
             subHeadlineElement.textContent = edition.subHeadline;
+        }
+        
+        if (leadElement) {
+            leadElement.textContent = edition.leadText || '압도적인 4K UHD 화질과 AI 기술의 결합';
         }
     }
 
@@ -302,75 +533,279 @@ class EditionManager {
         `).join('');
     }
 
-    updateAchievements(edition) {
-        const achievementsGrid = document.getElementById('achievements-grid');
-        if (!achievementsGrid) return;
-
-        // 업적 데이터가 있으면 표시, 없으면 기본 통계 표시
-        if (edition.achievements && edition.achievements.length > 0) {
-            achievementsGrid.innerHTML = edition.achievements.map((achievement, index) => `
-                <div class="achievement-card">
-                    <span class="achievement-badge">${achievement.category || '업적'}</span>
-                    <div class="achievement-icon">${this.getAchievementIcon(achievement.type)}</div>
-                    <h4 class="achievement-title">${achievement.title}</h4>
-                    <p class="achievement-description">${achievement.description}</p>
-                    ${achievement.value ? `<div class="achievement-value">${achievement.value}</div>` : ''}
-                    <div class="achievement-meta">
-                        <span class="achievement-date">${this.formatUpdateDate(achievement.date || edition.id)}</span>
-                        ${achievement.milestone ? `<span class="achievement-category">${achievement.milestone}</span>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        } else if (edition.stats) {
-            // 기존 통계 데이터를 업적 형태로 표시
-            achievementsGrid.innerHTML = `
-                <div class="achievement-card">
-                    <span class="achievement-badge">성과</span>
-                    <div class="achievement-icon">🏢</div>
-                    <h4 class="achievement-title">누적 설치 대수 달성</h4>
-                    <p class="achievement-description">전국 교육기관 및 기업에 넥소 전자칠판이 설치되어 스마트 교육 환경을 구축하고 있습니다.</p>
-                    <div class="achievement-value">${edition.stats.totalInstallations || 0}대</div>
-                    <div class="achievement-meta">
-                        <span class="achievement-date">${this.formatUpdateDate(edition.id)}</span>
-                    </div>
-                </div>
-                <div class="achievement-card">
-                    <span class="achievement-badge">성과</span>
-                    <div class="achievement-icon">👥</div>
-                    <h4 class="achievement-title">활성 사용자 확보</h4>
-                    <p class="achievement-description">매일 넥소 전자칠판을 활용하는 활성 사용자가 지속적으로 증가하고 있습니다.</p>
-                    <div class="achievement-value">${this.formatNumber(edition.stats.activeUsers || 0)}명</div>
-                    <div class="achievement-meta">
-                        <span class="achievement-date">${this.formatUpdateDate(edition.id)}</span>
-                    </div>
-                </div>
-                <div class="achievement-card">
-                    <span class="achievement-badge">혁신</span>
-                    <div class="achievement-icon">📝</div>
-                    <h4 class="achievement-title">컨텐츠 업데이트</h4>
-                    <p class="achievement-description">사용자 피드백을 반영한 지속적인 소프트웨어 및 컨텐츠 업데이트를 통해 최적의 사용자 경험을 제공합니다.</p>
-                    <div class="achievement-value">${edition.stats.contentUpdates || 0}회</div>
-                    <div class="achievement-meta">
-                        <span class="achievement-date">${this.formatUpdateDate(edition.id)}</span>
-                    </div>
-                </div>
-            `;
-        } else {
-            achievementsGrid.innerHTML = '<p class="no-updates">이번 호에는 업적 정보가 없습니다.</p>';
+    /** 쌤 도구함 영역 갱신 — 발행 예정/준비중일 때도 호출해 도구가 보이도록 함 */
+    updateToolsSidebar(edition) {
+        const toolsSidebar = document.getElementById('tools-sidebar');
+        const toolsContainer = document.getElementById('tools-container');
+        if (!toolsSidebar) return;
+        toolsSidebar.style.display = 'block';
+        if (toolsContainer) {
+            if (edition.tools && edition.tools.length > 0) {
+                this.renderTools(edition);
+            } else {
+                toolsContainer.innerHTML = '<p class="tools-empty-hint">이번 호에는 사용할 수 있는 도구가 없습니다.</p>';
+            }
         }
     }
 
-    getAchievementIcon(type) {
-        const icons = {
-            'product': '🚀',
-            'partnership': '🤝',
-            'award': '🏆',
-            'milestone': '🎯',
-            'innovation': '💡',
-            'growth': '📈',
-            'default': '⭐'
+    /** 리뉴얼: 매거진(넥소 에디터 / 칼럼 구분, 가로 배열) 렌더링 */
+    renderArticles(edition) {
+        if (!edition.articles || edition.articles.length === 0) return;
+        const escape = (s) => {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
         };
-        return icons[type] || icons['default'];
+        const isEditorArticle = (art) => {
+            const a = (art.author || '').trim();
+            return a === '넥소 에디터' || a === '넥소 마케팅';
+        };
+        const editorArticles = edition.articles.filter(isEditorArticle);
+        const columnArticles = edition.articles.filter((art) => !isEditorArticle(art));
+
+        const renderCard = (art) => {
+            const typeClass = (art.type === 'column' || art.type === 'news') ? `article-type-${art.type}` : 'article-type-news';
+            const tagsHtml = (art.tags && art.tags.length) ? art.tags.map((t) => `<span class="article-card-tag">${escape(t)}</span>`).join('') : '';
+            return `
+                <article class="article-card ${typeClass}">
+                    <h4 class="article-card-title">${escape(art.title)}</h4>
+                    ${art.author ? `<p class="article-card-author">${escape(art.author)}</p>` : ''}
+                    <div class="article-card-content">${art.content || ''}</div>
+                    ${tagsHtml ? `<div class="article-card-tags">${tagsHtml}</div>` : ''}
+                </article>
+            `;
+        };
+
+        const gridEditor = document.getElementById('articles-grid-editor');
+        const gridColumns = document.getElementById('articles-grid-columns');
+        const groupEditor = document.getElementById('magazine-group-editor');
+        const groupColumns = document.getElementById('magazine-group-columns');
+
+        if (gridEditor && groupEditor) {
+            if (editorArticles.length > 0) {
+                groupEditor.style.display = 'block';
+                gridEditor.innerHTML = editorArticles.map(renderCard).join('');
+            } else {
+                groupEditor.style.display = 'none';
+                gridEditor.innerHTML = '';
+            }
+        }
+        if (gridColumns && groupColumns) {
+            if (columnArticles.length > 0) {
+                groupColumns.style.display = 'block';
+                gridColumns.innerHTML = columnArticles.map(renderCard).join('');
+            } else {
+                groupColumns.style.display = 'none';
+                gridColumns.innerHTML = '';
+            }
+        }
+    }
+
+    /** 리뉴얼: NEXO 쌤 도구함 렌더링 (download 링크, widget → 모달) */
+    renderTools(edition) {
+        const container = document.getElementById('tools-container');
+        if (!container || !edition.tools || edition.tools.length === 0) return;
+        const escape = (s) => {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        };
+        container.innerHTML = edition.tools.map((tool) => {
+            if (tool.type === 'download') {
+                const url = (tool.url || '').trim() || '#';
+                const title = escape(tool.title);
+                return `
+                    <a href="${escape(url)}" class="tool-card tool-card-download" data-download-url="${escape(url)}" download target="_blank" rel="noopener" title="${title}">
+                        <span class="tool-card-icon">📥</span>
+                        <span class="tool-card-title">${title}</span>
+                        ${tool.fileType ? `<span class="tool-card-filetype">${escape(tool.fileType)}</span>` : ''}
+                    </a>
+                `;
+            }
+            if (tool.type === 'widget') {
+                const name = (tool.name || '').toLowerCase();
+                const title = escape(tool.title);
+                const icon = tool.icon || '🔧';
+                const dataName = escape(name);
+                return `
+                    <button type="button" class="tool-card tool-card-widget" data-widget-name="${dataName}" data-widget-title="${title}" title="${title}">
+                        <span class="tool-card-icon">${icon}</span>
+                        <span class="tool-card-title">${title}</span>
+                    </button>
+                `;
+            }
+            return '';
+        }).join('');
+
+        // 위젯 버튼 클릭 → 모달 열기
+        container.querySelectorAll('.tool-card-widget').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const widgetName = (btn.dataset.widgetName || '').toLowerCase();
+                const widgetTitle = btn.dataset.widgetTitle || '도구';
+                this.openToolModal(widgetName, widgetTitle);
+            });
+        });
+
+        // 다운로드 링크: 파일 없으면 "자료 준비 중" 안내 (404 시 에러 페이지가 받아지는 것 방지)
+        container.querySelectorAll('.tool-card-download').forEach((link) => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = link.getAttribute('data-download-url') || link.getAttribute('href');
+                const title = link.querySelector('.tool-card-title')?.textContent || '자료';
+                if (!url || url === '#') {
+                    this.showDownloadPreparingMessage(title);
+                    return;
+                }
+                fetch(url, { method: 'HEAD' })
+                    .then((res) => {
+                        if (res.ok) {
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = '';
+                            a.rel = 'noopener';
+                            a.target = '_blank';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        } else {
+                            this.showDownloadPreparingMessage(title);
+                        }
+                    })
+                    .catch(() => this.showDownloadPreparingMessage(title));
+            });
+        });
+    }
+
+    /** 다운로드 자료 준비 중 안내 (방문자용 짧은 문구) */
+    showDownloadPreparingMessage(title) {
+        const msg = `"${title}" 자료는 준비 중입니다.\n곧 업데이트될 예정이니, 필요하시면 담당자에게 문의해 주세요.`;
+        if (typeof alert === 'function') alert(msg);
+    }
+
+    /** 도구 모달 열기: timer → 5분 타이머 UI, 그 외 → 준비 중 */
+    openToolModal(widgetName, widgetTitle) {
+        let modal = document.getElementById('tool-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'tool-modal';
+            modal.className = 'tool-modal-overlay';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.innerHTML = `
+                <div class="tool-modal-box">
+                    <div class="tool-modal-header">
+                        <h3 class="tool-modal-title"></h3>
+                        <button type="button" class="tool-modal-close" aria-label="닫기">&times;</button>
+                    </div>
+                    <div class="tool-modal-body"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('.tool-modal-close').addEventListener('click', () => this.closeToolModal());
+            modal.addEventListener('click', (e) => { if (e.target === modal) this.closeToolModal(); });
+        }
+        const titleEl = modal.querySelector('.tool-modal-title');
+        const bodyEl = modal.querySelector('.tool-modal-body');
+        if (titleEl) titleEl.textContent = widgetTitle;
+        if (bodyEl) {
+            if (widgetName === 'timer') {
+                bodyEl.innerHTML = `
+                    <div class="widget-timer">
+                        <div class="widget-timer-display" id="widget-timer-display">5:00</div>
+                        <div class="widget-timer-buttons">
+                            <button type="button" id="widget-timer-start">시작</button>
+                            <button type="button" id="widget-timer-pause" disabled>일시정지</button>
+                            <button type="button" id="widget-timer-reset">리셋</button>
+                        </div>
+                    </div>
+                `;
+                this.runTimerWidget(bodyEl);
+            } else {
+                bodyEl.innerHTML = '<p class="widget-coming">이 도구는 준비 중입니다. 곧 만나보실 수 있습니다.</p>';
+            }
+        }
+        modal.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        this._toolModalKeydown = (e) => { if (e.key === 'Escape') this.closeToolModal(); };
+        document.addEventListener('keydown', this._toolModalKeydown);
+    }
+
+    closeToolModal() {
+        const modal = document.getElementById('tool-modal');
+        if (modal) {
+            modal.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+        if (this._timerInterval) {
+            clearInterval(this._timerInterval);
+            this._timerInterval = null;
+        }
+        if (this._toolModalKeydown) {
+            document.removeEventListener('keydown', this._toolModalKeydown);
+            this._toolModalKeydown = null;
+        }
+    }
+
+    /** 5분 집중 타이머 위젯 로직 */
+    runTimerWidget(container) {
+        const display = container.querySelector('#widget-timer-display');
+        const startBtn = container.querySelector('#widget-timer-start');
+        const pauseBtn = container.querySelector('#widget-timer-pause');
+        const resetBtn = container.querySelector('#widget-timer-reset');
+        if (!display || !startBtn) return;
+        const totalSeconds = 5 * 60;
+        let remaining = totalSeconds;
+
+        const formatTime = (sec) => {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${m}:${String(s).padStart(2, '0')}`;
+        };
+        const updateDisplay = () => { display.textContent = formatTime(remaining); };
+        const stopTimer = () => {
+            if (this._timerInterval) {
+                clearInterval(this._timerInterval);
+                this._timerInterval = null;
+            }
+            startBtn.disabled = false;
+            if (pauseBtn) pauseBtn.disabled = true;
+        };
+        startBtn.addEventListener('click', () => {
+            if (this._timerInterval) return;
+            startBtn.disabled = true;
+            if (pauseBtn) pauseBtn.disabled = false;
+            this._timerInterval = setInterval(() => {
+                remaining--;
+                updateDisplay();
+                if (remaining <= 0) {
+                    stopTimer();
+                    remaining = 0;
+                    updateDisplay();
+                }
+            }, 1000);
+        });
+        if (pauseBtn) {
+            pauseBtn.addEventListener('click', () => {
+                if (this._timerInterval) {
+                    clearInterval(this._timerInterval);
+                    this._timerInterval = null;
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                }
+            });
+        }
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                stopTimer();
+                remaining = totalSeconds;
+                updateDisplay();
+                startBtn.disabled = false;
+                if (pauseBtn) pauseBtn.disabled = true;
+            });
+        }
+        updateDisplay();
     }
 
     updateNavigation() {
@@ -461,14 +896,16 @@ class EditionManager {
         if (headlineElement) headlineElement.textContent = '📅 발행 예정';
         if (subHeadlineElement) subHeadlineElement.textContent = `${edition.date}에 공개됩니다`;
         if (descElement) {
+            const dateLabel = edition.date || edition.id || '';
             descElement.innerHTML = `
                 <div style="text-align: center; padding: 60px 20px;">
-                    <div style="font-size: 64px; margin-bottom: 20px;">📅</div>
+                    <div style="font-size: 48px; margin-bottom: 12px;" aria-hidden="true">📅</div>
+                    <div style="font-size: 18px; font-weight: 700; color: var(--nexo-navy); margin-bottom: 20px; letter-spacing: 0.5px;">${dateLabel}</div>
                     <h3 style="font-size: 24px; color: var(--nexo-navy); margin-bottom: 15px; font-family: 'Noto Serif KR', serif;">
-                        ${edition.date} 발행 예정
+                        발행 예정
                     </h3>
                     <p style="font-size: 16px; color: #666; line-height: 1.8; margin-bottom: 30px;">
-                        이 발행물은 <strong>${edition.date}</strong>에 공개됩니다.<br>
+                        이 발행물은 <strong>${dateLabel}</strong>에 공개됩니다.<br>
                         매주 목요일 새로운 전자신문이 발행됩니다.
                     </p>
                     <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; display: inline-block;">
@@ -480,12 +917,11 @@ class EditionManager {
             `;
         }
         const updatesSection = document.getElementById('updates-section');
-        const achievementsSection = document.getElementById('achievements-section');
         if (updatesSection) updatesSection.style.display = 'none';
-        if (achievementsSection) achievementsSection.style.display = 'none';
         const heroImage = document.getElementById('hero-image-container');
         if (heroImage) heroImage.style.display = 'none';
         this.updateNavigation();
+        this.updateToolsSidebar(edition);
         const url = new URL(window.location);
         url.searchParams.set('edition', edition.id);
         window.history.pushState({ edition: edition.id }, '', url);
@@ -529,11 +965,9 @@ class EditionManager {
             `;
         }
         
-        // 업데이트 및 업적 섹션 숨기기
+        // 업데이트 섹션 숨기기
         const updatesSection = document.getElementById('updates-section');
-        const achievementsSection = document.getElementById('achievements-section');
         if (updatesSection) updatesSection.style.display = 'none';
-        if (achievementsSection) achievementsSection.style.display = 'none';
         
         // 이미지 숨기기
         const heroImage = document.getElementById('hero-image-container');
@@ -541,6 +975,7 @@ class EditionManager {
         
         // 네비게이션 업데이트
         this.updateNavigation();
+        this.updateToolsSidebar(edition);
         
         // URL 업데이트
         const url = new URL(window.location);
@@ -563,15 +998,15 @@ class EditionManager {
 let editionManagerInstance;
 
 // 페이지 로드 시 자동 초기화
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        editionManagerInstance = new EditionManager();
-        editionManagerInstance.init();
-    });
-} else {
+function initEditionManager() {
     editionManagerInstance = new EditionManager();
     editionManagerInstance.init();
+    window.editionManagerInstance = editionManagerInstance;
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEditionManager);
+} else {
+    initEditionManager();
 }
 
-// 전역 접근을 위한 변수
 window.EditionManager = EditionManager;
