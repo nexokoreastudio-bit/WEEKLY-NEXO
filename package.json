@@ -5,7 +5,9 @@
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-og-image": "node scripts/generate-og-image.js"
+    "generate-og-image": "node scripts/generate-og-image.js",
+    "serve:8080": "npx serve -l 8080 .",
+    "serve:8090": "npx serve -l 8090 ."
   },
   "devDependencies": {
     "sharp": "^0.33.5"
