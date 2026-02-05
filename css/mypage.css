@@ -114,6 +114,81 @@
   text-align: right;
 }
 
+.info-value-readonly {
+  font-weight: 500;
+}
+
+/* 구독자 정보 수정 폼 */
+.info-edit-desc {
+  font-size: 13px;
+  color: #666;
+  margin: -8px 0 16px 0;
+}
+
+.info-edit-form .info-row-edit {
+  flex-wrap: wrap;
+}
+
+.info-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  box-sizing: border-box;
+}
+
+.info-input:focus {
+  outline: none;
+  border-color: var(--nexo-navy);
+}
+
+.info-form-actions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-save {
+  padding: 12px 24px;
+  background: var(--nexo-navy);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: background 0.2s;
+}
+
+.btn-save:hover {
+  background: #003d7a;
+}
+
+/* 마이페이지 헤더 로그아웃 버튼 */
+.mypage-logout-btn {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--nexo-navy);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 8px;
+  text-decoration: none;
+  transition: color 0.2s, border-color 0.2s;
+  font-family: var(--font-body);
+}
+
+.mypage-logout-btn:hover {
+  color: var(--nexo-cyan);
+  border-color: var(--nexo-cyan);
+}
+
 /* 다운로드 이력 */
 .download-history {
   min-height: 100px;
@@ -243,6 +318,10 @@
 
   .info-value {
     text-align: left;
+  }
+
+  .info-input {
+    max-width: 100%;
   }
 }
 

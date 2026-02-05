@@ -25,6 +25,36 @@
 </head>
 <body>
     <div class="paper">
+        <!-- 상단 유틸 바: 검색 / 마이페이지 / 관리자 로그인 (첨부 이미지 스타일) -->
+        <nav class="utility-bar" aria-label="서비스 메뉴">
+            <div class="utility-bar-inner">
+                <a href="search.html" class="utility-link" title="검색">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    </span>
+                    <span class="utility-text">검색</span>
+                </a>
+                <a href="mypage.html" id="utility-mypage-link" class="utility-link" title="마이페이지">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </span>
+                    <span class="utility-text">마이페이지</span>
+                </a>
+                <a href="login.html" id="utility-login-link" class="utility-link" title="구독자 로그인">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    </span>
+                    <span class="utility-text">로그인</span>
+                </a>
+                <a href="admin.html" class="utility-link utility-link-admin" title="관리자 로그인">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <span class="utility-text">관리자 로그인</span>
+                </a>
+            </div>
+        </nav>
+
         <!-- Header -->
         <header class="magazine-header">
             <div class="top-meta">
@@ -32,13 +62,31 @@
                 <span id="current-date">2026.01.28 THURSDAY</span>
                 <span>SPECIAL EDITION</span>
                 <span id="admin-auth-area" class="admin-auth-area">
-                    <span id="subscription-badge" class="subscription-badge" style="display: none;">
-                        <span class="badge-icon">✨</span>
-                        <span class="badge-text">구독자</span>
-                    </span>
-                    <a href="mypage.html" id="mypage-link" class="mypage-link" style="display: none;" title="마이페이지">👤 마이페이지</a>
-                    <button type="button" id="member-login-open" class="member-login-btn" style="display: none;">로그인</button>
-                    <button type="button" id="admin-login-open" class="admin-login-btn">관리자 로그인</button>
+                    <!-- 비로그인: 로그인 버튼 -->
+                    <div id="user-widget-guest" class="user-widget-guest">
+                        <a href="login.html" id="member-login-open" class="member-login-btn" title="구독자 로그인">로그인</a>
+                        <a href="admin.html" id="admin-login-open" class="admin-login-btn">관리자 로그인</a>
+                    </div>
+                    <!-- 로그인: 네이버 스타일 프로필 위젯 -->
+                    <div id="user-widget-logged" class="user-widget-logged" style="display: none;">
+                        <div class="user-widget-card">
+                            <div class="user-widget-profile-row">
+                                <div class="user-widget-avatar" aria-hidden="true"></div>
+                                <div class="user-widget-info">
+                                    <div class="user-widget-name-row">
+                                        <strong id="user-widget-name" class="user-widget-name">회원</strong>
+                                        <span class="user-widget-badge">구독자</span>
+                                    </div>
+                                    <p id="user-widget-email" class="user-widget-email">example@email.com</p>
+                                    <button type="button" id="user-widget-logout" class="user-widget-logout">로그아웃 →</button>
+                                </div>
+                            </div>
+                            <div class="user-widget-links">
+                                <a href="mypage.html" class="user-widget-link">마이페이지</a>
+                                <a href="#premium-download-section" class="user-widget-link">구독자 전용</a>
+                            </div>
+                        </div>
+                    </div>
                 </span>
             </div>
             
@@ -68,6 +116,37 @@
         <!-- Main Layout -->
         <div class="main-layout">
             <main>
+                <!-- 회원가입·로그인 (처음 방문자에게 바로 노출) -->
+                <section id="member-auth-prominent" class="member-auth-prominent" aria-label="구독자 회원가입 및 로그인">
+                    <h2 class="member-auth-prominent-title">📚 넥소 위클리 구독자</h2>
+                    <p class="member-auth-prominent-desc">구독하시면 매주 목요일 최신 정보와 유료급 자료를 무료로 받아보실 수 있습니다.</p>
+                    <div class="member-auth-prominent-forms">
+                        <div class="member-auth-prominent-login">
+                            <h3 class="member-auth-form-heading">로그인</h3>
+                            <form id="inline-login-form" class="member-auth-inline-form">
+                                <label for="inline-login-identifier" class="sr-only">이메일 또는 연락처</label>
+                                <input type="text" id="inline-login-identifier" placeholder="이메일 또는 연락처" required>
+                                <label for="inline-login-password" class="sr-only">비밀번호</label>
+                                <input type="password" id="inline-login-password" placeholder="비밀번호" required>
+                                <button type="submit" class="member-auth-btn member-auth-btn-login">로그인</button>
+                            </form>
+                        </div>
+                        <div class="member-auth-prominent-signup">
+                            <h3 class="member-auth-form-heading">회원가입 (구독하기)</h3>
+                            <form id="inline-signup-form" class="member-auth-inline-form">
+                                <label for="inline-signup-name" class="sr-only">이름</label>
+                                <input type="text" id="inline-signup-name" placeholder="이름" required>
+                                <label for="inline-signup-email" class="sr-only">이메일</label>
+                                <input type="email" id="inline-signup-email" placeholder="이메일" required>
+                                <label for="inline-signup-password" class="sr-only">비밀번호</label>
+                                <input type="password" id="inline-signup-password" placeholder="비밀번호 (4자 이상)" required minlength="4">
+                                <button type="submit" class="member-auth-btn member-auth-btn-signup">구독하기</button>
+                            </form>
+                            <p class="member-auth-signup-more"><a href="#" id="inline-open-full-signup">학원명·연락처 등 더 입력하기</a></p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- 호별 목록 뷰 (리스트식 미리보기 → 클릭 시 본문) -->
                 <div id="edition-list-view" class="edition-list-view" hidden aria-label="발행호 목록">
                     <h2 class="edition-list-title">발행호 목록</h2>
@@ -110,6 +189,47 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- 현장 블로그/SNS 스타일: 노원구 학원연합회 이취임식 -->
+                <section class="blog-style-section" aria-label="현장 소식">
+                    <div class="blog-style-inner">
+                        <p class="blog-style-meta">📌 현장 스케치</p>
+                        <h3 class="blog-style-title">어제 있었던 노원구 학원연합회 이취임식 현장의 열기를 전해드립니다</h3>
+                        <div class="blog-style-gallery">
+                            <figure class="blog-style-fig">
+                                <img src="assets/images/nowon-event-guests.png" alt="내빈 소개 화면과 참석자들이 박수 치는 모습" class="blog-style-img">
+                                <figcaption>내빈 소개와 참석자들의 박수</figcaption>
+                            </figure>
+                            <figure class="blog-style-fig">
+                                <img src="assets/images/nowon-event-hall.png" alt="이취임식 회장, 참석자들이 주목하며 행사를 지켜보는 모습" class="blog-style-img">
+                                <figcaption>행사에 집중하는 원장님들</figcaption>
+                            </figure>
+                            <figure class="blog-style-fig">
+                                <img src="assets/images/nowon-event-partners.png" alt="협력업체 소개 화면, ㈜넥소 박정민 대표님" class="blog-style-img">
+                                <figcaption>협력업체 소개 — ㈜넥소 박정민 대표님</figcaption>
+                            </figure>
+                            <figure class="blog-style-fig">
+                                <img src="assets/images/nowon-event-banner.png" alt="노원지구회 신년총회 및 지구회장 이·취임식 배너" class="blog-style-img">
+                                <figcaption>노원지구회 신년총회 및 지구회장 이·취임식</figcaption>
+                            </figure>
+                        </div>
+                        <div class="blog-style-body">
+                            <p>노원구 학원연합회 <strong>신년총회 및 이취임식</strong> 현장에 다녀왔습니다. 단순히 행사 한 번 참석한 것을 넘어, <strong>지역 교육 현장과 함께 호흡하는 시간</strong>이었어요.</p>
+                            <p>현장에서 만난 원장님들의 눈빛이 인상적이었습니다. 각자 학원을 이끌며 쌓아온 고민과 열정이, 이취임식이라는 자리에서 하나의 공동체로 이어지는 느낌이었죠. <strong>전종삼 회장님</strong>의 그동안의 노고와 새 출발에 대한 말씀, <strong>유나영 원장님</strong>의 매끄러운 사회 진행까지—한 편의 드라마처럼 흘러갔던 그날의 분위기를 지금도 생생히 기억합니다.</p>
+                            <p>넥소코리아는 전자칠판을 ‘납품하는 업체’로만 머물지 않습니다. 노원을 비롯한 지역 교육 공동체의 <strong>학원 성장 파트너</strong>로서, 원장님들과 같은 자리에서 이야기하고, 고민을 나누고, 함께 다음 걸음을 내딛고 싶습니다. 이취임식 현장의 그 열기가 한 해 동안 지역 학원들의 성장으로 이어지길 바라며.</p>
+                            <div class="blog-style-closing">
+                                <p><strong>위클리 넥소</strong> 구독자 여러분, 새해에도 건강하시고 뜻하신 일 모두 이루시길 바랍니다. 올해도 매주 목요일, 여러분 곁에서 소식 전해 드리겠습니다. 🙏</p>
+                            </div>
+                        </div>
+                        <div class="blog-style-tags">
+                            <span class="blog-tag">#노원구학원연합회</span>
+                            <span class="blog-tag">#신년총회</span>
+                            <span class="blog-tag">#이취임식</span>
+                            <span class="blog-tag">#넥소코리아</span>
+                            <span class="blog-tag">#학원성장파트너</span>
+                        </div>
+                    </div>
+                </section>
 
                 <!-- Editorial Image -->
                 <div class="editorial-image-section">
@@ -356,6 +476,7 @@
                     <div class="premium-header">
                         <h3 class="premium-title">📚 구독자 전용 자료</h3>
                         <p class="premium-subtitle">유료급 고급 자료를 무료로 다운로드하세요</p>
+                        <p class="premium-login-hint">이미 구독자이신가요? <button type="button" id="member-login-open-from-section" class="member-login-link-btn">로그인</button></p>
                     </div>
                     
                     <div class="premium-files-grid" id="premium-files-grid">
@@ -666,12 +787,14 @@
                     <a href="https://blog.naver.com/nexokorea" target="_blank">공식 블로그 더보기 →</a>
                 </div>
 
-                <!-- 주문/상담 신청 폼 -->
+                <!-- 주문/상담 신청 (드롭다운) -->
+                <div class="sidebar-order-dropdown">
+                    <button type="button" class="sidebar-order-toggle" id="sidebar-order-toggle" aria-expanded="false" aria-controls="sidebar-order-content">
+                        <span class="sidebar-order-toggle-title">📋 주문/상담 신청</span>
+                        <span class="sidebar-order-toggle-icon" aria-hidden="true">▼</span>
+                    </button>
+                    <div class="sidebar-order-content" id="sidebar-order-content" hidden>
                 <div class="order-form-box">
-                    <div class="order-form-header">
-                        <span class="order-form-icon">📋</span>
-                        <h3>주문/상담 신청</h3>
-                    </div>
                     <form id="order-form" name="order-form" class="order-form" netlify data-netlify="true" action="/thank-you.html" method="POST">
                         <input type="hidden" name="form-name" value="order-form">
                         
@@ -746,6 +869,8 @@
                         <button type="submit" class="order-submit-btn">주문 신청하기</button>
                     </form>
                 </div>
+                    </div>
+                </div>
 
                 <!-- 구독하기 CTA (사이드바) -->
                 <div class="sidebar-subscribe-box" id="sidebar-subscribe-box">
@@ -818,6 +943,9 @@
         <div class="mobile-btn mobile-btn-kakao" style="cursor: not-allowed; opacity: 0.6;">카카오톡 문의 (준비중)</div>
     </div>
 
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
     <script src="js/editions-data.js"></script>
     <script src="js/edition-manager.js"></script>
     <script src="js/order-form.js"></script>
@@ -847,6 +975,19 @@
             var toggle = document.getElementById('sidebar-promo-toggle');
             var content = document.getElementById('sidebar-promo-content');
             var dropdown = toggle && toggle.closest('.sidebar-promo-dropdown');
+            if (!toggle || !content) return;
+            toggle.addEventListener('click', function() {
+                var isOpen = !content.hidden;
+                content.hidden = isOpen;
+                toggle.setAttribute('aria-expanded', !isOpen);
+                if (dropdown) dropdown.classList.toggle('open', !isOpen);
+            });
+        })();
+        // 주문/상담 신청 드롭다운 (접기/펼치기)
+        (function() {
+            var toggle = document.getElementById('sidebar-order-toggle');
+            var content = document.getElementById('sidebar-order-content');
+            var dropdown = toggle && toggle.closest('.sidebar-order-dropdown');
             if (!toggle || !content) return;
             toggle.addEventListener('click', function() {
                 var isOpen = !content.hidden;

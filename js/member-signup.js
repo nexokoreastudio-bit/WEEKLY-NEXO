@@ -159,8 +159,9 @@
             e.preventDefault();
             
             const formData = new FormData(form);
-            const password = formData.get('password') || '';
-            const passwordConfirm = formData.get('password_confirm') || '';
+            const rawPassword = (formData.get('password') || '').trim();
+            const passwordConfirm = (formData.get('password_confirm') || '').trim();
+            const password = rawPassword;
             
             // 비밀번호 확인
             if (!password || password.length < 4) {
@@ -174,12 +175,12 @@
             }
             
             const data = {
-                name: formData.get('name') || '',
-                email: formData.get('email') || '',
+                name: (formData.get('name') || '').trim(),
+                email: (formData.get('email') || '').trim().toLowerCase(),
                 password: password,
-                academy_name: formData.get('academy_name') || '',
-                phone: formData.get('phone') || '',
-                referrer_code: formData.get('referrer_code') || '',
+                academy_name: (formData.get('academy_name') || '').trim(),
+                phone: (formData.get('phone') || '').trim(),
+                referrer_code: (formData.get('referrer_code') || '').trim(),
                 notification_agree: formData.get('notification_agree') === '1'
             };
             
@@ -189,69 +190,257 @@
                 return false;
             }
             
-            // 구독자 정보 localStorage에 저장 (로컬/실제 환경 모두)
+            var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+            if (supabase) {
+                // 진짜 회원 DB: Supabase Auth 가입
+                try {
+                    var signRes = await supabase.auth.signUp({
+                        email: data.email,
+                        password: password,
+                        options: {
+                            data: {
+                                name: data.name,
+                                academy_name: data.academy_name || '',
+                                phone: data.phone || '',
+                                referrer_code: data.referrer_code || ''
+                            }
+                        }
+                    });
+                    if (signRes.error) {
+                        alert(signRes.error.message || '회원 가입에 실패했습니다.');
+                        return false;
+                    }
+                    setSubscribed(true);
+                    closeSignupModal();
+                    if (window.updateUserWidget) window.updateUserWidget();
+                    updateSubscriberUI();
+                    sessionStorage.removeItem('nexo-welcome-seen');
+                    if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
+                    return false;
+                } catch (err) {
+                    console.error('Supabase signUp error:', err);
+                    alert(err.message || '회원 가입 중 오류가 발생했습니다.');
+                    return false;
+                }
+            }
+            
+            if (window.__USE_RENDER_API__) {
+                try {
+                    var apiRes = await fetch('/.netlify/functions/member-auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'register',
+                            email: data.email,
+                            password: password,
+                            name: data.name,
+                            academy_name: data.academy_name || '',
+                            phone: data.phone || '',
+                            referrer_code: data.referrer_code || ''
+                        })
+                    });
+                    var apiData = await apiRes.json();
+                    if (!apiRes.ok) {
+                        alert(apiData.error || '회원 가입에 실패했습니다.');
+                        return false;
+                    }
+                    if (apiData.token) localStorage.setItem('nexo-auth-token', apiData.token);
+                    if (apiData.user) {
+                        localStorage.setItem('nexo-member-email', apiData.user.email || '');
+                        localStorage.setItem('nexo-member-name', apiData.user.name || '');
+                        localStorage.setItem('nexo-member-academy', apiData.user.academy_name || '');
+                        localStorage.setItem('nexo-member-phone', apiData.user.phone || '');
+                        localStorage.setItem('nexo-member-referrer', apiData.user.referrer_code || '');
+                        if (apiData.user.created_at) {
+                            var d = new Date(apiData.user.created_at);
+                            localStorage.setItem('nexo-member-joined', d.toLocaleDateString('ko-KR'));
+                        }
+                    }
+                    localStorage.setItem('nexo-logged-in', 'true');
+                    localStorage.setItem('nexo-subscribed', 'true');
+                    setSubscribed(true);
+                    closeSignupModal();
+                    if (window.updateUserWidget) window.updateUserWidget();
+                    updateSubscriberUI();
+                    sessionStorage.removeItem('nexo-welcome-seen');
+                    if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
+                } catch (err) {
+                    console.error('Render API signup error:', err);
+                    alert('회원 가입 중 오류가 발생했습니다.');
+                }
+                return false;
+            }
+            
+            // Supabase/API 미사용: localStorage + (선택) Netlify 시트 전송
             localStorage.setItem('nexo-member-name', data.name);
             localStorage.setItem('nexo-member-email', data.email);
             localStorage.setItem('nexo-member-academy', data.academy_name || '');
             localStorage.setItem('nexo-member-phone', data.phone || '');
             localStorage.setItem('nexo-member-referrer', data.referrer_code || '');
             localStorage.setItem('nexo-member-joined', new Date().toLocaleDateString('ko-KR'));
-            localStorage.setItem('nexo-member-password', password); // 비밀번호 저장
+            localStorage.setItem('nexo-member-password', password);
+            localStorage.setItem('nexo-logged-in', 'true');
             
-            // 로컬 환경 처리
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (isLocal) {
-                console.log('회원 가입 폼 데이터:', data);
-                // 로컬 환경에서는 구독 상태만 저장 (테스트용)
                 setSubscribed(true);
                 closeSignupModal();
-                // 구독자 UI 업데이트
+                if (window.updateUserWidget) window.updateUserWidget();
                 updateSubscriberUI();
-                // 환영 배너 표시를 위해 세션 스토리지 초기화
                 sessionStorage.removeItem('nexo-welcome-seen');
-                // 토스트 알림 표시
-                showToastNotification('구독이 완료되었습니다! 🎉 (로컬 테스트 모드)');
+                if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉 (로컬 테스트 모드)');
                 return false;
             }
             
-            // 실제 환경: Netlify Function으로 데이터 전송
             try {
-                const response = await fetch('/.netlify/functions/member-signup-to-sheets', {
+                var response = await fetch('/.netlify/functions/member-signup-to-sheets', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data),
                 });
-                
-                const result = await response.json();
-                
+                var result = await response.json();
                 if (response.ok && result.success) {
-                    // 구독 상태 저장
                     setSubscribed(true);
                     closeSignupModal();
-                    // 구독자 UI 업데이트
+                    if (window.updateUserWidget) window.updateUserWidget();
                     updateSubscriberUI();
-                    // 환영 배너 표시를 위해 세션 스토리지 초기화
                     sessionStorage.removeItem('nexo-welcome-seen');
-                    // 토스트 알림 표시
-                    showToastNotification('구독이 완료되었습니다! 🎉');
+                    if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
                 } else {
                     throw new Error(result.error || '회원 가입 처리 중 오류가 발생했습니다.');
                 }
             } catch (error) {
                 console.error('회원 가입 오류:', error);
-                // 오류가 발생해도 구독 상태는 저장 (사용자 경험 개선)
                 setSubscribed(true);
                 closeSignupModal();
-                // 구독자 UI 업데이트
+                if (window.updateUserWidget) window.updateUserWidget();
                 updateSubscriberUI();
-                // 환영 배너 표시를 위해 세션 스토리지 초기화
                 sessionStorage.removeItem('nexo-welcome-seen');
-                // 토스트 알림 표시
-                showToastNotification('구독이 완료되었습니다! 🎉');
+                if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
             }
         });
+    }
+    
+    // 메인 상단 인라인 회원가입 폼 (처음 방문자 노출)
+    function setupInlineSignupForm() {
+        const form = document.getElementById('inline-signup-form');
+        if (!form) return;
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = (document.getElementById('inline-signup-name') || {}).value.trim();
+            const email = (document.getElementById('inline-signup-email') || {}).value.trim().toLowerCase();
+            const password = (document.getElementById('inline-signup-password') || {}).value.trim();
+            if (!name || !email) {
+                alert('이름과 이메일을 입력해주세요.');
+                return;
+            }
+            if (!password || password.length < 4) {
+                alert('비밀번호는 4자 이상 입력해주세요.');
+                return;
+            }
+            const data = { name: name, email: email, password: password, academy_name: '', phone: '', referrer_code: '' };
+            if (window.__USE_RENDER_API__) {
+                try {
+                    var apiRes = await fetch('/.netlify/functions/member-auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'register', email: data.email, password: data.password, name: data.name, academy_name: '', phone: '', referrer_code: '' })
+                    });
+                    var apiData = await apiRes.json();
+                    if (!apiRes.ok) { alert(apiData.error || '회원 가입에 실패했습니다.'); return; }
+                    if (apiData.token) localStorage.setItem('nexo-auth-token', apiData.token);
+                    if (apiData.user) {
+                        localStorage.setItem('nexo-member-email', apiData.user.email || '');
+                        localStorage.setItem('nexo-member-name', apiData.user.name || '');
+                        localStorage.setItem('nexo-member-academy', apiData.user.academy_name || '');
+                        localStorage.setItem('nexo-member-phone', apiData.user.phone || '');
+                        localStorage.setItem('nexo-member-referrer', apiData.user.referrer_code || '');
+                        if (apiData.user.created_at) localStorage.setItem('nexo-member-joined', new Date(apiData.user.created_at).toLocaleDateString('ko-KR'));
+                    }
+                    localStorage.setItem('nexo-logged-in', 'true');
+                    localStorage.setItem('nexo-subscribed', 'true');
+                    setSubscribed(true);
+                    if (window.updateUserWidget) window.updateUserWidget();
+                    updateSubscriberUI();
+                    sessionStorage.removeItem('nexo-welcome-seen');
+                    if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
+                    else alert('구독이 완료되었습니다! 🎉');
+                } catch (err) { alert('회원 가입 중 오류가 발생했습니다.'); }
+                return;
+            }
+            var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+            if (supabase) {
+                try {
+                    var signRes = await supabase.auth.signUp({
+                        email: data.email,
+                        password: data.password,
+                        options: { data: { name: data.name, academy_name: '', phone: '', referrer_code: '' } }
+                    });
+                    if (signRes.error) {
+                        alert(signRes.error.message || '회원 가입에 실패했습니다.');
+                        return;
+                    }
+                    setSubscribed(true);
+                    if (window.updateUserWidget) window.updateUserWidget();
+                    updateSubscriberUI();
+                    sessionStorage.removeItem('nexo-welcome-seen');
+                    if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
+                    else alert('구독이 완료되었습니다! 🎉');
+                } catch (err) {
+                    alert(err.message || '회원 가입 중 오류가 발생했습니다.');
+                }
+                return;
+            }
+            localStorage.setItem('nexo-member-name', data.name);
+            localStorage.setItem('nexo-member-email', data.email);
+            localStorage.setItem('nexo-member-password', data.password);
+            localStorage.setItem('nexo-member-academy', '');
+            localStorage.setItem('nexo-member-phone', '');
+            localStorage.setItem('nexo-member-referrer', '');
+            localStorage.setItem('nexo-member-joined', new Date().toLocaleDateString('ko-KR'));
+            localStorage.setItem('nexo-logged-in', 'true');
+            setSubscribed(true);
+            if (window.updateUserWidget) window.updateUserWidget();
+            updateSubscriberUI();
+            sessionStorage.removeItem('nexo-welcome-seen');
+            var isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            if (isLocal) {
+                if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉 (로컬)');
+                else alert('구독이 완료되었습니다! 🎉');
+                return;
+            }
+            try {
+                var res = await fetch('/.netlify/functions/member-signup-to-sheets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
+                    else alert('구독이 완료되었습니다! 🎉');
+                }
+            } catch (err) {
+                console.error(err);
+                if (typeof showToastNotification === 'function') showToastNotification('구독이 완료되었습니다! 🎉');
+                else alert('구독이 완료되었습니다! 🎉');
+            }
+        });
+        const fullSignupLink = document.getElementById('inline-open-full-signup');
+        if (fullSignupLink) {
+            fullSignupLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (window.closeLoginModal) {
+                    const loginModal = document.getElementById('member-login-modal');
+                    if (loginModal) loginModal.hidden = true;
+                }
+                const signupModal = document.getElementById('member-signup-modal');
+                if (signupModal) {
+                    signupModal.hidden = false;
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        }
     }
     
     // 구독자 전용 자료 다운로드 처리
@@ -412,6 +601,19 @@
             }
         }
         
+        // 구독자 전용 자료 섹션: "이미 구독자이신가요? 로그인" 안내 (비구독자만 표시)
+        const loginHint = document.querySelector('.premium-login-hint');
+        if (loginHint) {
+            loginHint.style.display = subscribed ? 'none' : 'block';
+        }
+        
+        // 메인 상단 회원가입·로그인 폼 (비로그인 시에만 표시)
+        const prominentAuth = document.getElementById('member-auth-prominent');
+        const isLoggedIn = typeof localStorage !== 'undefined' && localStorage.getItem('nexo-logged-in') === 'true';
+        if (prominentAuth) {
+            prominentAuth.style.display = isLoggedIn ? 'none' : 'block';
+        }
+        
         // 구독자 전용 자료 섹션 업데이트
         updatePremiumFilesAccess();
     }
@@ -439,6 +641,7 @@
         setupSignupModal();
         setupPremiumCards();
         setupSignupForm();
+        setupInlineSignupForm();
         setupPremiumDownloads();
         setupWelcomeBanner(); // 환영 배너 닫기 버튼
         updateSubscriberUI(); // 구독자 UI 전체 업데이트

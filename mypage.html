@@ -18,7 +18,8 @@
                 <span id="current-date">마이페이지</span>
                 <span id="admin-auth-area" class="admin-auth-area">
                     <a href="index.html" class="mypage-link">🏠 홈으로</a>
-                    <button type="button" id="admin-login-open" class="admin-login-btn">관리자 로그인</button>
+                    <button type="button" id="mypage-logout-btn" class="mypage-logout-btn">로그아웃</button>
+                    <a href="admin.html" id="admin-login-open" class="admin-login-btn">관리자 로그인</a>
                 </span>
             </div>
             
@@ -35,7 +36,7 @@
         <!-- Main Content -->
         <div class="mypage-container">
             <div class="mypage-header">
-                <h1>👤 마이페이지</h1>
+                <h1 id="mypage-title">👤 마이페이지</h1>
                 <p class="mypage-subtitle">구독자 전용 페이지입니다</p>
             </div>
 
@@ -50,35 +51,39 @@
                 </div>
             </div>
 
-            <!-- 구독자 정보 -->
+            <!-- 구독자 정보 (수정/추가 가능) -->
             <div id="member-info" class="mypage-section" style="display: none;">
                 <h2>📋 구독자 정보</h2>
-                <div class="info-card">
-                    <div class="info-row">
-                        <span class="info-label">이름</span>
-                        <span id="member-name" class="info-value">-</span>
+                <p class="info-edit-desc">아래 항목을 수정한 뒤 저장 버튼을 눌러주세요.</p>
+                <form id="member-info-form" class="info-edit-form">
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-name">이름</label>
+                        <input type="text" id="edit-name" name="name" class="info-input" placeholder="이름">
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">이메일</span>
-                        <span id="member-email" class="info-value">-</span>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-email">이메일</label>
+                        <input type="email" id="edit-email" name="email" class="info-input" placeholder="이메일">
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">학원명</span>
-                        <span id="member-academy" class="info-value">-</span>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-academy">학원명</label>
+                        <input type="text" id="edit-academy" name="academy" class="info-input" placeholder="학원명 (선택)">
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">연락처</span>
-                        <span id="member-phone" class="info-value">-</span>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-phone">연락처</label>
+                        <input type="tel" id="edit-phone" name="phone" class="info-input" placeholder="010-0000-0000">
                     </div>
-                    <div class="info-row">
-                        <span class="info-label">유입 경로</span>
-                        <span id="member-referrer" class="info-value">-</span>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-referrer">유입 경로</label>
+                        <input type="text" id="edit-referrer" name="referrer" class="info-input" placeholder="추천인 코드 등 (선택)">
                     </div>
                     <div class="info-row">
                         <span class="info-label">가입일</span>
-                        <span id="member-joined" class="info-value">-</span>
+                        <span id="member-joined" class="info-value info-value-readonly">-</span>
                     </div>
-                </div>
+                    <div class="info-form-actions">
+                        <button type="submit" class="btn-save">저장</button>
+                    </div>
+                </form>
             </div>
 
             <!-- 다운로드 이력 (향후 구현) -->
@@ -103,7 +108,7 @@
                 </div>
             </div>
 
-            <!-- 구독 취소 -->
+            <!-- 설정 -->
             <div class="mypage-section">
                 <h2>⚙️ 설정</h2>
                 <div class="settings-card">
@@ -118,6 +123,9 @@
         </footer>
     </div>
 
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
     <script src="js/mypage.js"></script>
 </body>
 </html>

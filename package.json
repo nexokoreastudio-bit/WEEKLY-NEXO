@@ -15,7 +15,10 @@
   "dependencies": {
     "google-auth-library": "^9.0.0",
     "google-spreadsheet": "^4.1.1",
-    "qrcode": "^1.5.3"
+    "qrcode": "^1.5.3",
+    "pg": "^8.11.3",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
   },
   "keywords": [
     "nexo",

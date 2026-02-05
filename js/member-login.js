@@ -10,19 +10,28 @@
         const backdrop = modal.querySelector('.modal-backdrop');
         
         // 모달 열기
-        if (openButton) {
+        function openLoginModal() {
+            if (modal) {
+                modal.hidden = false;
+                document.body.style.overflow = 'hidden';
+                const firstInput = modal.querySelector('input[type="text"]');
+                if (firstInput) setTimeout(() => firstInput.focus(), 100);
+            }
+        }
+        // 로그인 버튼이 링크(login.html)가 아닐 때만 모달 열기 (예: 인라인 로그인 유도 시)
+        if (openButton && openButton.tagName !== 'A') {
             openButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                if (modal) {
-                    modal.hidden = false;
-                    document.body.style.overflow = 'hidden';
-                    // 첫 번째 입력 필드에 포커스
-                    const firstInput = modal.querySelector('input[type="text"]');
-                    if (firstInput) {
-                        setTimeout(() => firstInput.focus(), 100);
-                    }
-                }
+                openLoginModal();
+            });
+        }
+        const openFromSection = document.getElementById('member-login-open-from-section');
+        if (openFromSection) {
+            openFromSection.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openLoginModal();
             });
         }
         
@@ -251,73 +260,242 @@
         const form = document.getElementById('member-login-form');
         if (!form) return;
         
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const identifier = document.getElementById('login-identifier').value.trim();
-            const password = document.getElementById('login-password').value.trim();
-            const remember = document.getElementById('login-remember').checked;
-            
+            var identifier = (document.getElementById('login-identifier').value || '').trim().toLowerCase();
+            var password = (document.getElementById('login-password').value || '').trim();
+            var remember = document.getElementById('login-remember').checked;
             if (!identifier || !password) {
                 alert('이메일/연락처와 비밀번호를 모두 입력해주세요.');
                 return;
             }
-            
-            // localStorage에서 회원 정보 확인
-            const storedEmail = localStorage.getItem('nexo-member-email');
-            const storedPhone = localStorage.getItem('nexo-member-phone');
-            const storedPassword = localStorage.getItem('nexo-member-password');
-            
-            // 이메일 또는 전화번호로 로그인 가능
-            const isEmailMatch = identifier === storedEmail;
-            const isPhoneMatch = identifier === storedPhone;
-            
-            if ((isEmailMatch || isPhoneMatch) && password === storedPassword) {
-                // 로그인 성공
-                localStorage.setItem('nexo-logged-in', 'true');
-                if (remember) {
-                    localStorage.setItem('nexo-login-remember', 'true');
+            if (window.__USE_RENDER_API__) {
+                try {
+                    var apiRes = await fetch('/.netlify/functions/member-auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'login', email: identifier, password: password })
+                    });
+                    var apiData = await apiRes.json();
+                    if (!apiRes.ok) {
+                        alert(apiData.error || '이메일 또는 비밀번호가 올바르지 않습니다.');
+                        return;
+                    }
+                    if (apiData.token) localStorage.setItem('nexo-auth-token', apiData.token);
+                    if (apiData.user) {
+                        localStorage.setItem('nexo-member-email', apiData.user.email || '');
+                        localStorage.setItem('nexo-member-name', apiData.user.name || '회원');
+                        localStorage.setItem('nexo-member-academy', apiData.user.academy_name || '');
+                        localStorage.setItem('nexo-member-phone', apiData.user.phone || '');
+                        localStorage.setItem('nexo-member-referrer', apiData.user.referrer_code || '');
+                        if (apiData.user.created_at) localStorage.setItem('nexo-member-joined', new Date(apiData.user.created_at).toLocaleDateString('ko-KR'));
+                    }
+                    localStorage.setItem('nexo-logged-in', 'true');
+                    if (remember) localStorage.setItem('nexo-login-remember', 'true');
+                    localStorage.setItem('nexo-subscribed', 'true');
+                    var modal = document.getElementById('member-login-modal');
+                    if (modal) modal.hidden = true;
+                    document.body.style.overflow = '';
+                    if (window.updateUserWidget) window.updateUserWidget();
+                    if (window.updateSubscriberUI) window.updateSubscriberUI();
+                    if (typeof window.showToastNotification === 'function') window.showToastNotification('로그인되었습니다! 🎉');
+                    else alert('로그인되었습니다!');
+                } catch (err) { alert('로그인 중 오류가 발생했습니다.'); }
+                return;
+            }
+            var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+            if (supabase) {
+                var signRes = await supabase.auth.signInWithPassword({ email: identifier, password: password });
+                if (signRes.error) {
+                    alert(signRes.error.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
+                    return;
                 }
-                
-                // 구독 상태 활성화
+                var user = signRes.data.user;
+                localStorage.setItem('nexo-logged-in', 'true');
+                if (remember) localStorage.setItem('nexo-login-remember', 'true');
                 localStorage.setItem('nexo-subscribed', 'true');
-                
-                // 모달 닫기
-                const modal = document.getElementById('member-login-modal');
+                localStorage.setItem('nexo-member-email', user.email || '');
+                localStorage.setItem('nexo-member-name', user.user_metadata?.name || '회원');
+                var modal = document.getElementById('member-login-modal');
                 if (modal) modal.hidden = true;
                 document.body.style.overflow = '';
-                
-                // UI 업데이트
-                if (window.updateSubscriberUI) {
-                    window.updateSubscriberUI();
-                }
-                
-                // 토스트 알림
-                if (window.showToastNotification) {
-                    window.showToastNotification('로그인되었습니다! 🎉');
-                } else {
-                    alert('로그인되었습니다!');
-                }
+                if (window.updateUserWidget) window.updateUserWidget();
+                if (window.updateSubscriberUI) window.updateSubscriberUI();
+                if (typeof window.showToastNotification === 'function') window.showToastNotification('로그인되었습니다! 🎉');
+                else alert('로그인되었습니다!');
+                return;
+            }
+            var storedEmail = (localStorage.getItem('nexo-member-email') || '').trim().toLowerCase();
+            var storedPhone = (localStorage.getItem('nexo-member-phone') || '').trim();
+            var storedPassword = (localStorage.getItem('nexo-member-password') || '').trim();
+            var isEmailMatch = identifier === storedEmail;
+            var isPhoneMatch = identifier === storedPhone;
+            if ((isEmailMatch || isPhoneMatch) && password === storedPassword) {
+                localStorage.setItem('nexo-logged-in', 'true');
+                if (remember) localStorage.setItem('nexo-login-remember', 'true');
+                localStorage.setItem('nexo-subscribed', 'true');
+                var modal = document.getElementById('member-login-modal');
+                if (modal) modal.hidden = true;
+                document.body.style.overflow = '';
+                if (window.updateSubscriberUI) window.updateSubscriberUI();
+                if (typeof window.showToastNotification === 'function') window.showToastNotification('로그인되었습니다! 🎉');
+                else alert('로그인되었습니다!');
             } else {
                 alert('이메일/연락처 또는 비밀번호가 올바르지 않습니다.');
             }
         });
     }
     
-    // 로그인 버튼 표시/숨김 (구독하지 않은 경우에만 표시)
-    function updateLoginButton() {
-        const loginBtn = document.getElementById('member-login-open');
-        if (!loginBtn) return;
+    // 네이버 스타일 사용자 위젯: 로그인 시 프로필 카드, 비로그인 시 로그인 버튼
+    function updateUserWidget() {
+        const guestEl = document.getElementById('user-widget-guest');
+        const loggedEl = document.getElementById('user-widget-logged');
+        const prominentAuth = document.getElementById('member-auth-prominent');
+        var isLoggedIn = localStorage.getItem('nexo-logged-in') === 'true';
+        if (window.__USE_RENDER_API__ && localStorage.getItem('nexo-auth-token')) isLoggedIn = true;
         
-        const isSubscribed = localStorage.getItem('nexo-subscribed') === 'true';
-        const isLoggedIn = localStorage.getItem('nexo-logged-in') === 'true';
+        if (guestEl) guestEl.style.display = isLoggedIn ? 'none' : 'flex';
+        if (loggedEl) loggedEl.style.display = isLoggedIn ? 'flex' : 'none';
+        if (prominentAuth) prominentAuth.style.display = isLoggedIn ? 'none' : 'block';
+        // 상단 유틸 바: 로그인 시 마이페이지만, 비로그인 시 로그인 링크 표시
+        var utilityMypage = document.getElementById('utility-mypage-link');
+        var utilityLogin = document.getElementById('utility-login-link');
+        if (utilityMypage) utilityMypage.style.display = isLoggedIn ? 'inline-flex' : 'none';
+        if (utilityLogin) utilityLogin.style.display = isLoggedIn ? 'none' : 'inline-flex';
         
-        // 구독하지 않았거나 로그인하지 않은 경우에만 표시
-        if (!isSubscribed && !isLoggedIn) {
-            loginBtn.style.display = 'inline-block';
-        } else {
-            loginBtn.style.display = 'none';
+        if (isLoggedIn) {
+            const nameEl = document.getElementById('user-widget-name');
+            const emailEl = document.getElementById('user-widget-email');
+            if (nameEl) nameEl.textContent = (localStorage.getItem('nexo-member-name') || '회원') + '님';
+            if (emailEl) emailEl.textContent = localStorage.getItem('nexo-member-email') || '';
         }
+    }
+    
+    // 메인 상단 인라인 로그인 폼 (처음 방문자 노출)
+    function setupInlineLoginForm() {
+        const form = document.getElementById('inline-login-form');
+        if (!form) return;
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var identifier = (document.getElementById('inline-login-identifier') || {}).value.trim().toLowerCase();
+            var password = (document.getElementById('inline-login-password') || {}).value.trim();
+            if (!identifier || !password) {
+                alert('이메일/연락처와 비밀번호를 입력해주세요.');
+                return;
+            }
+            var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+            if (window.__USE_RENDER_API__) {
+                try {
+                    var apiRes = await fetch('/.netlify/functions/member-auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'login', email: identifier, password: password })
+                    });
+                    var apiData = await apiRes.json();
+                    if (!apiRes.ok) { alert(apiData.error || '이메일 또는 비밀번호가 올바르지 않습니다.'); return; }
+                    if (apiData.token) localStorage.setItem('nexo-auth-token', apiData.token);
+                    if (apiData.user) {
+                        localStorage.setItem('nexo-member-email', apiData.user.email || '');
+                        localStorage.setItem('nexo-member-name', apiData.user.name || '회원');
+                        localStorage.setItem('nexo-member-academy', apiData.user.academy_name || '');
+                        localStorage.setItem('nexo-member-phone', apiData.user.phone || '');
+                        localStorage.setItem('nexo-member-referrer', apiData.user.referrer_code || '');
+                        if (apiData.user.created_at) localStorage.setItem('nexo-member-joined', new Date(apiData.user.created_at).toLocaleDateString('ko-KR'));
+                    }
+                    localStorage.setItem('nexo-logged-in', 'true');
+                    localStorage.setItem('nexo-subscribed', 'true');
+                    if (window.updateUserWidget) window.updateUserWidget();
+                    if (window.updateSubscriberUI) window.updateSubscriberUI();
+                    if (typeof window.showToastNotification === 'function') window.showToastNotification('로그인되었습니다! 🎉');
+                    else alert('로그인되었습니다!');
+                } catch (err) { alert('로그인 중 오류가 발생했습니다.'); }
+                return;
+            }
+            var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+            if (supabase) {
+                var signRes = await supabase.auth.signInWithPassword({ email: identifier, password: password });
+                if (signRes.error) {
+                    alert(signRes.error.message || '이메일 또는 비밀번호가 올바르지 않습니다.');
+                    return;
+                }
+                var user = signRes.data.user;
+                localStorage.setItem('nexo-logged-in', 'true');
+                localStorage.setItem('nexo-subscribed', 'true');
+                localStorage.setItem('nexo-member-email', user.email || '');
+                localStorage.setItem('nexo-member-name', user.user_metadata?.name || '회원');
+                if (window.updateUserWidget) window.updateUserWidget();
+                if (window.updateSubscriberUI) window.updateSubscriberUI();
+                if (typeof window.showToastNotification === 'function') window.showToastNotification('로그인되었습니다! 🎉');
+                else alert('로그인되었습니다!');
+                return;
+            }
+            var storedEmail = (localStorage.getItem('nexo-member-email') || '').trim().toLowerCase();
+            var storedPhone = (localStorage.getItem('nexo-member-phone') || '').trim();
+            var storedPassword = (localStorage.getItem('nexo-member-password') || '').trim();
+            var ok = (identifier === storedEmail || identifier === storedPhone) && password === storedPassword;
+            if (ok) {
+                localStorage.setItem('nexo-logged-in', 'true');
+                localStorage.setItem('nexo-subscribed', 'true');
+                if (window.updateUserWidget) window.updateUserWidget();
+                if (window.updateSubscriberUI) window.updateSubscriberUI();
+                if (typeof window.showToastNotification === 'function') window.showToastNotification('로그인되었습니다! 🎉');
+                else alert('로그인되었습니다!');
+            } else {
+                alert('이메일/연락처 또는 비밀번호가 올바르지 않습니다.');
+            }
+        });
+    }
+    
+    function setupLogout() {
+        const logoutBtn = document.getElementById('user-widget-logout');
+        if (!logoutBtn) return;
+        logoutBtn.addEventListener('click', async function() {
+            var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+            if (supabase) await supabase.auth.signOut();
+            localStorage.removeItem('nexo-auth-token');
+            localStorage.removeItem('nexo-logged-in');
+            localStorage.removeItem('nexo-login-remember');
+            updateUserWidget();
+            if (window.updateSubscriberUI) window.updateSubscriberUI();
+            if (typeof window.showToastNotification === 'function') window.showToastNotification('로그아웃되었습니다.');
+            else alert('로그아웃되었습니다.');
+        });
+    }
+    
+    // Supabase 또는 Render API 세션 있으면 localStorage 동기화 후 위젯 갱신
+    function syncSupabaseSession() {
+        if (window.__USE_RENDER_API__ && localStorage.getItem('nexo-auth-token')) {
+            fetch('/.netlify/functions/member-auth', { headers: { 'Authorization': 'Bearer ' + localStorage.getItem('nexo-auth-token') } })
+                .then(function(r) { return r.json(); })
+                .then(function(prof) {
+                    if (prof && prof.email) {
+                        localStorage.setItem('nexo-logged-in', 'true');
+                        localStorage.setItem('nexo-subscribed', 'true');
+                        localStorage.setItem('nexo-member-email', prof.email || '');
+                        localStorage.setItem('nexo-member-name', prof.name || '회원');
+                    }
+                })
+                .catch(function() { })
+                .finally(function() { updateUserWidget(); });
+            return;
+        }
+        var supabase = typeof getSupabase === 'function' ? getSupabase() : null;
+        if (!supabase) {
+            updateUserWidget();
+            return;
+        }
+        supabase.auth.getSession().then(function(_ref) {
+            var data = _ref.data;
+            if (data.session && data.session.user) {
+                var u = data.session.user;
+                localStorage.setItem('nexo-logged-in', 'true');
+                localStorage.setItem('nexo-subscribed', 'true');
+                localStorage.setItem('nexo-member-email', u.email || '');
+                localStorage.setItem('nexo-member-name', u.user_metadata?.name || '회원');
+            }
+        }).finally(function() {
+            updateUserWidget();
+        });
     }
     
     // 페이지 로드 시 초기화
@@ -327,10 +505,13 @@
         setupFindPasswordModal();
         setupSignupLink();
         setupLoginForm();
-        updateLoginButton();
+        setupInlineLoginForm();
+        setupLogout();
+        syncSupabaseSession();
     });
     
-    // 전역 함수로 내보내기
-    window.updateLoginButton = updateLoginButton;
+    // 전역 함수 (하위 호환 + 위젯 갱신)
+    window.updateLoginButton = updateUserWidget;
+    window.updateUserWidget = updateUserWidget;
 })();
 
