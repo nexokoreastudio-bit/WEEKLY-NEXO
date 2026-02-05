@@ -2347,9 +2347,10 @@ body {
   text-decoration: underline;
 }
 
-/* 사이드바 하단 광고 배너 */
+/* 사이드바 하단 광고 배너 (숨김 처리) */
 .sidebar-ad-banner {
-  display: block;
+  display: none !important;
+  /* 재노출 시 아래 주석 해제
   margin-top: 24px;
   margin-bottom: 0;
   padding: 16px;
@@ -2361,6 +2362,7 @@ body {
   transition: border-color 0.2s, box-shadow 0.2s;
   box-shadow: var(--shadow-card);
   position: relative;
+  */
 }
 
 .sidebar-ad-banner:hover {
@@ -3078,12 +3080,65 @@ footer {
     font-size: 16px;
   }
   
+  /* 메인 섹션 에디션 드롭다운 — 모바일 가독성·터치 최적화 */
   .edition-nav {
     flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    max-width: 100%;
   }
   
   .edition-nav select {
     width: 100%;
+    order: 0;
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    line-height: 1.4;
+    border-radius: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+  
+  .edition-nav button {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 0.9375rem;
+  }
+  
+  #prev-edition {
+    order: 1;
+    flex: 1;
+    min-width: 60px;
+  }
+  
+  #next-edition {
+    order: 2;
+    flex: 1;
+    min-width: 60px;
+  }
+  
+  .edition-list-toggle-btn {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 4px;
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 0.9375rem;
+    border-radius: 8px;
+  }
+  
+  .edition-nav-hint {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    margin-top: 10px;
+    padding: 0 4px;
+    color: var(--text-muted);
   }
   
   .updates-grid {
