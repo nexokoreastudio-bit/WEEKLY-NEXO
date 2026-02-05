@@ -137,14 +137,14 @@ const EDITIONS_DATA = {
         },
         {
           "type": "download",
-          "title": "수업 준비 체크리스트",
-          "url": "assets/downloads/수업준비체크리스트.pdf",
+          "title": "수업 준비 체크리스트 (준비중)",
+          "url": "#",
           "fileType": "PDF"
         },
         {
           "type": "download",
-          "title": "상담 체크리스트",
-          "url": "assets/downloads/상담체크리스트.pdf",
+          "title": "상담 체크리스트 (준비중)",
+          "url": "#",
           "fileType": "PDF"
         }
       ]
