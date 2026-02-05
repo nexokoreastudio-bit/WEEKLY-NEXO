@@ -452,6 +452,77 @@
                     <a href="https://blog.naver.com/nexokorea" target="_blank">공식 블로그 더보기 →</a>
                 </div>
 
+                <!-- 넥소 전자칠판 주문/상담 신청 (드롭다운) -->
+                <div class="sidebar-order-dropdown">
+                    <button type="button" class="sidebar-order-toggle" id="sidebar-order-toggle" aria-expanded="false" aria-controls="sidebar-order-content">
+                        <span class="sidebar-order-toggle-title">📋 넥소 전자칠판 주문/상담 신청</span>
+                        <span class="sidebar-order-toggle-icon" aria-hidden="true">▼</span>
+                    </button>
+                    <div class="sidebar-order-content" id="sidebar-order-content" hidden>
+                        <div class="order-form-box">
+                            <form id="order-form" name="order-form" class="order-form" netlify data-netlify="true" action="/thank-you.html" method="POST">
+                                <input type="hidden" name="form-name" value="order-form">
+                                <div class="form-group">
+                                    <label for="company_name">업체명 (학원명)</label>
+                                    <input type="text" id="company_name" name="company_name" placeholder="예: 넥소학원" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="customer_name">주문자 성함</label>
+                                    <input type="text" id="customer_name" name="customer_name" placeholder="홍길동" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone_number">연락처</label>
+                                    <input type="tel" id="phone_number" name="phone_number" placeholder="010-1234-5678" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="region">지역 / 설치 환경</label>
+                                    <input type="text" id="region" name="region" placeholder="예: 서울 노원구, 강의실">
+                                </div>
+                                <div class="form-group">
+                                    <label for="size">인치 종류</label>
+                                    <select id="size" name="size" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="65">65인치</option>
+                                        <option value="75">75인치</option>
+                                        <option value="86">86인치</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mount_type">설치 방식</label>
+                                    <select id="mount_type" name="mount_type" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="wall">벽걸이</option>
+                                        <option value="stand">이동형 스탠드</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="quantity">구매 수량</label>
+                                    <select id="quantity" name="quantity" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="1">1대</option>
+                                        <option value="2">2대</option>
+                                        <option value="3">3대</option>
+                                        <option value="4">4대</option>
+                                        <option value="5">5대 이상</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="referrer_code">유입 경로 (선택사항)</label>
+                                    <input type="text" id="referrer_code" name="referrer_code" placeholder="기사님 코드 또는 추천인 코드">
+                                    <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">QR 코드를 스캔하셨거나 추천을 받으셨다면 코드를 입력해주세요</small>
+                                </div>
+                                <input type="hidden" id="unit_price" name="unit_price" value="">
+                                <input type="hidden" id="total_price_hidden" name="total_price" value="">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="agree" name="agree" required>
+                                    <label for="agree">개인정보 수집 및 이용에 동의합니다</label>
+                                </div>
+                                <button type="submit" class="order-submit-btn">주문 신청하기</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tips-box">
                     <h4>📞 연락처</h4>
                     <p><strong>Web:</strong> <a href="https://www.nexokorea.co.kr" target="_blank">www.nexokorea.co.kr</a></p>
@@ -525,6 +596,19 @@
             var toggle = document.getElementById('sidebar-promo-toggle');
             var content = document.getElementById('sidebar-promo-content');
             var dropdown = toggle && toggle.closest('.sidebar-promo-dropdown');
+            if (!toggle || !content) return;
+            toggle.addEventListener('click', function() {
+                var isOpen = !content.hidden;
+                content.hidden = isOpen;
+                toggle.setAttribute('aria-expanded', !isOpen);
+                if (dropdown) dropdown.classList.toggle('open', !isOpen);
+            });
+        })();
+        // 넥소 전자칠판 주문/상담 신청 드롭다운 (접기/펼치기)
+        (function() {
+            var toggle = document.getElementById('sidebar-order-toggle');
+            var content = document.getElementById('sidebar-order-content');
+            var dropdown = toggle && toggle.closest('.sidebar-order-dropdown');
             if (!toggle || !content) return;
             toggle.addEventListener('click', function() {
                 var isOpen = !content.hidden;

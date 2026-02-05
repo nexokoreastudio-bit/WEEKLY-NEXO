@@ -1417,6 +1417,55 @@ body {
 }
 
 /* 특별 프로모션 드롭다운 (접기/펼치기) */
+/* 사이드바 넥소 전자칠판 주문/상담 신청 드롭다운 */
+.sidebar-order-dropdown {
+  margin-bottom: 20px;
+}
+.sidebar-order-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, var(--nexo-navy), #003d7a);
+  color: white;
+  border: 1px solid rgba(0, 31, 63, 0.2);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.sidebar-order-toggle:hover {
+  background: linear-gradient(135deg, #003d7a, var(--nexo-navy));
+  border-color: rgba(255,255,255,0.2);
+}
+.sidebar-order-toggle-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-order-toggle-icon {
+  font-size: 10px;
+  transition: transform 0.25s;
+}
+.sidebar-order-dropdown.open .sidebar-order-toggle-icon {
+  transform: rotate(180deg);
+}
+.sidebar-order-content {
+  overflow: hidden;
+}
+.sidebar-order-content[hidden] {
+  display: none;
+}
+.sidebar-order-content:not([hidden]) {
+  padding-top: 14px;
+}
+.sidebar-order-content .order-form-box {
+  margin-bottom: 0;
+}
+
 .sidebar-promo-dropdown {
   margin-bottom: 20px;
 }
@@ -3190,9 +3239,12 @@ footer {
     height: 60px;
   }
 
-  /* 모바일: 주문 폼 숨김 또는 하단 고정 */
-  .order-form-box {
-    display: none; /* 모바일에서는 기본적으로 숨김 */
+  /* 모바일: 주문 폼은 드롭다운 열었을 때만 표시 */
+  .sidebar-order-content .order-form-box {
+    display: none;
+  }
+  .sidebar-order-dropdown.open .order-form-box {
+    display: block;
   }
 }
 
