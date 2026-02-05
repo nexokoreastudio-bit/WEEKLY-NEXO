@@ -57,3 +57,4 @@ cp node_modules/qrcode/build/qrcode.min.js js/qrcode.min.js
 
 **작성일**: 2026년 2월
 
+

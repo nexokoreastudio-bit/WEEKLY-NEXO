@@ -142,3 +142,4 @@
 
 **자세한 내용은 `DEVELOPMENT_ROADMAP.md`와 `TECHNICAL_SPEC_V2.md` 참고**
 
+

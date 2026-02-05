@@ -57,3 +57,4 @@ ls -lh js/qrcode.min.js
 
 **작성일**: 2026년 2월
 
+

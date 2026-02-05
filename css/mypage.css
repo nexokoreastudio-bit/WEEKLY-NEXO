@@ -1,0 +1,249 @@
+/* 마이페이지 스타일 */
+.mypage-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.mypage-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.mypage-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin-bottom: 10px;
+  font-family: 'Noto Serif KR', serif;
+}
+
+.mypage-subtitle {
+  font-size: 16px;
+  color: #666;
+}
+
+.mypage-section {
+  margin-bottom: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mypage-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 구독 상태 카드 */
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 25px;
+  background: linear-gradient(135deg, rgba(0, 31, 63, 0.05), rgba(0, 229, 255, 0.05));
+  border-radius: 12px;
+  border: 2px solid rgba(0, 31, 63, 0.1);
+}
+
+.status-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.status-content h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  margin-bottom: 8px;
+  border: none;
+  padding: 0;
+}
+
+.status-text {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+
+.status-text.active {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.status-text.inactive {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* 정보 카드 */
+.info-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--nexo-navy);
+  font-size: 14px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 14px;
+  text-align: right;
+}
+
+/* 다운로드 이력 */
+.download-history {
+  min-height: 100px;
+}
+
+.download-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.download-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.download-item-name {
+  font-weight: 600;
+  color: var(--nexo-navy);
+}
+
+.download-item-date {
+  font-size: 13px;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 14px;
+}
+
+/* 포인트 카드 */
+.points-card {
+  background: linear-gradient(135deg, rgba(0, 31, 63, 0.05), rgba(0, 229, 255, 0.05));
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px solid rgba(0, 31, 63, 0.1);
+}
+
+.points-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.points-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 600;
+}
+
+.points-value {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.points-note {
+  font-size: 13px;
+  color: #999;
+  margin-top: 15px;
+}
+
+/* 설정 카드 */
+.settings-card {
+  text-align: center;
+  padding: 20px;
+}
+
+.settings-note {
+  font-size: 13px;
+  color: #666;
+  margin-top: 15px;
+  line-height: 1.6;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.btn-secondary:hover {
+  background: #e0e0e0;
+  border-color: #ccc;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .mypage-container {
+    padding: 0 15px;
+    margin: 20px auto;
+  }
+
+  .mypage-section {
+    padding: 20px;
+  }
+
+  .status-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .info-value {
+    text-align: left;
+  }
+}
+
+

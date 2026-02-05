@@ -71,3 +71,4 @@ browserify node_modules/qrcode/lib/browser.js -o js/qrcode.min.js
 
 **작성일**: 2026년 2월
 
+

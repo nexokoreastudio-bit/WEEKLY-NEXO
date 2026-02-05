@@ -159,9 +159,24 @@
             e.preventDefault();
             
             const formData = new FormData(form);
+            const password = formData.get('password') || '';
+            const passwordConfirm = formData.get('password_confirm') || '';
+            
+            // 비밀번호 확인
+            if (!password || password.length < 4) {
+                alert('비밀번호는 최소 4자 이상이어야 합니다.');
+                return false;
+            }
+            
+            if (password !== passwordConfirm) {
+                alert('비밀번호가 일치하지 않습니다.');
+                return false;
+            }
+            
             const data = {
                 name: formData.get('name') || '',
                 email: formData.get('email') || '',
+                password: password,
                 academy_name: formData.get('academy_name') || '',
                 phone: formData.get('phone') || '',
                 referrer_code: formData.get('referrer_code') || '',
@@ -174,6 +189,15 @@
                 return false;
             }
             
+            // 구독자 정보 localStorage에 저장 (로컬/실제 환경 모두)
+            localStorage.setItem('nexo-member-name', data.name);
+            localStorage.setItem('nexo-member-email', data.email);
+            localStorage.setItem('nexo-member-academy', data.academy_name || '');
+            localStorage.setItem('nexo-member-phone', data.phone || '');
+            localStorage.setItem('nexo-member-referrer', data.referrer_code || '');
+            localStorage.setItem('nexo-member-joined', new Date().toLocaleDateString('ko-KR'));
+            localStorage.setItem('nexo-member-password', password); // 비밀번호 저장
+            
             // 로컬 환경 처리
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (isLocal) {
@@ -181,7 +205,12 @@
                 // 로컬 환경에서는 구독 상태만 저장 (테스트용)
                 setSubscribed(true);
                 closeSignupModal();
-                alert('구독이 완료되었습니다! (로컬 테스트 모드)\n\n실제 Netlify에 배포하면 Google Sheets에 데이터가 저장됩니다.\n\n이제 구독자 전용 자료를 다운로드하실 수 있습니다.');
+                // 구독자 UI 업데이트
+                updateSubscriberUI();
+                // 환영 배너 표시를 위해 세션 스토리지 초기화
+                sessionStorage.removeItem('nexo-welcome-seen');
+                // 토스트 알림 표시
+                showToastNotification('구독이 완료되었습니다! 🎉 (로컬 테스트 모드)');
                 return false;
             }
             
@@ -201,7 +230,12 @@
                     // 구독 상태 저장
                     setSubscribed(true);
                     closeSignupModal();
-                    alert('구독이 완료되었습니다!\n\n이제 구독자 전용 자료를 다운로드하실 수 있습니다.');
+                    // 구독자 UI 업데이트
+                    updateSubscriberUI();
+                    // 환영 배너 표시를 위해 세션 스토리지 초기화
+                    sessionStorage.removeItem('nexo-welcome-seen');
+                    // 토스트 알림 표시
+                    showToastNotification('구독이 완료되었습니다! 🎉');
                 } else {
                     throw new Error(result.error || '회원 가입 처리 중 오류가 발생했습니다.');
                 }
@@ -210,7 +244,12 @@
                 // 오류가 발생해도 구독 상태는 저장 (사용자 경험 개선)
                 setSubscribed(true);
                 closeSignupModal();
-                alert('구독이 완료되었습니다!\n\n(데이터 저장 중 오류가 발생했을 수 있으나, 구독은 정상 처리되었습니다.)');
+                // 구독자 UI 업데이트
+                updateSubscriberUI();
+                // 환영 배너 표시를 위해 세션 스토리지 초기화
+                sessionStorage.removeItem('nexo-welcome-seen');
+                // 토스트 알림 표시
+                showToastNotification('구독이 완료되었습니다! 🎉');
             }
         });
     }
@@ -246,6 +285,9 @@
                         fetch(fileUrl, { method: 'HEAD' })
                             .then(res => {
                                 if (res.ok) {
+                                    // 다운로드 이력 저장
+                                    saveDownloadHistory(fileName);
+                                    
                                     const a = document.createElement('a');
                                     a.href = fileUrl;
                                     a.download = '';
@@ -268,6 +310,129 @@
         });
     }
     
+    // 다운로드 이력 저장
+    function saveDownloadHistory(fileName) {
+        const history = getDownloadHistory();
+        history.unshift({
+            name: fileName,
+            date: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+        });
+        // 최근 50개만 저장
+        const limitedHistory = history.slice(0, 50);
+        localStorage.setItem('nexo-download-history', JSON.stringify(limitedHistory));
+    }
+    
+    function getDownloadHistory() {
+        const history = localStorage.getItem('nexo-download-history');
+        return history ? JSON.parse(history) : [];
+    }
+    
+    // 토스트 알림 표시
+    function showToastNotification(message) {
+        // 기존 토스트가 있으면 제거
+        const existingToast = document.getElementById('toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        // 토스트 생성
+        const toast = document.createElement('div');
+        toast.id = 'toast-notification';
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        // 애니메이션으로 표시
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+        
+        // 3초 후 자동 제거
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    // 구독자 UI 업데이트
+    function updateSubscriberUI() {
+        const subscribed = isSubscribed();
+        
+        // 마이페이지 링크
+        const mypageLink = document.getElementById('mypage-link');
+        if (mypageLink) {
+            mypageLink.style.display = subscribed ? 'inline-block' : 'none';
+        }
+        
+        // 구독자 배지
+        const subscriptionBadge = document.getElementById('subscription-badge');
+        if (subscriptionBadge) {
+            subscriptionBadge.style.display = subscribed ? 'inline-flex' : 'none';
+        }
+        
+        // 로그인 버튼 업데이트
+        if (window.updateLoginButton) {
+            window.updateLoginButton();
+        }
+        
+        // 환영 배너
+        const welcomeBanner = document.getElementById('subscriber-welcome-banner');
+        if (welcomeBanner && subscribed) {
+            const memberName = localStorage.getItem('nexo-member-name') || '회원';
+            const welcomeName = document.getElementById('welcome-name');
+            if (welcomeName) {
+                welcomeName.textContent = memberName;
+            }
+            // 처음 구독한 경우에만 배너 표시 (세션 스토리지로 체크)
+            const hasSeenWelcome = sessionStorage.getItem('nexo-welcome-seen');
+            if (!hasSeenWelcome) {
+                welcomeBanner.style.display = 'block';
+                sessionStorage.setItem('nexo-welcome-seen', 'true');
+            }
+        }
+        
+        // 사이드바 구독 CTA 업데이트
+        const subscribeBox = document.getElementById('sidebar-subscribe-box');
+        const subscribeCTA = document.getElementById('subscribe-cta-content');
+        const subscriberBenefits = document.getElementById('subscriber-benefits-content');
+        
+        if (subscribeBox) {
+            if (subscribed) {
+                subscribeBox.classList.add('subscribed');
+                if (subscribeCTA) subscribeCTA.style.display = 'none';
+                if (subscriberBenefits) subscriberBenefits.style.display = 'block';
+            } else {
+                subscribeBox.classList.remove('subscribed');
+                if (subscribeCTA) subscribeCTA.style.display = 'block';
+                if (subscriberBenefits) subscriberBenefits.style.display = 'none';
+            }
+        }
+        
+        // 구독자 전용 자료 섹션 업데이트
+        updatePremiumFilesAccess();
+    }
+    
+    // 마이페이지 링크 업데이트 (하위 호환성)
+    function updateMypageLink() {
+        updateSubscriberUI();
+    }
+    
+    // 환영 배너 닫기
+    function setupWelcomeBanner() {
+        const welcomeClose = document.getElementById('welcome-close');
+        const welcomeBanner = document.getElementById('subscriber-welcome-banner');
+        
+        if (welcomeClose && welcomeBanner) {
+            welcomeClose.addEventListener('click', function() {
+                welcomeBanner.style.display = 'none';
+            });
+        }
+    }
+    
     // 페이지 로드 시 초기화
     document.addEventListener('DOMContentLoaded', function() {
         setReferrerCodeToForms();
@@ -275,7 +440,8 @@
         setupPremiumCards();
         setupSignupForm();
         setupPremiumDownloads();
-        updatePremiumFilesAccess(); // 구독 상태에 따라 자료 접근 권한 업데이트
+        setupWelcomeBanner(); // 환영 배너 닫기 버튼
+        updateSubscriberUI(); // 구독자 UI 전체 업데이트
         
         // 유입 경로가 있으면 콘솔에 표시 (디버깅용)
         const refCode = getReferrerCode();
@@ -293,5 +459,6 @@
     window.closeSignupModal = closeSignupModal;
     window.isSubscribed = isSubscribed;
     window.setSubscribed = setSubscribed;
+    window.updateMypageLink = updateMypageLink;
 })();
 

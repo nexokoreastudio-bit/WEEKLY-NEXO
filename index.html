@@ -32,6 +32,12 @@
                 <span id="current-date">2026.01.28 THURSDAY</span>
                 <span>SPECIAL EDITION</span>
                 <span id="admin-auth-area" class="admin-auth-area">
+                    <span id="subscription-badge" class="subscription-badge" style="display: none;">
+                        <span class="badge-icon">✨</span>
+                        <span class="badge-text">구독자</span>
+                    </span>
+                    <a href="mypage.html" id="mypage-link" class="mypage-link" style="display: none;" title="마이페이지">👤 마이페이지</a>
+                    <button type="button" id="member-login-open" class="member-login-btn" style="display: none;">로그인</button>
                     <button type="button" id="admin-login-open" class="admin-login-btn">관리자 로그인</button>
                 </span>
             </div>
@@ -406,6 +412,121 @@
                     </div>
                 </div>
 
+                <!-- 구독자 로그인 모달 -->
+                <div id="member-login-modal" class="member-login-modal" hidden role="dialog" aria-labelledby="login-modal-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="login-modal-title" class="modal-title">🔐 구독자 로그인</h3>
+                            <button type="button" class="modal-close" id="login-modal-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">이메일 또는 연락처로 로그인하세요</p>
+                            
+                            <form id="member-login-form" class="member-login-form">
+                                <div class="form-group">
+                                    <label for="login-identifier">이메일 또는 연락처 *</label>
+                                    <input type="text" id="login-identifier" name="identifier" placeholder="example@email.com 또는 010-1234-5678" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="login-password">비밀번호 *</label>
+                                    <input type="password" id="login-password" name="password" placeholder="비밀번호를 입력하세요" required>
+                                </div>
+                                
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="login-remember" name="remember">
+                                        로그인 상태 유지
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">로그인</button>
+                            </form>
+                            
+                            <div class="login-footer-links">
+                                <a href="#" id="find-id-link" class="footer-link">아이디 찾기</a>
+                                <span class="link-divider">|</span>
+                                <a href="#" id="find-password-link" class="footer-link">비밀번호 찾기</a>
+                                <span class="link-divider">|</span>
+                                <a href="#" id="go-to-signup-link" class="footer-link">회원가입하기</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 아이디 찾기 모달 -->
+                <div id="find-id-modal" class="member-login-modal" hidden role="dialog" aria-labelledby="find-id-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="find-id-title" class="modal-title">🔍 아이디 찾기</h3>
+                            <button type="button" class="modal-close" id="find-id-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">가입 시 입력하신 정보를 입력해주세요</p>
+                            
+                            <form id="find-id-form" class="member-login-form">
+                                <div class="form-group">
+                                    <label for="find-id-name">이름 *</label>
+                                    <input type="text" id="find-id-name" name="name" placeholder="홍길동" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="find-id-phone">연락처 *</label>
+                                    <input type="tel" id="find-id-phone" name="phone" placeholder="010-1234-5678" required>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">아이디 찾기</button>
+                            </form>
+                            
+                            <div id="find-id-result" class="find-result" style="display: none;">
+                                <div class="result-success">
+                                    <p class="result-title">등록된 이메일</p>
+                                    <p id="found-email" class="result-value"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="login-footer-links">
+                                <a href="#" id="back-to-login-from-find-id" class="footer-link">로그인으로 돌아가기</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비밀번호 찾기 모달 -->
+                <div id="find-password-modal" class="member-login-modal" hidden role="dialog" aria-labelledby="find-password-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="find-password-title" class="modal-title">🔑 비밀번호 찾기</h3>
+                            <button type="button" class="modal-close" id="find-password-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">이메일 또는 연락처를 입력하시면 비밀번호 재설정 링크를 보내드립니다</p>
+                            
+                            <form id="find-password-form" class="member-login-form">
+                                <div class="form-group">
+                                    <label for="find-password-identifier">이메일 또는 연락처 *</label>
+                                    <input type="text" id="find-password-identifier" name="identifier" placeholder="example@email.com 또는 010-1234-5678" required>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">비밀번호 재설정 링크 보내기</button>
+                            </form>
+                            
+                            <div id="find-password-result" class="find-result" style="display: none;">
+                                <div class="result-success">
+                                    <p class="result-message">비밀번호 재설정 링크를 이메일로 보내드렸습니다.<br>이메일을 확인해주세요.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="login-footer-links">
+                                <a href="#" id="back-to-login-from-find-password" class="footer-link">로그인으로 돌아가기</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 회원 가입 모달 -->
                 <div id="member-signup-modal" class="member-signup-modal" hidden role="dialog" aria-labelledby="signup-modal-title" aria-modal="true">
                     <div class="modal-backdrop"></div>
@@ -429,6 +550,19 @@
                                 <div class="form-group">
                                     <label for="signup-email">이메일 *</label>
                                     <input type="email" id="signup-email" name="email" placeholder="example@email.com" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-password">비밀번호 *</label>
+                                    <input type="password" id="signup-password" name="password" placeholder="비밀번호를 입력하세요" required minlength="4">
+                                    <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                                        최소 4자 이상 입력해주세요
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-password-confirm">비밀번호 확인 *</label>
+                                    <input type="password" id="signup-password-confirm" name="password_confirm" placeholder="비밀번호를 다시 입력하세요" required>
                                 </div>
                                 
                                 <div class="form-group">
@@ -614,13 +748,28 @@
                 </div>
 
                 <!-- 구독하기 CTA (사이드바) -->
-                <div class="sidebar-subscribe-box">
-                    <h4>📚 구독하고 혜택 받기</h4>
-                    <p>유료급 고급 자료를 무료로 다운로드하세요</p>
-                    <button type="button" id="sidebar-signup-btn" class="sidebar-signup-btn">
-                        <span class="btn-icon">✨</span>
-                        <span class="btn-text">구독하기</span>
-                    </button>
+                <div class="sidebar-subscribe-box" id="sidebar-subscribe-box">
+                    <div id="subscribe-cta-content">
+                        <h4>📚 구독하고 혜택 받기</h4>
+                        <p>유료급 고급 자료를 무료로 다운로드하세요</p>
+                        <button type="button" id="sidebar-signup-btn" class="sidebar-signup-btn">
+                            <span class="btn-icon">✨</span>
+                            <span class="btn-text">구독하기</span>
+                        </button>
+                    </div>
+                    <div id="subscriber-benefits-content" style="display: none;">
+                        <div class="subscriber-status-header">
+                            <span class="status-icon">✨</span>
+                            <h4>구독자 전용 혜택</h4>
+                        </div>
+                        <ul class="benefits-list-small">
+                            <li>✅ 유료급 자료 무료 다운로드</li>
+                            <li>✅ 매주 목요일 최신 정보 수신</li>
+                            <li>✅ 구독자 전용 특가 혜택</li>
+                            <li>✅ 커뮤니티 포인트 적립</li>
+                        </ul>
+                        <a href="mypage.html" class="btn-secondary-small">마이페이지 보기</a>
+                    </div>
                 </div>
 
                 <div class="tips-box">
@@ -673,6 +822,7 @@
     <script src="js/edition-manager.js"></script>
     <script src="js/order-form.js"></script>
     <script src="js/member-signup.js"></script>
+    <script src="js/member-login.js"></script>
     <script>
         // 테스트 모드: ?test=1 또는 ?test=true → 상단 배너
         (function() {

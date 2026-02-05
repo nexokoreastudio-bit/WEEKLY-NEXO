@@ -85,6 +85,170 @@ body {
   border-color: var(--ink-black);
 }
 
+.mypage-link {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--nexo-navy);
+  text-decoration: none;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-right: 8px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.mypage-link:hover {
+  color: var(--nexo-cyan);
+  border-color: var(--nexo-cyan);
+  background: rgba(0, 196, 180, 0.05);
+}
+
+/* 구독자 배지 */
+.subscription-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(0, 196, 180, 0.1), rgba(0, 31, 63, 0.1));
+  border: 1px solid var(--nexo-cyan);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--nexo-navy);
+  margin-right: 8px;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+.subscription-badge .badge-icon {
+  font-size: 14px;
+}
+
+.subscription-badge .badge-text {
+  font-size: 0.7rem;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 196, 180, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 196, 180, 0);
+  }
+}
+
+/* 구독자 환영 배너 */
+.subscriber-welcome-banner {
+  background: linear-gradient(135deg, var(--nexo-navy), #003d7a);
+  color: white;
+  padding: 16px 20px;
+  margin: 0 -20px 20px -20px;
+  border-radius: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.welcome-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.welcome-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.welcome-text strong {
+  font-weight: 700;
+  color: var(--nexo-cyan);
+}
+
+.welcome-benefit {
+  display: block;
+  font-size: 12px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.welcome-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.welcome-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@media (min-width: 768px) {
+  .subscriber-welcome-banner {
+    margin: 0 -40px 20px -40px;
+    padding: 20px 40px;
+  }
+  
+  .welcome-text {
+    font-size: 15px;
+  }
+}
+
+/* 토스트 알림 */
+.toast-notification {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--nexo-navy);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 10000;
+  opacity: 0;
+  transition: all 0.3s ease-out;
+  max-width: 90%;
+  text-align: center;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.toast-notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .admin-badge {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -2300,8 +2464,9 @@ body {
   color: #666;
 }
 
-/* 회원 가입 모달 */
-.member-signup-modal {
+/* 회원 가입 모달 & 로그인 모달 */
+.member-signup-modal,
+.member-login-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -2315,11 +2480,13 @@ body {
   pointer-events: none;
 }
 
-.member-signup-modal:not([hidden]) {
+.member-signup-modal:not([hidden]),
+.member-login-modal:not([hidden]) {
   pointer-events: auto;
 }
 
-.member-signup-modal[hidden] {
+.member-signup-modal[hidden],
+.member-login-modal[hidden] {
   display: none !important;
 }
 
@@ -2459,6 +2626,142 @@ body {
   font-size: 12px;
 }
 
+/* 로그인 폼 스타일 */
+.member-login-form {
+  margin-bottom: 20px;
+}
+
+.member-login-form .form-group {
+  margin-bottom: 20px;
+}
+
+.member-login-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nexo-navy);
+  margin-bottom: 8px;
+}
+
+.member-login-form input[type="text"],
+.member-login-form input[type="password"],
+.member-login-form input[type="tel"],
+.member-login-form input[type="email"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+.member-login-form input:focus {
+  outline: none;
+  border-color: var(--nexo-navy);
+  box-shadow: 0 0 0 2px rgba(0, 31, 63, 0.1);
+}
+
+.member-login-form .checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.member-login-form .checkbox-group input[type="checkbox"] {
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+.member-login-form .checkbox-group label {
+  font-weight: 400;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+/* 로그인 폼 하단 링크 */
+.login-footer-links {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.footer-link {
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-link:hover {
+  color: var(--nexo-navy);
+  text-decoration: underline;
+}
+
+.link-divider {
+  margin: 0 8px;
+  color: #ddd;
+}
+
+/* 찾기 결과 */
+.find-result {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.result-success {
+  text-align: center;
+}
+
+.result-title {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.result-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--nexo-navy);
+  word-break: break-all;
+}
+
+.result-message {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 구독자 로그인 버튼 */
+.member-login-btn {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--nexo-navy);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  margin-right: 8px;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.member-login-btn:hover {
+  color: var(--nexo-cyan);
+  border-color: var(--nexo-cyan);
+  background: rgba(0, 196, 180, 0.05);
+}
+
 /* 사이드바 구독 박스 */
 .sidebar-subscribe-box {
   background: linear-gradient(135deg, rgba(0, 31, 63, 0.05), rgba(0, 229, 255, 0.05));
@@ -2467,6 +2770,13 @@ body {
   border: 1px solid rgba(0, 31, 63, 0.1);
   margin-bottom: 20px;
   text-align: center;
+  transition: all 0.3s;
+}
+
+.sidebar-subscribe-box.subscribed {
+  background: linear-gradient(135deg, rgba(0, 196, 180, 0.08), rgba(0, 31, 63, 0.08));
+  border: 2px solid var(--nexo-cyan);
+  box-shadow: 0 2px 8px rgba(0, 196, 180, 0.15);
 }
 
 .sidebar-subscribe-box h4 {
@@ -2504,6 +2814,61 @@ body {
 .sidebar-signup-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 31, 63, 0.2);
+}
+
+/* 구독자 혜택 표시 */
+.subscriber-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.subscriber-status-header .status-icon {
+  font-size: 20px;
+}
+
+.subscriber-status-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--nexo-navy);
+}
+
+.benefits-list-small {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+  text-align: left;
+}
+
+.benefits-list-small li {
+  font-size: 12px;
+  color: #555;
+  padding: 6px 0;
+  line-height: 1.5;
+}
+
+.btn-secondary-small {
+  display: inline-block;
+  width: 100%;
+  padding: 10px 16px;
+  background: white;
+  color: var(--nexo-navy);
+  border: 1px solid var(--nexo-cyan);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.3s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.btn-secondary-small:hover {
+  background: var(--nexo-cyan);
+  color: white;
+  transform: translateY(-1px);
 }
 
 .order-submit-btn {
