@@ -34,3 +34,9 @@ js/config.js
 .env.local
 .env
 *.env.local
+
+# 문서 파일 (README.md와 REFACTORING_REPORT.md는 제외)
+*.md
+!README.md
+!REFACTORING_REPORT.md
+!SECURITY_INCIDENT_RESPONSE.md
