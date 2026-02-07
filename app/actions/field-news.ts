@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { Database } from '@/types/database'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 interface CreateFieldNewsData {
   title: string
@@ -28,35 +31,44 @@ export async function createFieldNews(
     }
 
     // 관리자 권한 확인
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
+
+    const profile = profileData as Pick<UserRow, 'role'> | null
 
     if (profile?.role !== 'admin') {
       return { success: false, error: '관리자 권한이 필요합니다.' }
     }
 
     // 현장 소식 작성
-    const { data: fieldNews, error } = await supabase
+    type FieldNewsInsert = Database['public']['Tables']['field_news']['Insert']
+    type FieldNewsRow = Database['public']['Tables']['field_news']['Row']
+    
+    const insertData: FieldNewsInsert = {
+      title: data.title,
+      content: data.content,
+      location: data.location,
+      installation_date: data.installation_date || null,
+      images: data.images,
+      author_id: data.author_id,
+      is_published: false, // 기본값은 임시저장
+      views: 0,
+    }
+    
+    const { data: fieldNewsData, error } = await supabase
       .from('field_news')
-      .insert({
-        title: data.title,
-        content: data.content,
-        location: data.location,
-        installation_date: data.installation_date || null,
-        images: data.images,
-        author_id: data.author_id,
-        is_published: false, // 기본값은 임시저장
-        views: 0,
-      })
+      .insert(insertData)
       .select()
       .single()
+    
+    const fieldNews = fieldNewsData as FieldNewsRow | null
 
-    if (error) {
+    if (error || !fieldNews) {
       console.error('현장 소식 작성 실패:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error?.message || '현장 소식 작성에 실패했습니다.' }
     }
 
     revalidatePath('/field')
@@ -86,27 +98,33 @@ export async function updateFieldNews(
     }
 
     // 관리자 권한 확인
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
+
+    const profile = profileData as Pick<UserRow, 'role'> | null
 
     if (profile?.role !== 'admin') {
       return { success: false, error: '관리자 권한이 필요합니다.' }
     }
 
     // 현장 소식 수정
+    type FieldNewsUpdate = Database['public']['Tables']['field_news']['Update']
+    
+    const updateData: FieldNewsUpdate = {
+      title: data.title,
+      content: data.content,
+      location: data.location,
+      installation_date: data.installation_date,
+      images: data.images,
+      updated_at: new Date().toISOString(),
+    }
+    
     const { error } = await supabase
       .from('field_news')
-      .update({
-        title: data.title,
-        content: data.content,
-        location: data.location,
-        installation_date: data.installation_date,
-        images: data.images,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData as any as never)
       .eq('id', id)
 
     if (error) {

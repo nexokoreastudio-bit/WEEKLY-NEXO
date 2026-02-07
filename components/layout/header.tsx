@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import { UserButton } from '@/components/auth/user-button'
 import { createClient } from '@/lib/supabase/server'
+import { Database } from '@/types/database'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 export async function Header() {
   const supabase = await createClient()
@@ -10,11 +13,13 @@ export async function Header() {
   let isAdmin = false
   if (user) {
     try {
-      const { data: profile, error } = await supabase
+      const { data: profileData, error } = await supabase
         .from('users')
         .select('role')
         .eq('id', user.id)
         .single()
+      
+      const profile = profileData as Pick<UserRow, 'role'> | null
       
       if (error) {
         console.error('사용자 프로필 조회 실패:', error)

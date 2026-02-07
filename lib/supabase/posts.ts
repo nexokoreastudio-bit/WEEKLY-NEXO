@@ -6,7 +6,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
 
 type Post = Database['public']['Tables']['posts']['Row']
+type PostRow = Database['public']['Tables']['posts']['Row']
 type PostInsert = Database['public']['Tables']['posts']['Insert']
+type PostUpdate = Database['public']['Tables']['posts']['Update']
 
 export interface PostWithAuthor extends Post {
   author: {
@@ -103,18 +105,19 @@ export async function createPost(
       comments_count: 0,
     }
 
-    const { data, error } = await supabase
+    const { data: postResult, error } = await supabase
       .from('posts')
-      .insert(postData)
+      .insert(postData as any as never)
       .select()
       .single()
 
-    if (error) {
+    if (error || !postResult) {
       console.error('게시글 작성 실패:', error)
-      return { success: false, error: error.message }
+      return { success: false, error: error?.message || '게시글 작성 실패' }
     }
 
-    return { success: true, postId: data.id }
+    const newPost = postResult as PostRow
+    return { success: true, postId: newPost.id }
   } catch (error: any) {
     console.error('게시글 작성 오류:', error)
     return { success: false, error: error.message || '알 수 없는 오류' }
@@ -134,23 +137,27 @@ export async function updatePost(
     const supabase = await createClient()
 
     // 작성자 확인
-    const { data: post } = await supabase
+    const { data: postData } = await supabase
       .from('posts')
       .select('author_id')
       .eq('id', postId)
       .single()
 
+    const post = postData as Pick<PostRow, 'author_id'> | null
+
     if (!post || post.author_id !== authorId) {
       return { success: false, error: '권한이 없습니다.' }
     }
 
+    const updateData: PostUpdate = {
+      title,
+      content,
+      updated_at: new Date().toISOString(),
+    }
+
     const { error } = await supabase
       .from('posts')
-      .update({
-        title,
-        content,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData as any as never)
       .eq('id', postId)
 
     if (error) {
@@ -176,11 +183,13 @@ export async function deletePost(
     const supabase = await createClient()
 
     // 작성자 확인
-    const { data: post } = await supabase
+    const { data: postData } = await supabase
       .from('posts')
       .select('author_id')
       .eq('id', postId)
       .single()
+
+    const post = postData as Pick<PostRow, 'author_id'> | null
 
     if (!post || post.author_id !== authorId) {
       return { success: false, error: '권한이 없습니다.' }

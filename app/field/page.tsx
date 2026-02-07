@@ -3,13 +3,16 @@ import Link from 'next/link'
 import { SafeImage } from '@/components/safe-image'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { Database } from '@/types/database'
 import styles from './field.module.css'
+
+type FieldNewsRow = Database['public']['Tables']['field_news']['Row']
 
 export default async function FieldNewsPage() {
   const supabase = await createClient()
 
   // 현장 소식 가져오기 (최신순)
-  const { data: fieldNews, error } = await supabase
+  const { data: fieldNewsData, error } = await supabase
     .from('field_news')
     .select('*')
     .eq('is_published', true)
@@ -19,6 +22,8 @@ export default async function FieldNewsPage() {
   if (error) {
     console.error('현장 소식 조회 실패:', error)
   }
+
+  const fieldNews = (fieldNewsData || []) as FieldNewsRow[]
 
   return (
     <div className={styles.container}>

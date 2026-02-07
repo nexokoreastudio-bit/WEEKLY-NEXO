@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
 
 type Article = Database['public']['Tables']['articles']['Row']
+type ArticleRow = Database['public']['Tables']['articles']['Row']
 
 export interface EditionArticle extends Article {
   edition_id: string
@@ -147,7 +148,9 @@ export async function getAllEditionsWithInfo(): Promise<EditionInfo[]> {
   // edition_id별로 그룹화하고 각 발행호의 첫 번째 article 정보 사용
   const editionMap = new Map<string, EditionInfo>()
   
-  for (const article of data) {
+  const articles = (data || []) as Pick<ArticleRow, 'edition_id' | 'title' | 'subtitle' | 'thumbnail_url' | 'published_at'>[]
+  
+  for (const article of articles) {
     const editionId = article.edition_id
     if (editionId && !editionMap.has(editionId)) {
       editionMap.set(editionId, {

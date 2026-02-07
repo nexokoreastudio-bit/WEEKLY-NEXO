@@ -1,5 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { Database } from '@/types/database'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 /**
  * 관리자 권한 확인 페이지 (디버깅용)
@@ -23,12 +26,13 @@ export default async function CheckRolePage() {
   }
 
   // 사용자 프로필 확인
-  const { data: profile, error: profileError } = await supabase
+  const { data: profileData, error: profileError } = await supabase
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single()
 
+  const profile = profileData as UserRow | null
   const isAdmin = profile?.role === 'admin'
 
   return (

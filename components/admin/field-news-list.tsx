@@ -54,12 +54,14 @@ export function FieldNewsList() {
   const togglePublish = async (id: number, currentStatus: boolean) => {
     try {
       const supabase = createClient()
+      const updateData: FieldNewsUpdate = {
+        is_published: !currentStatus,
+        published_at: !currentStatus ? new Date().toISOString() : null,
+      }
+      
       const { error } = await supabase
         .from('field_news')
-        .update({
-          is_published: !currentStatus,
-          published_at: !currentStatus ? new Date().toISOString() : null,
-        })
+        .update(updateData as any as never)
         .eq('id', id)
 
       if (error) {

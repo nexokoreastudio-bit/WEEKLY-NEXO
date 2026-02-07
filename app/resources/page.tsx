@@ -41,11 +41,13 @@ export default async function ResourcesPage() {
   }
 
   // 사용자 레벨 가져오기
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('users')
     .select('level, point')
     .eq('id', user.id)
     .single()
+
+  const profile = profileData as Pick<UserRow, 'level' | 'point'> | null
 
   const userLevel = (profile?.level || 'bronze') as 'bronze' | 'silver' | 'gold'
   const userPoint = profile?.point || 0

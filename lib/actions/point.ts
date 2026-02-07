@@ -47,7 +47,7 @@ export async function rewardReadingPoint(
     const updateData: UserUpdate = { point: newPoint }
     const { error: updateError } = await supabase
       .from('users')
-      .update(updateData)
+      .update(updateData as any as never)
       .eq('id', userId)
 
     if (updateError) {
@@ -78,9 +78,10 @@ export async function rewardReadingPoint(
       newLevel = 'silver'
     }
 
+    const levelUpdateData: UserUpdate = { level: newLevel }
     await supabase
       .from('users')
-      .update({ level: newLevel })
+      .update(levelUpdateData as any as never)
       .eq('id', userId)
 
     // 5. 캐시 무효화
@@ -139,9 +140,10 @@ export async function deductPoint(
     // 3. 포인트 차감
     const newPoint = currentPoint - amount
 
+    const updateData: UserUpdate = { point: newPoint }
     const { error: updateError } = await supabase
       .from('users')
-      .update({ point: newPoint })
+      .update(updateData as any as never)
       .eq('id', userId)
 
     if (updateError) {
@@ -149,14 +151,16 @@ export async function deductPoint(
     }
 
     // 4. 포인트 로그 기록
+    const logData2: PointLogInsert = {
+      user_id: userId,
+      amount: -amount,
+      reason,
+      related_id: relatedId || null,
+    }
+    
     const { error: logError } = await supabase
       .from('point_logs')
-      .insert({
-        user_id: userId,
-        amount: -amount,
-        reason,
-        related_id: relatedId || null,
-      })
+      .insert(logData2 as any as never)
 
     if (logError) {
       console.error('포인트 로그 기록 실패:', logError)

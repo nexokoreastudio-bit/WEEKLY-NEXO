@@ -2,6 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { Database } from '@/types/database'
+
+type UserRow = Database['public']['Tables']['users']['Row']
+type UserUpdate = Database['public']['Tables']['users']['Update']
 
 /**
  * 구독자 인증 서버 액션
@@ -29,11 +33,13 @@ export async function verifySubscriber(
     }
 
     // 중복 인증 확인
-    const { data: existingUser } = await supabase
+    const { data: existingUserData } = await supabase
       .from('users')
       .select('subscriber_verified, purchase_serial_number')
       .eq('id', userId)
       .single()
+
+    const existingUser = existingUserData as Pick<UserRow, 'subscriber_verified' | 'purchase_serial_number'> | null
 
     if (existingUser?.subscriber_verified) {
       return { success: false, error: '이미 인증이 완료된 계정입니다.' }
@@ -52,14 +58,16 @@ export async function verifySubscriber(
     }
 
     // 구독자 인증 업데이트
+    const updateData: UserUpdate = {
+      subscriber_verified: true,
+      purchase_serial_number: serialNumber,
+      verified_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    
     const { error: updateError } = await supabase
       .from('users')
-      .update({
-        subscriber_verified: true,
-        purchase_serial_number: serialNumber,
-        verified_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData as any as never)
       .eq('id', userId)
 
     if (updateError) {
@@ -94,7 +102,7 @@ export async function getSubscriberStatus(userId: string) {
   try {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
+    const { data: userData, error } = await supabase
       .from('users')
       .select('subscriber_verified, purchase_serial_number, verified_at')
       .eq('id', userId)
@@ -103,6 +111,8 @@ export async function getSubscriberStatus(userId: string) {
     if (error) {
       return { verified: false, error: error.message }
     }
+
+    const data = userData as Pick<UserRow, 'subscriber_verified' | 'purchase_serial_number' | 'verified_at'> | null
 
     return {
       verified: data?.subscriber_verified || false,

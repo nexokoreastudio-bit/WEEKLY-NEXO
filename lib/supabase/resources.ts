@@ -7,6 +7,9 @@ import { Database } from '@/types/database'
 
 type Resource = Database['public']['Tables']['resources']['Row']
 type ResourceInsert = Database['public']['Tables']['resources']['Insert']
+type DownloadInsert = Database['public']['Tables']['downloads']['Insert']
+type ResourceUpdate = Database['public']['Tables']['resources']['Update']
+type UserRow = Database['public']['Tables']['users']['Row']
 
 export interface ResourceWithAccess extends Resource {
   canAccess: boolean
@@ -32,6 +35,8 @@ export async function getAllResources(
     return []
   }
 
+  const resources = (data || []) as Resource[]
+
   // 사용자 레벨에 따른 접근 가능 여부 확인
   const levelOrder = { bronze: 1, silver: 2, gold: 3 }
   const userLevelOrder = levelOrder[userLevel]
@@ -44,10 +49,10 @@ export async function getAllResources(
       .select('resource_id')
       .eq('user_id', userId)
 
-    downloadedResourceIds = (downloads || []).map(d => d.resource_id)
+    downloadedResourceIds = (downloads || []).map((d: any) => d.resource_id)
   }
 
-  return (data || []).map(resource => {
+  return resources.map(resource => {
     const resourceLevelOrder = levelOrder[resource.access_level]
     return {
       ...resource,
@@ -73,14 +78,16 @@ export async function getResourceById(
     .eq('id', resourceId)
     .single()
 
-  if (error) {
+  if (error || !data) {
     console.error('자료 조회 실패:', error)
     return null
   }
 
+  const resource = data as Resource
+
   // 접근 가능 여부 확인
   const levelOrder = { bronze: 1, silver: 2, gold: 3 }
-  const canAccess = levelOrder[data.access_level] <= levelOrder[userLevel]
+  const canAccess = levelOrder[resource.access_level] <= levelOrder[userLevel]
 
   // 다운로드 이력 확인
   let hasDownloaded = false
@@ -96,7 +103,7 @@ export async function getResourceById(
   }
 
   return {
-    ...data,
+    ...resource,
     canAccess,
     hasDownloaded,
   } as ResourceWithAccess
@@ -114,15 +121,19 @@ export async function downloadResource(
     const supabase = await createClient()
 
     // 사용자 정보 확인
-    const { data: user } = await supabase
+    const { data: userData } = await supabase
       .from('users')
       .select('point, level')
       .eq('id', userId)
       .single()
 
+    const user = userData as Pick<UserRow, 'point' | 'level'> | null
+
     if (!user) {
       return { success: false, error: '사용자를 찾을 수 없습니다.' }
     }
+    
+    const userPoint = user.point || 0
 
     // 자료 정보 확인
     const resource = await getResourceById(resourceId, userLevel, userId)
@@ -136,10 +147,10 @@ export async function downloadResource(
     }
 
     // 포인트 확인
-    if (user.point < resource.download_cost) {
+    if (userPoint < resource.download_cost) {
       return {
         success: false,
-        error: `포인트가 부족합니다. (필요: ${resource.download_cost}, 현재: ${user.point})`,
+        error: `포인트가 부족합니다. (필요: ${resource.download_cost}, 현재: ${userPoint})`,
       }
     }
 
@@ -150,9 +161,13 @@ export async function downloadResource(
 
     // 포인트 차감
     if (resource.download_cost > 0) {
+      type UserUpdate = Database['public']['Tables']['users']['Update']
+      type PointLogInsert = Database['public']['Tables']['point_logs']['Insert']
+      
+      const userUpdateData: UserUpdate = { point: userPoint - resource.download_cost }
       const { error: pointError } = await supabase
         .from('users')
-        .update({ point: user.point - resource.download_cost })
+        .update(userUpdateData as any as never)
         .eq('id', userId)
 
       if (pointError) {
@@ -160,24 +175,29 @@ export async function downloadResource(
       }
 
       // 포인트 로그 기록
-      await supabase.from('point_logs').insert({
+      const pointLogData: PointLogInsert = {
         user_id: userId,
         amount: -resource.download_cost,
         reason: 'download_resource',
         related_id: resourceId,
-      })
+      }
+      await supabase.from('point_logs').insert(pointLogData as any as never)
     }
 
     // 다운로드 이력 기록
-    await supabase.from('downloads').insert({
+    const downloadData: DownloadInsert = {
       user_id: userId,
       resource_id: resourceId,
-    })
+    }
+    await supabase.from('downloads').insert(downloadData as any as never)
 
     // 다운로드 횟수 증가
+    const updateData: ResourceUpdate = {
+      downloads_count: resource.downloads_count + 1,
+    }
     await supabase
       .from('resources')
-      .update({ downloads_count: resource.downloads_count + 1 })
+      .update(updateData as any as never)
       .eq('id', resourceId)
 
     return { success: true, fileUrl: resource.file_url }

@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { downloadResource as downloadResourceQuery } from '@/lib/supabase/resources'
 import { revalidatePath } from 'next/cache'
+import { Database } from '@/types/database'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 /**
  * 자료 다운로드 서버 액션
@@ -20,11 +23,13 @@ export async function downloadResource(
     }
 
     // 사용자 레벨 가져오기
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from('users')
       .select('level, point')
       .eq('id', user.id)
       .single()
+
+    const profile = profileData as Pick<UserRow, 'level' | 'point'> | null
 
     if (!profile) {
       return { success: false, error: '사용자 정보를 찾을 수 없습니다.' }

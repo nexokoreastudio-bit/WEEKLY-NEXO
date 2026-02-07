@@ -1,8 +1,11 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { FieldNewsList } from '@/components/admin/field-news-list'
+import { Database } from '@/types/database'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 export default async function AdminFieldNewsPage() {
   const supabase = await createClient()
@@ -15,11 +18,13 @@ export default async function AdminFieldNewsPage() {
   }
 
   // 관리자 권한 확인
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
+
+  const profile = profileData as Pick<UserRow, 'role'> | null
 
   if (profile?.role !== 'admin') {
     redirect('/')

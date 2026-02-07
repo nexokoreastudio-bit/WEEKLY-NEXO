@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { FieldNewsWriteForm } from '@/components/admin/field-news-write-form'
+import { Database } from '@/types/database'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 export default async function WriteFieldNewsPage() {
   const supabase = await createClient()
@@ -13,11 +16,13 @@ export default async function WriteFieldNewsPage() {
   }
 
   // 관리자 권한 확인
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
+
+  const profile = profileData as Pick<UserRow, 'role'> | null
 
   if (profile?.role !== 'admin') {
     redirect('/')

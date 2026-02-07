@@ -25,7 +25,7 @@ export default async function MyPage() {
     console.error('프로필 조회 실패:', profileError)
   }
 
-  const userProfile = profile || {
+  const userProfile = (profile as UserRow | null) || ({
     id: user.id,
     email: user.email,
     nickname: null,
@@ -34,7 +34,9 @@ export default async function MyPage() {
     verified_at: null,
     point: 0,
     level: 'bronze' as const,
-  }
+    academy_name: null,
+    created_at: new Date().toISOString(),
+  } as Partial<UserRow> & { id: string; email: string | undefined; point: number; level: 'bronze'; purchase_serial_number: string | null })
 
   return (
     <div className={styles.mypageContainer}>
