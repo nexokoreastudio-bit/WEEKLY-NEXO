@@ -1,187 +1,107 @@
-# NEXO Weekly - 전자신문 플랫폼
+# NEXO Daily
 
-**넥소의 전자신문 플랫폼**: 매주 목요일마다 넥소의 모든 정보와 컨텐츠를 소개하고 이벤트를 진행하는 디지털 미디어 플랫폼입니다.
+> 넥소 전자칠판 사용자들을 위한 교육 정보 큐레이션 및 커뮤니티 플랫폼
 
-전자칠판 = 전자신문의 개념을 실현하여, 매주 목요일 정기적으로 발행되는 넥소의 공식 정보 전달 채널입니다.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/weekly-nexo/deploy-status)](https://app.netlify.com/sites/weekly-nexo/deploys)
 
-## 프로젝트 정보
+## 🎉 v2.0.0 주요 업데이트
 
-- **회사**: (주)넥소
-- **커뮤니티**: 카카오톡 단톡방 (2026노원지구협력업체)
-- **목적**: 넥소의 전자신문 플랫폼으로서 매주 목요일 정기 발행, 정보 전달, 이벤트 진행, 커뮤니티 소통
-- **플랫폼 정체성**: 전자칠판 = 전자신문 | 매주 목요일, 정보의 새로운 전달 방식
-- **발행일**: 매주 목요일
-- **웹사이트**: nexokorea.co.kr
-- **블로그**: https://blog.naver.com/nexokorea
+**NEXO Weekly**에서 **NEXO Daily**로 전면 리팩터링되었습니다!
 
-## 진행중인 이벤트
+### ✨ 주요 변경사항
 
-- **공동구매 랜딩페이지**: https://smmt.kr/2026_nexo
-- **공동구매 오픈채팅방**: https://open.kakao.com/o/gsXGYodi
+- **브랜드명 변경**: NEXO Weekly → **NEXO Daily**
+- **발행 주기**: 주간 발행 → **일일 발행**
+- **아키텍처 전환**: 정적 HTML → **Next.js 14 App Router**
+- **데이터 관리**: 하드코딩 → **Supabase PostgreSQL**
+- **기능 확장**: 뉴스레터 → **커뮤니티, 자료실, 현장 소식**
 
-## 프로젝트 구조
+### 🚀 새로운 기능
 
-```
-WEEKLY-NEXO/
-├── index.html          # 메인 페이지
-├── css/
-│   └── style.css       # 스타일시트
-├── js/
-│   ├── editions-data.js     # 발행 이력 데이터 (JavaScript)
-│   └── edition-manager.js  # 발행일·매거진·쌤 도구함 관리
-├── data/
-│   └── editions.json   # 발행 이력 (참고용)
-├── assets/
-│   ├── images/         # 이미지 저장소
-│   └── downloads/     # 쌤 도구함 다운로드 자료 (DOWNLOAD_FILES_GUIDE.md 참고)
-├── DOCS_INDEX.md       # 문서 목록 (용도별 정리)
-└── README.md           # 프로젝트 설명서
-```
+- ✅ **일일 발행 콘텐츠**: 데이터베이스 기반 동적 콘텐츠 관리
+- ✅ **커뮤니티 게시판**: 자유게시판, Q&A, 팁 공유, 중고거래
+- ✅ **자료실**: 레벨별 접근 제어 및 포인트 기반 다운로드
+- ✅ **현장 소식**: 설치 현장 사진 및 설명 관리
+- ✅ **구독자 인증**: 시리얼 번호 기반 인증 및 할인 혜택
+- ✅ **포인트 시스템**: 활동 기반 포인트 적립 및 레벨 시스템
 
-**문서가 많을 때**: **`DOCS_INDEX.md`**에서 용도별로 문서를 찾을 수 있습니다.
+## 🛠️ 기술 스택
 
-## 주요 기능
+- **Frontend**: Next.js 14.2, React 18, TypeScript
+- **Styling**: Tailwind CSS, CSS Modules
+- **Backend**: Next.js Server Actions
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Deployment**: Netlify
 
-### 1. 발행일 선택 기능
-- 드롭다운 메뉴로 과거 발행분 선택
-- 이전/다음 버튼으로 네비게이션
-- URL 파라미터로 특정 발행분 공유 가능
+## 📦 설치 및 실행
 
-### 2. 업데이트 로그
-- 소프트웨어, 하드웨어, 컨텐츠, 서비스 업데이트 추적
-- 각 업데이트별 버전 정보 및 설명
-- 카테고리별 색상 구분
+### 필수 요구사항
 
-### 3. 발전 이력 통계
-- 총 설치 대수
-- 활성 사용자 수
-- 컨텐츠 업데이트 횟수
+- Node.js 18.0.0 이상
+- npm 또는 yarn
 
-### 4. 전자신문 플랫폼
-- 매주 목요일 정기 발행 시스템
-- 과거 발행분 아카이브 및 조회
-- 회사 발전 이력 추적
-- 이벤트 및 프로모션 관리
-- 소셜 공유 기능 (카카오톡, 페이스북 등)
-- 발행물 검색 기능
+### 환경 변수 설정
 
-## 사용 방법
+`.env.local` 파일을 생성하고 다음 변수를 설정하세요:
 
-### 🧪 테스트 모드 (개발용)
-
-URL에 **`?test=1`**을 붙이면 테스트 모드가 켜집니다. 검색 UI가 노출되고 상단에 "테스트 모드" 배너가 표시됩니다. 자세한 내용은 **`TEST_MODE.md`**를 참고하세요.
-
-### 🎯 빠른 시작: 관리자 에디터 사용
-
-**가장 쉬운 방법**: 관리자 에디터를 사용하여 발행물을 작성하세요!
-
-1. `admin.html` 파일을 브라우저에서 엽니다
-2. 비밀번호 입력 (기본: `nexo2026`)
-3. 폼에 발행물 정보 입력
-4. 이미지 등록 (최대 3개)
-5. "발행물 등록" 클릭
-6. 다운로드된 파일을 `js/editions-data.js`로 교체
-7. 이미지 파일을 `assets/images/` 폴더에 복사
-
-**자세한 가이드**: `ADMIN_GUIDE.md` 파일을 참고하세요.
-
-### 매주 목요일 업데이트 (수동 방법)
-
-**📖 상세 가이드는 `HOW_TO_ADD_EDITION.md` 파일을 참고하세요!**
-
-1. `js/editions-data.js` 파일에 새로운 발행분 추가:
-
-```javascript
-// js/editions-data.js 파일의 EDITIONS_DATA.editions 배열 맨 앞에 추가
-{
-  "id": "2026-02-12",  // YYYY-MM-DD 형식 (목요일)
-  "date": "2026년 2월 12일 목요일",
-  "volume": "VOL. 2026-02",
-  "title": "새로운 제목",
-  "headline": "메인 헤드라인",
-  "subHeadline": "서브 헤드라인 (선택사항)",
-  "updates": [
-    {
-      "category": "소프트웨어",  // 또는 "하드웨어", "서비스", "컨텐츠"
-      "version": "UMIND v2.3.0",
-      "description": "업데이트 설명",
-      "date": "2026-02-10"
-    }
-  ],
-  "content": {
-    "main": "본문 내용",
-    "features": ["기능1", "기능2", "기능3"]
-  },
-  "stats": {
-    "totalInstallations": 170,
-    "activeUsers": 1400,
-    "contentUpdates": 55
-  },
-  "achievements": [
-    {
-      "type": "innovation",  // "innovation", "product", "growth", "partnership"
-      "category": "혁신",
-      "title": "업적 제목",
-      "description": "업적 설명",
-      "date": "2026-02-10",
-      "value": "값",
-      "milestone": "이정표"
-    }
-  ]
-}
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-2. 발행분은 `id` 기준으로 최신순으로 자동 정렬됩니다.
+### 설치 및 실행
 
-3. 사용자는 드롭다운에서 발행일을 선택하여 해당 호의 정보를 확인할 수 있습니다.
+```bash
+# 의존성 설치
+npm install
 
-### Cursor AI 활용 팁
+# 개발 서버 실행
+npm run dev
 
-매주 업데이트 시 Cursor Chat(Ctrl+L)에서 다음과 같이 요청하세요:
+# 프로덕션 빌드
+npm run build
 
-```
-이번 주 목요일(2026-02-12) 발행분을 추가해줘.
-제목: "넥소 전자칠판, 새로운 기능 출시"
-메인 헤드라인: "AI 기반 스마트 판서 기능 강화"
-업데이트:
-- 소프트웨어: UMIND v2.3.0, 새로운 판서 도구 추가
-- 하드웨어: NX-S Series 성능 개선
-통계: 설치 170대, 사용자 1400명, 업데이트 55회
-업적: 
-- UMIND v2.3.0 출시 (혁신)
-- 설치 대수 170대 달성 (성장)
+# 프로덕션 서버 실행
+npm start
 ```
 
-**💡 더 자세한 가이드는 `HOW_TO_ADD_EDITION.md` 파일을 확인하세요!**
+## 📚 주요 페이지
 
-## 기술 스택
+- **메인 페이지** (`/`): 최신 발행호 자동 표시
+- **발행호 목록** (`/news`): 모든 발행호 아카이브
+- **커뮤니티** (`/community`): 게시판 및 소통 공간
+- **자료실** (`/resources`): 교육 자료 다운로드
+- **현장 소식** (`/field`): 설치 현장 소식
+- **마이페이지** (`/mypage`): 사용자 정보 및 구독자 인증
 
-- HTML5
-- CSS3
-- JavaScript (ES6+)
-- JSON (데이터 저장)
-- Pico CSS Framework
-- Google Fonts (Noto Sans KR, Noto Serif KR)
+## 🔐 관리자 기능
 
-## 데이터 구조
+관리자 권한이 있는 사용자는 다음 기능을 사용할 수 있습니다:
 
-### editions-data.js 구조
+- 현장 소식 작성 및 관리 (`/admin/field-news`)
+- 콘텐츠 발행 관리
 
-각 발행분은 다음 정보를 포함합니다:
+## 📖 상세 문서
 
-- `id`: 고유 식별자 (YYYY-MM-DD 형식)
-- `date`: 발행일 표시 형식
-- `volume`: 호수
-- `title`: 제목
-- `headline`: 메인 헤드라인
-- `updates`: 업데이트 목록
-  - `category`: 카테고리 (소프트웨어/하드웨어/컨텐츠/서비스)
-  - `version`: 버전 정보
-  - `description`: 설명
-  - `date`: 업데이트 날짜
-- `content`: 콘텐츠 정보
-- `stats`: 통계 정보
+- [리팩터링 구현 보고서](./REFACTORING_REPORT.md)
+- [보안 사고 대응 가이드](./SECURITY_INCIDENT_RESPONSE.md)
+- [Netlify 배포 가이드](./NETLIFY_DEPLOY.md)
 
-## 라이선스
+## 🌐 배포
 
-© 2026 주식회사 넥소 (NEXO). All rights reserved.
+- **프로덕션**: https://weekly-nexo.netlify.app
+- **자동 배포**: `main` 브랜치 푸시 시 Netlify 자동 배포
+
+## 📝 라이선스
+
+ISC
+
+## 👥 기여
+
+이 프로젝트는 (주)넥소의 내부 프로젝트입니다.
+
+---
+
+**NEXO Daily** - 전자칠판과 함께하는 교육 커뮤니티 🎓
