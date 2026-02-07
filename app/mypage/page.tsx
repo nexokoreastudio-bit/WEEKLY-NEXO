@@ -2,7 +2,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SubscriberVerification } from '@/components/mypage/subscriber-verification'
 import { DiscountBadge } from '@/components/mypage/discount-badge'
+import { Database } from '@/types/database'
 import styles from './mypage.module.css'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 export default async function MyPage() {
   const supabase = await createClient()
@@ -25,9 +28,9 @@ export default async function MyPage() {
     console.error('프로필 조회 실패:', profileError)
   }
 
-  const userProfile = (profile as UserRow | null) || ({
+  const userProfile: UserRow = (profile as UserRow | null) || ({
     id: user.id,
-    email: user.email,
+    email: user.email || null,
     nickname: null,
     subscriber_verified: false,
     purchase_serial_number: null,
@@ -35,8 +38,12 @@ export default async function MyPage() {
     point: 0,
     level: 'bronze' as const,
     academy_name: null,
+    role: null,
+    avatar_url: null,
+    referrer_code: null,
     created_at: new Date().toISOString(),
-  } as Partial<UserRow> & { id: string; email: string | undefined; point: number; level: 'bronze'; purchase_serial_number: string | null })
+    updated_at: new Date().toISOString(),
+  } as UserRow)
 
   return (
     <div className={styles.mypageContainer}>

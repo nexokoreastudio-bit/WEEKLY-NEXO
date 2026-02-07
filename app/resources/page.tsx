@@ -2,11 +2,14 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getAllResources } from '@/lib/supabase/resources'
+import { Database } from '@/types/database'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Download, Lock, FileText, FileSpreadsheet, File, FileImage } from 'lucide-react'
 import { DownloadResourceButton } from '@/components/resources/download-button'
 import styles from './resources.module.css'
+
+type UserRow = Database['public']['Tables']['users']['Row']
 
 const FILE_TYPE_ICONS = {
   pdf: FileText,

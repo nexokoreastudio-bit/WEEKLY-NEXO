@@ -55,14 +55,16 @@ export async function rewardReadingPoint(
     }
 
     // 3. 포인트 로그 기록
+    const logData1: PointLogInsert = {
+      user_id: userId,
+      amount: 10,
+      reason: 'article_read',
+      related_id: articleId || null,
+    }
+    
     const { error: logError } = await supabase
       .from('point_logs')
-      .insert({
-        user_id: userId,
-        amount: 10,
-        reason: 'article_read',
-        related_id: articleId || null,
-      })
+      .insert(logData1 as any)
 
     if (logError) {
       console.error('포인트 로그 기록 실패:', logError)

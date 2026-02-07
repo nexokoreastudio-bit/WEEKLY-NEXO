@@ -60,7 +60,7 @@ export async function createFieldNews(
     
     const { data: fieldNewsData, error } = await supabase
       .from('field_news')
-      .insert(insertData)
+      .insert(insertData as any)
       .select()
       .single()
     

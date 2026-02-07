@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { Database } from '@/types/database'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { SafeImage } from '@/components/safe-image'
 import { Button } from '@/components/ui/button'
 import styles from './field-news-list.module.css'
+
+type FieldNewsUpdate = Database['public']['Tables']['field_news']['Update']
 
 interface FieldNews {
   id: number
