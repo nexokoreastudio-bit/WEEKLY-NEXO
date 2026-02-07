@@ -1,0 +1,22 @@
+# Netlify 빌드에서 제외할 파일들
+# 정적 HTML 파일들은 Next.js가 처리하므로 제외
+
+index.html
+admin.html
+login.html
+mypage.html
+search.html
+thank-you.html
+og-image.html
+
+# 기존 정적 파일들 (Next.js app 디렉토리 사용)
+css/
+js/
+archive/
+
+# 개발용 파일들
+*.md
+!README.md
+scripts/
+nextjs-setup/
+

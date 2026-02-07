@@ -1,9 +1,13 @@
 # Netlify 설정 - Next.js App Router
-# Netlify는 Next.js를 자동으로 감지하고 @netlify/plugin-nextjs를 사용합니다
+# Netlify Next.js Runtime 플러그인 명시적 설정
 
 [build]
   command = "npm run build"
-  # Next.js 플러그인이 자동으로 publish 디렉토리를 처리합니다
+  publish = ".next"
+
+# Next.js 플러그인 명시적 설정
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # Next.js 프레임워크 감지
 [build.environment]
