@@ -1,0 +1,358 @@
+/* 기존 CSS 스타일을 모듈화하여 사용 */
+
+.paper {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 40px 20px 56px;
+  box-shadow: none;
+  position: relative;
+  border-left: 1px solid #e8e8e8;
+  border-right: 1px solid #e8e8e8;
+}
+
+@media (min-width: 768px) {
+  .paper {
+    padding: 48px 40px 72px;
+  }
+}
+
+.magazineHeader {
+  margin-bottom: 30px;
+}
+
+.topMeta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8125rem;
+  color: #666;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.brandLogoArea {
+  text-align: center;
+}
+
+.logoHomeLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.logoContainer h1 {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.conceptBadge {
+  background: transparent;
+  color: #666;
+  padding: 6px 0;
+  margin: 8px auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  max-width: 90%;
+  text-align: center;
+}
+
+.conceptIcon {
+  font-size: 18px;
+}
+
+.conceptText {
+  font-size: 0.8125rem;
+}
+
+.editionNav {
+  margin-top: 16px;
+}
+
+.editionSelect {
+  padding: 8px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-size: 0.9375rem;
+  background: white;
+  cursor: pointer;
+}
+
+.editionSelect:hover {
+  border-color: #00c4b4;
+}
+
+.mainLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  margin-top: 30px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .mainLayout {
+    grid-template-columns: 1fr 300px;
+    gap: 48px;
+    align-items: start;
+  }
+}
+
+.mainLayout > main {
+  width: 100%;
+  min-width: 0;
+  max-width: 45rem;
+  margin-right: auto;
+}
+
+.headlineGroup {
+  border-bottom: none;
+  margin-bottom: 28px;
+  padding-bottom: 0;
+  max-width: 100%;
+}
+
+.mainHeadline {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
+  margin: 0 0 10px 0;
+  color: #1a1a1a;
+  letter-spacing: -0.02em;
+}
+
+.subHeadline {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.9375rem;
+  color: #666;
+  margin-top: 10px;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.heroSection {
+  margin: 24px 0 32px;
+}
+
+.heroImage {
+  width: 100%;
+  max-height: 400px;
+  margin-bottom: 28px;
+  border: none;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.heroImageImg {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.heroCaption {
+  background: transparent;
+  color: #666;
+  padding: 8px 0 0;
+  font-size: 0.8125rem;
+  margin-top: 8px;
+}
+
+.heroText {
+  margin-top: 20px;
+  padding-top: 24px;
+}
+
+.leadText {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: #666;
+  margin-bottom: 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+  text-align: left;
+  line-height: 1.7;
+}
+
+.heroDesc {
+  font-size: 1rem;
+  color: #333;
+  text-align: left;
+  line-height: 2;
+  max-width: 100%;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  font-family: 'Noto Serif KR', serif;
+  letter-spacing: 0.01em;
+}
+
+.heroDesc h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.heroDesc p {
+  margin-bottom: 16px;
+}
+
+.magazineSection {
+  margin: 40px 0;
+}
+
+.magazineSectionTitle {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #1a1a1a;
+}
+
+.magazineGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.magazineGroup {
+  width: 100%;
+}
+
+.magazineGroupTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+.articlesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .articlesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.articleCard {
+  padding: 20px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  background: white;
+}
+
+.articleTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.articleContent {
+  font-size: 0.9375rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.placeholderText {
+  color: #999;
+  font-size: 0.9375rem;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.sidebar {
+  min-width: 0;
+}
+
+.tipsBox {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.tipsBox h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+}
+
+.tipsBox p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.footer {
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 1px solid #e8e8e8;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: #666;
+}
+
+.errorMessage {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.errorMessage h1 {
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+.errorMessage p {
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.link {
+  color: #00c4b4;
+  text-decoration: underline;
+}
+
+.navLink {
+  display: inline-block;
+  margin-top: 32px;
+  padding: 12px 24px;
+  background: #1a1a1a;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.navLink:hover {
+  background: #333;
+}
+
+.nexoLogo {
+  height: auto;
+}

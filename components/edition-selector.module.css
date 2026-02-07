@@ -1,0 +1,44 @@
+.selectorContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.archiveLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.archiveLink:hover {
+  background: #00c4b4;
+  transform: translateY(-1px);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 768px) {
+  .selectorContainer {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .archiveLink {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

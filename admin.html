@@ -27,16 +27,24 @@
     <!-- 관리자 에디터 -->
     <div id="admin-editor" class="admin-editor" style="display: none;">
         <header class="admin-header">
-            <h1>📝 NEXO Weekly 발행물 작성</h1>
+            <h1>📝 NEXO Weekly 관리자</h1>
             <div class="admin-actions">
                 <button id="logout-btn" class="btn-secondary">로그아웃</button>
                 <a href="index.html" class="btn-secondary" target="_blank">사이트 보기</a>
             </div>
         </header>
+        
+        <!-- 탭 메뉴 -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="editor">📝 발행물 작성</button>
+            <button class="admin-tab" data-tab="qrcode">📱 QR 코드 생성</button>
+            <button class="admin-tab" data-tab="stats">📊 유입 통계</button>
+        </div>
 
         <div class="admin-container">
             <div class="editor-wrapper">
-                <!-- 간단한 에디터 -->
+                <!-- 발행물 작성 섹션 -->
+                <div id="tab-editor" class="tab-content active">
                 <div class="editor-section">
                     <div class="editor-header">
                         <h2>✍️ 발행물 작성</h2>
@@ -133,6 +141,142 @@
                     <h3>📋 자동 파싱 결과 미리보기</h3>
                     <div id="parsed-preview"></div>
                 </div>
+                </div>
+                </div>
+                
+                <!-- QR 코드 생성 섹션 -->
+                <div id="tab-qrcode" class="tab-content" style="display: none;">
+                    <div class="editor-section">
+                        <div class="editor-header">
+                            <h2>📱 QR 코드 생성 도구</h2>
+                            <p class="editor-hint">기사님별 고유 QR 코드를 생성하여 오프라인 홍보에 활용하세요. QR 코드를 스캔한 사용자가 가입/주문 시 유입 경로가 자동으로 기록됩니다.</p>
+                        </div>
+                        
+                        <div class="qrcode-generator">
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="qrcode-owner-name">소유자 이름 *</label>
+                                    <input type="text" id="qrcode-owner-name" placeholder="예: 홍길동 기사님" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="qrcode-owner-type">소유자 유형 *</label>
+                                    <select id="qrcode-owner-type" required>
+                                        <option value="">선택하세요</option>
+                                        <option value="staff">기사님</option>
+                                        <option value="partner">파트너</option>
+                                        <option value="member">회원</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="qrcode-code">고유 코드 (선택사항)</label>
+                                    <input type="text" id="qrcode-code" placeholder="예: STAFF001 (비워두면 자동 생성)">
+                                    <small style="color: #666; font-size: 12px; display: block; margin-top: 4px;">
+                                        비워두면 "OWNER-TYPE-이름" 형식으로 자동 생성됩니다
+                                    </small>
+                                </div>
+                                
+                                <button type="button" id="generate-qrcode-btn" class="btn-primary">QR 코드 생성</button>
+                            </div>
+                            
+                            <div id="qrcode-library-info" class="qrcode-info" style="display: none;">
+                                <h3>💡 QR 코드 생성 정보</h3>
+                                <p>현재 <strong>온라인 API</strong>를 사용하여 QR 코드를 생성합니다.</p>
+                                <div class="qrcode-info-details">
+                                    <p><strong>장점:</strong></p>
+                                    <ul>
+                                        <li>라이브러리 파일 불필요</li>
+                                        <li>즉시 사용 가능</li>
+                                    </ul>
+                                    <p><strong>참고:</strong></p>
+                                    <ul>
+                                        <li>인터넷 연결이 필요합니다</li>
+                                        <li>오프라인 환경에서는 로컬 라이브러리 파일이 필요합니다</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div id="qrcode-result" class="qrcode-result" style="display: none;">
+                                <h3>생성된 QR 코드</h3>
+                                <div class="qrcode-display">
+                                    <canvas id="qrcode-canvas"></canvas>
+                                </div>
+                                <div class="qrcode-info">
+                                    <p><strong>코드:</strong> <span id="qrcode-result-code"></span></p>
+                                    <p><strong>소유자:</strong> <span id="qrcode-result-owner"></span></p>
+                                    <p><strong>URL:</strong> <span id="qrcode-result-url" style="word-break: break-all;"></span></p>
+                                </div>
+                                <div class="qrcode-actions">
+                                    <button type="button" id="download-qrcode-btn" class="btn-primary">이미지 다운로드</button>
+                                    <button type="button" id="copy-url-btn" class="btn-secondary">URL 복사</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 유입 통계 섹션 -->
+                <div id="tab-stats" class="tab-content" style="display: none;">
+                    <div class="editor-section">
+                        <div class="editor-header">
+                            <h2>📊 유입 경로 통계</h2>
+                            <p class="editor-hint">기사님별 유입 현황을 확인하세요. Google Sheets에서 데이터를 불러옵니다.</p>
+                        </div>
+                        
+                        <div class="stats-dashboard">
+                            <div class="stats-controls">
+                                <button type="button" id="refresh-stats-btn" class="btn-primary">🔄 데이터 새로고침</button>
+                                <div class="stats-info">
+                                    <p><small>💡 Google Sheets에서 최신 데이터를 불러옵니다. 환경 변수가 설정되어 있어야 합니다.</small></p>
+                                </div>
+                            </div>
+                            
+                            <div id="stats-loading" class="stats-loading" style="display: none;">
+                                <p>데이터를 불러오는 중...</p>
+                            </div>
+                            
+                            <div id="stats-error" class="stats-error" style="display: none;">
+                                <p>❌ 데이터를 불러올 수 없습니다. Google Sheets 설정을 확인해주세요.</p>
+                            </div>
+                            
+                            <div id="stats-content" class="stats-content" style="display: none;">
+                                <div class="stats-summary">
+                                    <div class="stat-card">
+                                        <h3>총 주문 건수</h3>
+                                        <p class="stat-number" id="total-orders">0</p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <h3>유입 경로 추적 건수</h3>
+                                        <p class="stat-number" id="total-referrals">0</p>
+                                    </div>
+                                    <div class="stat-card">
+                                        <h3>고유 유입 경로 수</h3>
+                                        <p class="stat-number" id="unique-referrers">0</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="stats-table-section">
+                                    <h3>기사님별 유입 현황</h3>
+                                    <div class="stats-table-wrapper">
+                                        <table id="referrer-stats-table" class="stats-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>유입 경로</th>
+                                                    <th>주문 건수</th>
+                                                    <th>최근 주문일</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="referrer-stats-tbody">
+                                                <!-- 동적으로 채워짐 -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -146,6 +290,37 @@
         </div>
     </div>
 
+    <!-- QR 코드 라이브러리 (선택사항 - 있으면 사용, 없으면 온라인 API 사용) -->
+    <script>
+        // QR 코드 라이브러리 파일 존재 확인 (선택사항)
+        (function() {
+            // 파일 존재 여부를 먼저 확인 (404 에러 방지)
+            fetch('js/qrcode.min.js', { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        // 파일이 있으면 로드
+                        const script = document.createElement('script');
+                        script.src = 'js/qrcode.min.js';
+                        script.async = true;
+                        script.onload = function() {
+                            if (typeof QRCode !== 'undefined') {
+                                console.log('✅ QR 코드 라이브러리 로드 완료 (로컬 파일)');
+                            }
+                        };
+                        document.head.appendChild(script);
+                    } else {
+                        // 파일이 없으면 온라인 API 사용 (조용히)
+                        console.log('💡 QR 코드: 온라인 API 사용 중');
+                    }
+                })
+                .catch(() => {
+                    // 네트워크 오류 등 - 온라인 API 사용
+                    console.log('💡 QR 코드: 온라인 API 사용 중');
+                });
+        })();
+    </script>
     <script src="js/admin-editor.js"></script>
+    <script src="js/qrcode-generator.js"></script>
+    <script src="js/stats-dashboard.js"></script>
 </body>
 </html>

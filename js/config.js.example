@@ -1,0 +1,8 @@
+// js/config.js 예시 — 이 파일을 config.js 로 복사한 뒤 필요한 값만 설정하세요.
+
+// Supabase 사용 시 (선택)
+window.__SUPABASE_URL__ = 'https://YOUR_PROJECT_REF.supabase.co';
+window.__SUPABASE_ANON_KEY__ = 'YOUR_ANON_PUBLIC_KEY';
+
+// Render.com PostgreSQL + Netlify Functions API 사용 시
+window.__USE_RENDER_API__ = true;

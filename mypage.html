@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - NEXO Weekly</title>
+    <meta name="description" content="넥소 위클리 구독자 마이페이지">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mypage.css">
+</head>
+<body>
+    <div class="paper">
+        <!-- Header -->
+        <header class="magazine-header">
+            <div class="top-meta">
+                <span>NEXO WEEKLY</span>
+                <span id="current-date">마이페이지</span>
+                <span id="admin-auth-area" class="admin-auth-area">
+                    <a href="index.html" class="mypage-link">🏠 홈으로</a>
+                    <button type="button" id="mypage-logout-btn" class="mypage-logout-btn">로그아웃</button>
+                    <a href="admin.html" id="admin-login-open" class="admin-login-btn">관리자 로그인</a>
+                </span>
+            </div>
+            
+            <div class="brand-logo-area">
+                <a href="/" class="logo-home-link" title="홈으로">
+                    <div class="logo-container">
+                        <img src="assets/images/nexo_logo_black.png" alt="NEXO 로고" class="nexo-logo">
+                        <h1>WEEKLY</h1>
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="mypage-container">
+            <div class="mypage-header">
+                <h1 id="mypage-title">👤 마이페이지</h1>
+                <p class="mypage-subtitle">구독자 전용 페이지입니다</p>
+            </div>
+
+            <!-- 구독 상태 확인 -->
+            <div id="subscription-status" class="mypage-section">
+                <div class="status-card">
+                    <div class="status-icon">✨</div>
+                    <div class="status-content">
+                        <h2>구독 상태</h2>
+                        <p id="subscription-status-text" class="status-text">확인 중...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 구독자 정보 (수정/추가 가능) -->
+            <div id="member-info" class="mypage-section" style="display: none;">
+                <h2>📋 구독자 정보</h2>
+                <p class="info-edit-desc">아래 항목을 수정한 뒤 저장 버튼을 눌러주세요.</p>
+                <form id="member-info-form" class="info-edit-form">
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-name">이름</label>
+                        <input type="text" id="edit-name" name="name" class="info-input" placeholder="이름">
+                    </div>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-email">이메일</label>
+                        <input type="email" id="edit-email" name="email" class="info-input" placeholder="이메일">
+                    </div>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-academy">학원명</label>
+                        <input type="text" id="edit-academy" name="academy" class="info-input" placeholder="학원명 (선택)">
+                    </div>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-phone">연락처</label>
+                        <input type="tel" id="edit-phone" name="phone" class="info-input" placeholder="010-0000-0000">
+                    </div>
+                    <div class="info-row info-row-edit">
+                        <label class="info-label" for="edit-referrer">유입 경로</label>
+                        <input type="text" id="edit-referrer" name="referrer" class="info-input" placeholder="추천인 코드 등 (선택)">
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">가입일</span>
+                        <span id="member-joined" class="info-value info-value-readonly">-</span>
+                    </div>
+                    <div class="info-form-actions">
+                        <button type="submit" class="btn-save">저장</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 다운로드 이력 (향후 구현) -->
+            <div class="mypage-section">
+                <h2>📥 다운로드 이력</h2>
+                <div class="download-history">
+                    <div id="download-list" class="download-list">
+                        <p class="empty-state">아직 다운로드한 자료가 없습니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 포인트 현황 (향후 구현) -->
+            <div class="mypage-section">
+                <h2>💰 포인트 현황</h2>
+                <div class="points-card">
+                    <div class="points-display">
+                        <span class="points-label">보유 포인트</span>
+                        <span id="points-balance" class="points-value">0 P</span>
+                    </div>
+                    <p class="points-note">포인트 시스템은 준비 중입니다. 곧 만나보실 수 있습니다.</p>
+                </div>
+            </div>
+
+            <!-- 설정 -->
+            <div class="mypage-section">
+                <h2>⚙️ 설정</h2>
+                <div class="settings-card">
+                    <button type="button" id="logout-btn" class="btn-secondary">구독 취소</button>
+                    <p class="settings-note">구독을 취소하시면 구독자 전용 자료를 다운로드할 수 없습니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            (주)넥소 | 인천 서구 보듬로 158 블루텍 | Tel: 032-569-5771~2 | www.nexokorea.co.kr
+        </footer>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/mypage.js"></script>
+</body>
+</html>
+
+

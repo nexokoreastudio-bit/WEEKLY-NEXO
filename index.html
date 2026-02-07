@@ -25,6 +25,36 @@
 </head>
 <body>
     <div class="paper">
+        <!-- 상단 유틸 바: 검색 / 마이페이지 / 관리자 로그인 (첨부 이미지 스타일) -->
+        <nav class="utility-bar" aria-label="서비스 메뉴">
+            <div class="utility-bar-inner">
+                <a href="search.html" class="utility-link" title="검색">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    </span>
+                    <span class="utility-text">검색</span>
+                </a>
+                <a href="mypage.html" id="utility-mypage-link" class="utility-link" title="마이페이지">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </span>
+                    <span class="utility-text">마이페이지</span>
+                </a>
+                <a href="login.html" id="utility-login-link" class="utility-link" title="구독자 로그인">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    </span>
+                    <span class="utility-text">로그인</span>
+                </a>
+                <a href="admin.html" class="utility-link utility-link-admin" title="관리자 로그인">
+                    <span class="utility-icon" aria-hidden="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <span class="utility-text">관리자 로그인</span>
+                </a>
+            </div>
+        </nav>
+
         <!-- Header -->
         <header class="magazine-header">
             <div class="top-meta">
@@ -32,7 +62,31 @@
                 <span id="current-date">2026.01.28 THURSDAY</span>
                 <span>SPECIAL EDITION</span>
                 <span id="admin-auth-area" class="admin-auth-area">
-                    <button type="button" id="admin-login-open" class="admin-login-btn">관리자 로그인</button>
+                    <!-- 비로그인: 로그인 버튼 -->
+                    <div id="user-widget-guest" class="user-widget-guest">
+                        <a href="login.html" id="member-login-open" class="member-login-btn" title="구독자 로그인">로그인</a>
+                        <a href="admin.html" id="admin-login-open" class="admin-login-btn">관리자 로그인</a>
+                    </div>
+                    <!-- 로그인: 네이버 스타일 프로필 위젯 -->
+                    <div id="user-widget-logged" class="user-widget-logged" style="display: none;">
+                        <div class="user-widget-card">
+                            <div class="user-widget-profile-row">
+                                <div class="user-widget-avatar" aria-hidden="true"></div>
+                                <div class="user-widget-info">
+                                    <div class="user-widget-name-row">
+                                        <strong id="user-widget-name" class="user-widget-name">회원</strong>
+                                        <span class="user-widget-badge">구독자</span>
+                                    </div>
+                                    <p id="user-widget-email" class="user-widget-email">example@email.com</p>
+                                    <button type="button" id="user-widget-logout" class="user-widget-logout">로그아웃 →</button>
+                                </div>
+                            </div>
+                            <div class="user-widget-links">
+                                <a href="mypage.html" class="user-widget-link">마이페이지</a>
+                                <a href="#premium-download-section" class="user-widget-link">구독자 전용</a>
+                            </div>
+                        </div>
+                    </div>
                 </span>
             </div>
             
@@ -62,6 +116,37 @@
         <!-- Main Layout -->
         <div class="main-layout">
             <main>
+                <!-- 회원가입·로그인 (처음 방문자에게 바로 노출) -->
+                <section id="member-auth-prominent" class="member-auth-prominent" aria-label="구독자 회원가입 및 로그인">
+                    <h2 class="member-auth-prominent-title">📚 넥소 위클리 구독자</h2>
+                    <p class="member-auth-prominent-desc">구독하시면 매주 목요일 최신 정보와 유료급 자료를 무료로 받아보실 수 있습니다.</p>
+                    <div class="member-auth-prominent-forms">
+                        <div class="member-auth-prominent-login">
+                            <h3 class="member-auth-form-heading">로그인</h3>
+                            <form id="inline-login-form" class="member-auth-inline-form">
+                                <label for="inline-login-identifier" class="sr-only">이메일 또는 연락처</label>
+                                <input type="text" id="inline-login-identifier" placeholder="이메일 또는 연락처" required>
+                                <label for="inline-login-password" class="sr-only">비밀번호</label>
+                                <input type="password" id="inline-login-password" placeholder="비밀번호" required>
+                                <button type="submit" class="member-auth-btn member-auth-btn-login">로그인</button>
+                            </form>
+                        </div>
+                        <div class="member-auth-prominent-signup">
+                            <h3 class="member-auth-form-heading">회원가입 (구독하기)</h3>
+                            <form id="inline-signup-form" class="member-auth-inline-form">
+                                <label for="inline-signup-name" class="sr-only">이름</label>
+                                <input type="text" id="inline-signup-name" placeholder="이름" required>
+                                <label for="inline-signup-email" class="sr-only">이메일</label>
+                                <input type="email" id="inline-signup-email" placeholder="이메일" required>
+                                <label for="inline-signup-password" class="sr-only">비밀번호</label>
+                                <input type="password" id="inline-signup-password" placeholder="비밀번호 (4자 이상)" required minlength="4">
+                                <button type="submit" class="member-auth-btn member-auth-btn-signup">구독하기</button>
+                            </form>
+                            <p class="member-auth-signup-more"><a href="#" id="inline-open-full-signup">학원명·연락처 등 더 입력하기</a></p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- 호별 목록 뷰 (리스트식 미리보기 → 클릭 시 본문) -->
                 <div id="edition-list-view" class="edition-list-view" hidden aria-label="발행호 목록">
                     <h2 class="edition-list-title">발행호 목록</h2>
@@ -131,7 +216,7 @@
                         <div class="blog-style-body">
                             <p>노원구 학원연합회 <strong>신년총회 및 이취임식</strong> 현장에 다녀왔습니다. 단순히 행사 한 번 참석한 것을 넘어, <strong>지역 교육 현장과 함께 호흡하는 시간</strong>이었어요.</p>
                             <p>현장에서 만난 원장님들의 눈빛이 인상적이었습니다. 각자 학원을 이끌며 쌓아온 고민과 열정이, 이취임식이라는 자리에서 하나의 공동체로 이어지는 느낌이었죠. <strong>전종삼 회장님</strong>의 그동안의 노고와 새 출발에 대한 말씀, <strong>유나영 원장님</strong>의 매끄러운 사회 진행까지—한 편의 드라마처럼 흘러갔던 그날의 분위기를 지금도 생생히 기억합니다.</p>
-                            <p>넥소코리아는 전자칠판을 '납품하는 업체'로만 머물지 않습니다. 노원을 비롯한 지역 교육 공동체의 <strong>학원 성장 파트너</strong>로서, 원장님들과 같은 자리에서 이야기하고, 고민을 나누고, 함께 다음 걸음을 내딛고 싶습니다. 이취임식 현장의 그 열기가 한 해 동안 지역 학원들의 성장으로 이어지길 바라며.</p>
+                            <p>넥소코리아는 전자칠판을 ‘납품하는 업체’로만 머물지 않습니다. 노원을 비롯한 지역 교육 공동체의 <strong>학원 성장 파트너</strong>로서, 원장님들과 같은 자리에서 이야기하고, 고민을 나누고, 함께 다음 걸음을 내딛고 싶습니다. 이취임식 현장의 그 열기가 한 해 동안 지역 학원들의 성장으로 이어지길 바라며.</p>
                             <div class="blog-style-closing">
                                 <p><strong>위클리 넥소</strong> 구독자 여러분, 새해에도 건강하시고 뜻하신 일 모두 이루시길 바랍니다. 올해도 매주 목요일, 여러분 곁에서 소식 전해 드리겠습니다. 🙏</p>
                             </div>
@@ -386,6 +471,256 @@
                     </div>
                 </div>
 
+                <!-- 구독자 전용 자료 섹션 -->
+                <div class="premium-download-section" id="premium-download-section">
+                    <div class="premium-header">
+                        <h3 class="premium-title">📚 구독자 전용 자료</h3>
+                        <p class="premium-subtitle">유료급 고급 자료를 무료로 다운로드하세요</p>
+                        <p class="premium-login-hint">이미 구독자이신가요? <button type="button" id="member-login-open-from-section" class="member-login-link-btn">로그인</button></p>
+                    </div>
+                    
+                    <div class="premium-files-grid" id="premium-files-grid">
+                        <!-- 비회원: 블러 처리된 자료 카드 -->
+                        <div class="premium-file-card locked">
+                            <div class="file-icon">📄</div>
+                            <h4 class="file-title">상담일지 템플릿</h4>
+                            <p class="file-description">학원 상담 시 활용할 수 있는 전문 상담일지 템플릿 (Excel)</p>
+                            <div class="file-meta">
+                                <span class="file-type">Excel</span>
+                                <span class="file-size">약 50KB</span>
+                            </div>
+                            <div class="file-overlay">
+                                <div class="lock-icon">🔒</div>
+                                <p class="lock-text">구독하고 무료 다운로드</p>
+                            </div>
+                        </div>
+                        
+                        <div class="premium-file-card locked">
+                            <div class="file-icon">📊</div>
+                            <h4 class="file-title">학원 세무 가이드</h4>
+                            <p class="file-description">학원 운영 시 알아야 할 세무 관련 가이드 (PDF)</p>
+                            <div class="file-meta">
+                                <span class="file-type">PDF</span>
+                                <span class="file-size">약 2MB</span>
+                            </div>
+                            <div class="file-overlay">
+                                <div class="lock-icon">🔒</div>
+                                <p class="lock-text">구독하고 무료 다운로드</p>
+                            </div>
+                        </div>
+                        
+                        <div class="premium-file-card locked">
+                            <div class="file-icon">📝</div>
+                            <h4 class="file-title">학부모 상담 매뉴얼</h4>
+                            <p class="file-description">효과적인 학부모 상담을 위한 체크리스트 및 매뉴얼 (PDF)</p>
+                            <div class="file-meta">
+                                <span class="file-type">PDF</span>
+                                <span class="file-size">약 1.5MB</span>
+                            </div>
+                            <div class="file-overlay">
+                                <div class="lock-icon">🔒</div>
+                                <p class="lock-text">구독하고 무료 다운로드</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="premium-cta">
+                        <button type="button" id="premium-signup-btn" class="premium-signup-btn">
+                            <span class="btn-icon">✨</span>
+                            <span class="btn-text">구독하고 무료 다운로드</span>
+                        </button>
+                        <p class="premium-note">구독 시 매주 목요일 최신 정보를 받아보실 수 있습니다</p>
+                    </div>
+                </div>
+
+                <!-- 구독자 로그인 모달 -->
+                <div id="member-login-modal" class="member-login-modal" hidden role="dialog" aria-labelledby="login-modal-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="login-modal-title" class="modal-title">🔐 구독자 로그인</h3>
+                            <button type="button" class="modal-close" id="login-modal-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">이메일 또는 연락처로 로그인하세요</p>
+                            
+                            <form id="member-login-form" class="member-login-form">
+                                <div class="form-group">
+                                    <label for="login-identifier">이메일 또는 연락처 *</label>
+                                    <input type="text" id="login-identifier" name="identifier" placeholder="example@email.com 또는 010-1234-5678" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="login-password">비밀번호 *</label>
+                                    <input type="password" id="login-password" name="password" placeholder="비밀번호를 입력하세요" required>
+                                </div>
+                                
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" id="login-remember" name="remember">
+                                        로그인 상태 유지
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">로그인</button>
+                            </form>
+                            
+                            <div class="login-footer-links">
+                                <a href="#" id="find-id-link" class="footer-link">아이디 찾기</a>
+                                <span class="link-divider">|</span>
+                                <a href="#" id="find-password-link" class="footer-link">비밀번호 찾기</a>
+                                <span class="link-divider">|</span>
+                                <a href="#" id="go-to-signup-link" class="footer-link">회원가입하기</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 아이디 찾기 모달 -->
+                <div id="find-id-modal" class="member-login-modal" hidden role="dialog" aria-labelledby="find-id-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="find-id-title" class="modal-title">🔍 아이디 찾기</h3>
+                            <button type="button" class="modal-close" id="find-id-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">가입 시 입력하신 정보를 입력해주세요</p>
+                            
+                            <form id="find-id-form" class="member-login-form">
+                                <div class="form-group">
+                                    <label for="find-id-name">이름 *</label>
+                                    <input type="text" id="find-id-name" name="name" placeholder="홍길동" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="find-id-phone">연락처 *</label>
+                                    <input type="tel" id="find-id-phone" name="phone" placeholder="010-1234-5678" required>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">아이디 찾기</button>
+                            </form>
+                            
+                            <div id="find-id-result" class="find-result" style="display: none;">
+                                <div class="result-success">
+                                    <p class="result-title">등록된 이메일</p>
+                                    <p id="found-email" class="result-value"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="login-footer-links">
+                                <a href="#" id="back-to-login-from-find-id" class="footer-link">로그인으로 돌아가기</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 비밀번호 찾기 모달 -->
+                <div id="find-password-modal" class="member-login-modal" hidden role="dialog" aria-labelledby="find-password-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="find-password-title" class="modal-title">🔑 비밀번호 찾기</h3>
+                            <button type="button" class="modal-close" id="find-password-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">이메일 또는 연락처를 입력하시면 비밀번호 재설정 링크를 보내드립니다</p>
+                            
+                            <form id="find-password-form" class="member-login-form">
+                                <div class="form-group">
+                                    <label for="find-password-identifier">이메일 또는 연락처 *</label>
+                                    <input type="text" id="find-password-identifier" name="identifier" placeholder="example@email.com 또는 010-1234-5678" required>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">비밀번호 재설정 링크 보내기</button>
+                            </form>
+                            
+                            <div id="find-password-result" class="find-result" style="display: none;">
+                                <div class="result-success">
+                                    <p class="result-message">비밀번호 재설정 링크를 이메일로 보내드렸습니다.<br>이메일을 확인해주세요.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="login-footer-links">
+                                <a href="#" id="back-to-login-from-find-password" class="footer-link">로그인으로 돌아가기</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 회원 가입 모달 -->
+                <div id="member-signup-modal" class="member-signup-modal" hidden role="dialog" aria-labelledby="signup-modal-title" aria-modal="true">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-box">
+                        <div class="modal-header">
+                            <h3 id="signup-modal-title" class="modal-title">📚 넥소 위클리 구독하기</h3>
+                            <button type="button" class="modal-close" id="signup-modal-close" aria-label="닫기">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="modal-description">구독하시면 유료급 고급 자료를 무료로 다운로드하실 수 있습니다.</p>
+                            
+                            <!-- 회원 수집 폼 (나중에 Google Forms/Tally로 교체 가능) -->
+                            <form id="member-signup-form" class="member-signup-form" netlify data-netlify="true" name="member-signup">
+                                <input type="hidden" name="form-name" value="member-signup">
+                                
+                                <div class="form-group">
+                                    <label for="signup-name">이름 *</label>
+                                    <input type="text" id="signup-name" name="name" placeholder="홍길동" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-email">이메일 *</label>
+                                    <input type="email" id="signup-email" name="email" placeholder="example@email.com" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-password">비밀번호 *</label>
+                                    <input type="password" id="signup-password" name="password" placeholder="비밀번호를 입력하세요" required minlength="4">
+                                    <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                                        최소 4자 이상 입력해주세요
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-password-confirm">비밀번호 확인 *</label>
+                                    <input type="password" id="signup-password-confirm" name="password_confirm" placeholder="비밀번호를 다시 입력하세요" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-academy">학원명</label>
+                                    <input type="text" id="signup-academy" name="academy_name" placeholder="넥소학원">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-phone">연락처</label>
+                                    <input type="tel" id="signup-phone" name="phone" placeholder="010-1234-5678">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="signup-referrer">유입 경로</label>
+                                    <input type="text" id="signup-referrer" name="referrer_code" placeholder="QR 코드 또는 추천인 코드">
+                                    <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                                        QR 코드를 스캔하셨거나 추천을 받으셨다면 코드를 입력해주세요
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group checkbox-group">
+                                    <label>
+                                        <input type="checkbox" name="notification_agree" value="1" checked>
+                                        매주 목요일 발행 알림 수신 동의
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn-primary btn-large">구독하기</button>
+                            </form>
+                            
+                            <p class="modal-footer-note">
+                                <small>구독하시면 개인정보 처리방침에 동의한 것으로 간주됩니다.</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- NX-Series Lineup Image (고정 이미지) -->
                 <div class="lineup-section">
                     <img src="assets/images/9.png" alt="NX-Series 라인업" class="lineup-image">
@@ -452,74 +787,113 @@
                     <a href="https://blog.naver.com/nexokorea" target="_blank">공식 블로그 더보기 →</a>
                 </div>
 
-                <!-- 넥소 전자칠판 주문/상담 신청 (드롭다운) -->
+                <!-- 주문/상담 신청 (드롭다운) -->
                 <div class="sidebar-order-dropdown">
                     <button type="button" class="sidebar-order-toggle" id="sidebar-order-toggle" aria-expanded="false" aria-controls="sidebar-order-content">
-                        <span class="sidebar-order-toggle-title">📋 넥소 전자칠판 주문/상담 신청</span>
+                        <span class="sidebar-order-toggle-title">📋 주문/상담 신청</span>
                         <span class="sidebar-order-toggle-icon" aria-hidden="true">▼</span>
                     </button>
                     <div class="sidebar-order-content" id="sidebar-order-content" hidden>
-                        <div class="order-form-box">
-                            <form id="order-form" name="order-form" class="order-form" netlify data-netlify="true" action="/thank-you.html" method="POST">
-                                <input type="hidden" name="form-name" value="order-form">
-                                <div class="form-group">
-                                    <label for="company_name">업체명 (학원명)</label>
-                                    <input type="text" id="company_name" name="company_name" placeholder="예: 넥소학원" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="customer_name">주문자 성함</label>
-                                    <input type="text" id="customer_name" name="customer_name" placeholder="홍길동" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="phone_number">연락처</label>
-                                    <input type="tel" id="phone_number" name="phone_number" placeholder="010-1234-5678" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="region">지역 / 설치 환경</label>
-                                    <input type="text" id="region" name="region" placeholder="예: 서울 노원구, 강의실">
-                                </div>
-                                <div class="form-group">
-                                    <label for="size">인치 종류</label>
-                                    <select id="size" name="size" required>
-                                        <option value="">선택하세요</option>
-                                        <option value="65">65인치</option>
-                                        <option value="75">75인치</option>
-                                        <option value="86">86인치</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="mount_type">설치 방식</label>
-                                    <select id="mount_type" name="mount_type" required>
-                                        <option value="">선택하세요</option>
-                                        <option value="wall">벽걸이</option>
-                                        <option value="stand">이동형 스탠드</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="quantity">구매 수량</label>
-                                    <select id="quantity" name="quantity" required>
-                                        <option value="">선택하세요</option>
-                                        <option value="1">1대</option>
-                                        <option value="2">2대</option>
-                                        <option value="3">3대</option>
-                                        <option value="4">4대</option>
-                                        <option value="5">5대 이상</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="referrer_code">유입 경로 (선택사항)</label>
-                                    <input type="text" id="referrer_code" name="referrer_code" placeholder="기사님 코드 또는 추천인 코드">
-                                    <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">QR 코드를 스캔하셨거나 추천을 받으셨다면 코드를 입력해주세요</small>
-                                </div>
-                                <input type="hidden" id="unit_price" name="unit_price" value="">
-                                <input type="hidden" id="total_price_hidden" name="total_price" value="">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="agree" name="agree" required>
-                                    <label for="agree">개인정보 수집 및 이용에 동의합니다</label>
-                                </div>
-                                <button type="submit" class="order-submit-btn">주문 신청하기</button>
-                            </form>
+                <div class="order-form-box">
+                    <form id="order-form" name="order-form" class="order-form" netlify data-netlify="true" action="/thank-you.html" method="POST">
+                        <input type="hidden" name="form-name" value="order-form">
+                        
+                        <div class="form-group">
+                            <label for="company_name">업체명 (학원명)</label>
+                            <input type="text" id="company_name" name="company_name" placeholder="예: 넥소학원" required>
                         </div>
+                        
+                        <div class="form-group">
+                            <label for="customer_name">주문자 성함</label>
+                            <input type="text" id="customer_name" name="customer_name" placeholder="홍길동" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone_number">연락처</label>
+                            <input type="tel" id="phone_number" name="phone_number" placeholder="010-1234-5678" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="region">지역 / 설치 환경</label>
+                            <input type="text" id="region" name="region" placeholder="예: 서울 노원구, 강의실">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="size">인치 종류</label>
+                            <select id="size" name="size" required>
+                                <option value="">선택하세요</option>
+                                <option value="65">65인치</option>
+                                <option value="75">75인치</option>
+                                <option value="86">86인치</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="mount_type">설치 방식</label>
+                            <select id="mount_type" name="mount_type" required>
+                                <option value="">선택하세요</option>
+                                <option value="wall">벽걸이</option>
+                                <option value="stand">이동형 스탠드</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quantity">구매 수량</label>
+                            <select id="quantity" name="quantity" required>
+                                <option value="">선택하세요</option>
+                                <option value="1">1대</option>
+                                <option value="2">2대</option>
+                                <option value="3">3대</option>
+                                <option value="4">4대</option>
+                                <option value="5">5대 이상</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 유입 경로 필드 추가 -->
+                        <div class="form-group">
+                            <label for="referrer_code">유입 경로 (선택사항)</label>
+                            <input type="text" id="referrer_code" name="referrer_code" placeholder="기사님 코드 또는 추천인 코드">
+                            <small style="color: #666; font-size: 11px; display: block; margin-top: 4px;">
+                                QR 코드를 스캔하셨거나 추천을 받으셨다면 코드를 입력해주세요
+                            </small>
+                        </div>
+                        
+                        <input type="hidden" id="unit_price" name="unit_price" value="">
+                        <input type="hidden" id="total_price_hidden" name="total_price" value="">
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="agree" name="agree" required>
+                            <label for="agree">개인정보 수집 및 이용에 동의합니다</label>
+                        </div>
+                        
+                        <button type="submit" class="order-submit-btn">주문 신청하기</button>
+                    </form>
+                </div>
+                    </div>
+                </div>
+
+                <!-- 구독하기 CTA (사이드바) -->
+                <div class="sidebar-subscribe-box" id="sidebar-subscribe-box">
+                    <div id="subscribe-cta-content">
+                        <h4>📚 구독하고 혜택 받기</h4>
+                        <p>유료급 고급 자료를 무료로 다운로드하세요</p>
+                        <button type="button" id="sidebar-signup-btn" class="sidebar-signup-btn">
+                            <span class="btn-icon">✨</span>
+                            <span class="btn-text">구독하기</span>
+                        </button>
+                    </div>
+                    <div id="subscriber-benefits-content" style="display: none;">
+                        <div class="subscriber-status-header">
+                            <span class="status-icon">✨</span>
+                            <h4>구독자 전용 혜택</h4>
+                        </div>
+                        <ul class="benefits-list-small">
+                            <li>✅ 유료급 자료 무료 다운로드</li>
+                            <li>✅ 매주 목요일 최신 정보 수신</li>
+                            <li>✅ 구독자 전용 특가 혜택</li>
+                            <li>✅ 커뮤니티 포인트 적립</li>
+                        </ul>
+                        <a href="mypage.html" class="btn-secondary-small">마이페이지 보기</a>
                     </div>
                 </div>
 
@@ -569,9 +943,14 @@
         <div class="mobile-btn mobile-btn-kakao" style="cursor: not-allowed; opacity: 0.6;">카카오톡 문의 (준비중)</div>
     </div>
 
+    <script src="js/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
     <script src="js/editions-data.js"></script>
     <script src="js/edition-manager.js"></script>
     <script src="js/order-form.js"></script>
+    <script src="js/member-signup.js"></script>
+    <script src="js/member-login.js"></script>
     <script>
         // 테스트 모드: ?test=1 또는 ?test=true → 상단 배너
         (function() {
@@ -604,7 +983,7 @@
                 if (dropdown) dropdown.classList.toggle('open', !isOpen);
             });
         })();
-        // 넥소 전자칠판 주문/상담 신청 드롭다운 (접기/펼치기)
+        // 주문/상담 신청 드롭다운 (접기/펼치기)
         (function() {
             var toggle = document.getElementById('sidebar-order-toggle');
             var content = document.getElementById('sidebar-order-content');

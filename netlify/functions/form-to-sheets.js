@@ -70,6 +70,7 @@ exports.handler = async (event, context) => {
             quantity,
             unit_price,
             total_price,
+            referrer_code, // 유입 경로 추가
         } = submissionData;
 
         // Service Account 인증 설정 (참고 프로젝트 방식 사용)
@@ -94,7 +95,7 @@ exports.handler = async (event, context) => {
 
         // 데이터 행 생성 (Google Sheets 컬럼명에 정확히 맞춤)
         // 실제 Google Sheets 컬럼 구조:
-        // 제출일시 | 업체명 | 주문자 성함 | 연락처 | 지역 / 설치 환경 | 인치 종류 | 설치 방식 | 구매 수량 | 단가 | 총 주문 금액
+        // 제출일시 | 업체명 | 주문자 성함 | 연락처 | 지역 / 설치 환경 | 인치 종류 | 설치 방식 | 구매 수량 | 단가 | 총 주문 금액 | 유입 경로
         const row = {
             '제출일시': new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
             '업체명': company_name || '',
@@ -106,6 +107,7 @@ exports.handler = async (event, context) => {
             '구매 수량': quantity ? `${quantity}대` : '',
             '단가': unit_price || '',
             '총 주문 금액': total_price || '',
+            '유입 경로': referrer_code || '', // 유입 경로 추가
         };
 
         // 시트에 행 추가
