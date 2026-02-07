@@ -37,7 +37,7 @@ SUPABASE_SERVICE_ROLE_KEY=복사한키여기에붙여넣기
 
 **예시:**
 ```env
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcmlhamZyeHd5a3VmaG1rZnVuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcxNzg5MjM0NSwiZXhwIjoyMDMzNDY4MzQ1fQ.실제키내용
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 ```
 
 ---

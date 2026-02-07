@@ -15,7 +15,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY: ❌ 없음
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://icriajfrxwykufhmkfun.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcmlhamZyeHd5a3VmaG1rZnVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNjc3MzMsImV4cCI6MjA4NTk0MzczM30.WBGKJyHjeEfCvrIwJ_LRH3SugcCD12ggFdFZ9T7mnzs
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 

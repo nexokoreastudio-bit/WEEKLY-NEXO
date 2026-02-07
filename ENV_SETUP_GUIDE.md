@@ -222,7 +222,7 @@ RENDER_DATABASE_URL=postgres://nexo_user:abc123xyz@dpg-xxxxx-a.singapore-postgre
 
 # Supabase 연결 정보
 NEXT_PUBLIC_SUPABASE_URL=https://icriajfrxwykufhmkfun.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcmlhamZyeHd5a3VmaG1rZnVuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcxNzg5MjM0NSwiZXhwIjoyMDMzNDY4MzQ1fQ.실제키는여기에있습니다
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
 # 마이그레이션 옵션 (선택사항)
 # DRY_RUN=true
