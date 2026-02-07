@@ -23,6 +23,14 @@ node_modules/
 dist/
 build/
 .netlify/
+.next/
+out/
+tsconfig.tsbuildinfo
 
 # Supabase 키 (로컬 config.js 또는 빌드 생성 파일)
 js/config.js
+
+# 환경 변수 파일 (절대 커밋하지 마세요!)
+.env.local
+.env
+*.env.local

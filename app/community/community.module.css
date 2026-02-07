@@ -1,0 +1,369 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  font-family: 'Noto Serif KR', serif;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: #666;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e8e8e8;
+  flex-wrap: wrap;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #666;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #1a1a1a;
+  background: #f5f5f5;
+}
+
+.tab.active {
+  color: #00c4b4;
+  border-bottom-color: #00c4b4;
+  font-weight: 600;
+}
+
+.tabIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.writeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.writeButton:hover {
+  background: #00c4b4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 196, 180, 0.3);
+}
+
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+}
+
+.emptyWriteButton {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.emptyWriteButton:hover {
+  background: #00c4b4;
+}
+
+.postsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.postCard {
+  display: block;
+  padding: 24px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.postCard:hover {
+  border-color: #00c4b4;
+  box-shadow: 0 4px 12px rgba(0, 196, 180, 0.1);
+  transform: translateY(-2px);
+}
+
+.postHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.postMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.boardType {
+  padding: 4px 12px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.author {
+  font-weight: 500;
+}
+
+.date {
+  color: #999;
+}
+
+.updated {
+  font-size: 0.75rem;
+  color: #999;
+  font-style: italic;
+}
+
+.postTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.postContent {
+  font-size: 0.9375rem;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.postFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.postStats {
+  display: flex;
+  gap: 16px;
+  font-size: 0.875rem;
+  color: #999;
+}
+
+.hasImages {
+  font-size: 0.875rem;
+  color: #00c4b4;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  color: #666;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: #1a1a1a;
+}
+
+.backIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.postDetail {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.postDetailHeader {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.postDetailMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.postDetailTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+.postImages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.postImage {
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.postDetailContent {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 32px;
+}
+
+.postDetailFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.postActions {
+  display: flex;
+  gap: 12px;
+}
+
+.editButton,
+.deleteButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.editButton {
+  background: #f0f0f0;
+  color: #1a1a1a;
+}
+
+.editButton:hover {
+  background: #e0e0e0;
+}
+
+.deleteButton {
+  background: #fee;
+  color: #c00;
+}
+
+.deleteButton:hover {
+  background: #fdd;
+}
+
+.commentsSection {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.commentsTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.commentsComingSoon {
+  color: #999;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 16px;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    white-space: nowrap;
+  }
+
+  .postCard {
+    padding: 16px;
+  }
+
+  .postDetail {
+    padding: 20px;
+  }
+
+  .postDetailTitle {
+    font-size: 1.5rem;
+  }
+}
+

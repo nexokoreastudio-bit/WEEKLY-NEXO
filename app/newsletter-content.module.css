@@ -1,0 +1,219 @@
+/* NEXO Weekly 뉴스레터 콘텐츠 전용 스타일 */
+
+.newsletterContent {
+  color: #1a1a1a;
+  line-height: 1.8;
+}
+
+.newsletterContent section {
+  margin-bottom: 2.5rem;
+}
+
+.newsletterContent h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1a1a1a;
+}
+
+.newsletterContent h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 4px solid #00c4b4;
+  color: #00c4b4;
+}
+
+.newsletterContent h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.newsletterContent p {
+  margin-bottom: 1rem;
+  line-height: 1.8;
+  color: #374151;
+}
+
+.newsletterContent ul {
+  list-style: disc;
+  list-style-position: inside;
+  margin: 0.5rem 0;
+  padding-left: 0;
+}
+
+.newsletterContent li {
+  margin: 0.5rem 0;
+  line-height: 1.7;
+}
+
+.newsletterContent a {
+  color: #1a1a1a;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.newsletterContent a:hover {
+  color: #00c4b4;
+}
+
+.newsletterContent hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2.5rem 0;
+}
+
+/* NEXO Insight 섹션 */
+.insightSection {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2.5rem;
+}
+
+.insightBadge {
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.insightTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+}
+
+.insightText {
+  color: #374151;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.insightText strong {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* 뉴스 섹션 */
+.newsSection {
+  margin-bottom: 2rem;
+}
+
+.newsCategory {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 4px solid #00c4b4;
+  color: #00c4b4;
+}
+
+.newsDescription {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.newsList {
+  list-style: disc;
+  list-style-position: inside;
+  margin: 0.5rem 0;
+}
+
+.newsList li {
+  margin: 0.5rem 0;
+  color: #374151;
+}
+
+.newsList li:hover {
+  color: #1a1a1a;
+}
+
+.newsList a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.newsList a:hover {
+  color: #00c4b4;
+}
+
+/* CTA 섹션 */
+.ctaSection {
+  margin-top: 3rem;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.ctaTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.ctaText {
+  margin-bottom: 1.5rem;
+  color: #d1d5db;
+  line-height: 1.8;
+}
+
+.ctaText strong {
+  color: #fff;
+}
+
+.ctaButton {
+  display: inline-block;
+  background: #00c4b4;
+  color: #1a1a1a;
+  font-weight: 700;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.ctaButton:hover {
+  background: #fff;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .newsletterContent h2 {
+    font-size: 1.5rem;
+  }
+
+  .newsletterContent h3 {
+    font-size: 1.125rem;
+  }
+
+  .insightSection {
+    padding: 1rem;
+  }
+
+  .ctaSection {
+    padding: 1.5rem;
+  }
+
+  .ctaTitle {
+    font-size: 1.25rem;
+  }
+}
+

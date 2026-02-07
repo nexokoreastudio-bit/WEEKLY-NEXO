@@ -1,430 +1,515 @@
-# NEXO Weekly 구현 의도 및 기능 명세서
+# WEEKLY-NEXO 구현 기능 명세서
+
+**작성일**: 2026년 2월 6일  
+**버전**: 2.0.0  
+**프로젝트 상태**: 개발 진행 중
+
+---
 
 ## 📋 목차
+
 1. [프로젝트 개요](#프로젝트-개요)
-2. [핵심 컨셉 및 구현 의도](#핵심-컨셉-및-구현-의도)
-3. [주요 기능 명세](#주요-기능-명세)
-4. [기술 아키텍처](#기술-아키텍처)
-5. [데이터 구조](#데이터-구조)
-6. [사용자 시나리오](#사용자-시나리오)
+2. [기술 스택](#기술-스택)
+3. [프로젝트 구조](#프로젝트-구조)
+4. [구현 완료 기능](#구현-완료-기능)
+5. [데이터베이스 스키마](#데이터베이스-스키마)
+6. [API 및 라우팅](#api-및-라우팅)
+7. [컴포넌트 명세](#컴포넌트-명세)
+8. [환경 설정](#환경-설정)
+9. [다음 단계](#다음-단계)
 
 ---
 
 ## 프로젝트 개요
 
-### 프로젝트명
-**NEXO Weekly** - 전자신문 플랫폼
+### 목표
+정적 웹사이트를 **Next.js 14 기반의 에듀테크 커뮤니티 플랫폼**으로 전환
 
-### 목적
-(주)넥소의 매주 목요일 정기 발행 전자신문 플랫폼으로, 전자칠판 제품 정보, 업데이트, 이벤트, 회사 소식을 체계적으로 전달하는 디지털 미디어 채널
-
-### 타겟 사용자
-- 노원지구 협력업체 (카카오톡 단톡방 회원)
-- 전자칠판 사용자 및 관심 고객
-- 넥소 제품 파트너 및 투자자
+### 핵심 가치
+- **정보 습득 (News)**: 매주 목요일 발행 전자신문
+- **자료 공유 (Resources)**: 선생님용 교육 자료 다운로드
+- **소통 (Community)**: 게시판, 댓글, 좋아요
+- **보상 (Points)**: 활동 포인트 및 등급 시스템
 
 ---
 
-## 핵심 컨셉 및 구현 의도
+## 기술 스택
 
-### 1. "전자칠판 = 전자신문" 컨셉
-- **의도**: 전자칠판이 단순한 디스플레이가 아닌, 매주 목요일 새로운 정보를 전달하는 "전자신문"과 같은 매체라는 메시지 전달
-- **구현**: 전통적인 신문 레이아웃과 디자인 요소를 차용하여 신뢰성과 전문성 표현
+### Frontend
+- **Framework**: Next.js 14.2.0 (App Router)
+- **Language**: TypeScript 5.3.3
+- **Styling**: 
+  - Tailwind CSS 3.4.1
+  - CSS Modules (기존 스타일 유지)
+  - Shadcn/UI 컴포넌트
+- **State Management**: Zustand 4.4.7 (준비됨)
 
-### 2. 정기 발행 시스템
-- **의도**: 매주 목요일 정기적으로 발행하여 지속적인 브랜드 노출 및 고객 접촉 유지
-- **구현**: 
-  - 발행일(`id`) 기준 자동 공개 시스템
-  - 미리 작성 후 발행일 자동 오픈 기능
-  - 과거 발행분 아카이브 조회
+### Backend & Database
+- **Backend**: Supabase (Auth, PostgreSQL, Storage)
+- **Database**: PostgreSQL (Supabase)
+- **Authentication**: Supabase Auth
 
-### 3. 관리자 중심 콘텐츠 관리
-- **의도**: 기술 지식 없이도 쉽게 발행물 작성 및 관리 가능
-- **구현**:
-  - 관리자 에디터(`admin.html`) 제공
-  - 텍스트 입력만으로 자동 포맷팅
-  - 이미지 업로드 및 관리
-
-### 4. 사용자 경험 최적화
-- **의도**: 정보를 빠르게 찾고, 쉽게 공유할 수 있는 직관적인 인터페이스
-- **구현**:
-  - 호별 목록 뷰 (카드 그리드)
-  - 본문 뷰 (상세 내용)
-  - 소셜 공유 기능
-  - 반응형 디자인 (데스크톱/태블릿/모바일)
+### 개발 도구
+- **Form Validation**: Zod 3.22.4, React Hook Form 7.49.3
+- **Date Handling**: date-fns 3.0.6
+- **UI Components**: Radix UI (Avatar, Dialog, Dropdown, Label, Select, Separator, Slot, Tabs, Toast)
+- **Icons**: Lucide React 0.309.0
 
 ---
 
-## 주요 기능 명세
+## 프로젝트 구조
 
-### 1. 발행물 관리 시스템
+```
+WEEKLY-NEXO/
+├── app/                          # Next.js App Router
+│   ├── (auth)/                  # 인증 라우트 그룹
+│   │   ├── login/
+│   │   │   └── page.tsx        # 로그인 페이지 ✅
+│   │   └── signup/
+│   │       └── page.tsx        # 회원가입 페이지 ✅
+│   ├── actions/
+│   │   └── auth.ts             # 서버 액션 (로그아웃) ✅
+│   ├── layout.tsx              # 루트 레이아웃 ✅
+│   ├── page.tsx                # 메인 페이지 ✅
+│   ├── page.module.css         # 메인 페이지 스타일 ✅
+│   └── globals.css             # 전역 스타일 ✅
+│
+├── components/                  # React 컴포넌트
+│   ├── auth/
+│   │   └── user-button.tsx     # 사용자 버튼 (로그인/로그아웃) ✅
+│   ├── layout/
+│   │   └── header.tsx          # 헤더 컴포넌트 ✅
+│   └── ui/                     # Shadcn/UI 컴포넌트
+│       ├── button.tsx          # 버튼 컴포넌트 ✅
+│       ├── card.tsx            # 카드 컴포넌트 ✅
+│       ├── input.tsx           # 입력 컴포넌트 ✅
+│       └── label.tsx           # 레이블 컴포넌트 ✅
+│
+├── lib/                         # 유틸리티 및 설정
+│   ├── supabase/
+│   │   ├── client.ts          # 브라우저용 Supabase 클라이언트 ✅
+│   │   ├── server.ts          # 서버용 Supabase 클라이언트 ✅
+│   │   └── middleware.ts      # 미들웨어용 Supabase 클라이언트 ✅
+│   └── utils/
+│       └── cn.ts               # className 유틸리티 ✅
+│
+├── types/                       # TypeScript 타입 정의
+│   ├── database.ts             # Supabase DB 타입 정의 ✅
+│   └── database-v2.ts          # DB 타입 정의 (v2) ✅
+│
+├── middleware.ts                # Next.js 미들웨어 (세션 관리) ✅
+│
+├── public/                      # 정적 파일
+│   └── assets/                 # 이미지 및 리소스
+│
+├── supabase-schema-v2.sql      # 데이터베이스 스키마 ✅
+│
+├── package.json                # 의존성 및 스크립트 ✅
+├── tsconfig.json               # TypeScript 설정 ✅
+├── tailwind.config.ts          # Tailwind CSS 설정 ✅
+├── postcss.config.js           # PostCSS 설정 ✅
+├── next.config.js              # Next.js 설정 ✅
+│
+└── .env.local                  # 환경 변수 (로컬)
+```
 
-#### 1.1 발행일 기반 자동 공개
-- **기능**: 각 발행물의 `id`(YYYY-MM-DD)가 오늘 날짜 이전이면 자동 공개
-- **동작**:
-  - 발행일이 지난 호: 드롭다운 목록에 표시, 본문 조회 가능
-  - 발행일이 지나지 않은 호: 목록에 미표시, URL 직접 접근 시 "발행 예정" 메시지
-- **파일**: `js/edition-manager.js` - `isPublished()` 메서드
+---
 
-#### 1.2 미리보기 모드
-- **기능**: 관리자가 발행 전 호의 본문을 미리 확인
-- **방법**:
-  - URL 파라미터: `?preview=1`
-  - 관리자 로그인: 비밀번호 인증 후 세션 유지
-- **표시**: 발행 전 호 선택 시 상단에 "관리자 미리보기" 배너 표시
-- **파일**: `js/edition-manager.js` - `previewMode` 속성
+## 구현 완료 기능
 
-#### 1.3 호별 목록 뷰 / 본문 뷰 전환
+### ✅ Phase 1: 프로젝트 초기 설정
+
+#### 1.1 Next.js 프로젝트 설정
+- [x] Next.js 14 프로젝트 생성 (App Router)
+- [x] TypeScript 설정
+- [x] Tailwind CSS 설정
+- [x] PostCSS 설정
+- [x] Next.js 설정 파일 (`next.config.js`)
+- [x] 환경 변수 설정 구조
+
+#### 1.2 Supabase 연동
+- [x] Supabase 클라이언트 설정 (브라우저용)
+- [x] Supabase 서버 클라이언트 설정
+- [x] Supabase 미들웨어 클라이언트 설정
+- [x] 세션 관리 미들웨어 구현
+- [x] TypeScript 타입 정의 (`types/database.ts`)
+
+#### 1.3 데이터베이스 스키마
+- [x] 데이터베이스 스키마 설계 (`supabase-schema-v2.sql`)
+- [x] 테이블 정의:
+  - `users` (사용자 프로필)
+  - `articles` (뉴스/매거진)
+  - `posts` (커뮤니티 게시글)
+  - `comments` (댓글)
+  - `likes` (좋아요)
+  - `resources` (자료실)
+  - `point_logs` (포인트 로그)
+  - `downloads` (다운로드 이력)
+- [x] Row Level Security (RLS) 정책 설정
+- [x] 트리거 및 함수 정의:
+  - 사용자 프로필 자동 생성
+  - 포인트 시스템 자동화
+  - 좋아요 수 자동 업데이트
+
+---
+
+### ✅ Phase 2: 인증 시스템 구현
+
+#### 2.1 인증 페이지
+- [x] **로그인 페이지** (`/login`)
+  - 이메일/비밀번호 로그인
+  - 로그인 상태 유지 옵션
+  - 에러 처리 및 사용자 피드백
+  - 비밀번호 찾기 링크
+  - 회원가입 링크
+
+- [x] **회원가입 페이지** (`/signup`)
+  - 이메일, 비밀번호, 이름 입력
+  - 학원명, 연락처, 추천인 코드 (선택사항)
+  - 비밀번호 확인
+  - 이메일 인증 플로우 지원
+  - 에러 처리 및 사용자 피드백
+
+#### 2.2 인증 기능
+- [x] Supabase Auth 연동
+- [x] 세션 관리 (Middleware)
+- [x] 로그아웃 기능 (서버 액션)
+- [x] 사용자 상태 확인 (`UserButton` 컴포넌트)
+- [x] 인증 상태에 따른 UI 변경
+
+#### 2.3 사용자 인터페이스
+- [x] **Header 컴포넌트**
+  - 로고 및 네비게이션
+  - 사용자 버튼 통합
+  - 반응형 디자인
+
+- [x] **UserButton 컴포넌트**
+  - 로그인 전: 로그인/회원가입 버튼
+  - 로그인 후: 사용자 이름 표시 및 로그아웃 버튼
+  - 실시간 인증 상태 업데이트
+
+---
+
+### ✅ Phase 3: 메인 페이지 리팩터링 (진행 중)
+
+#### 3.1 기본 구조
+- [x] 메인 페이지 컴포넌트 생성 (`app/page.tsx`)
+- [x] CSS 모듈화 (`app/page.module.css`)
+- [x] 기존 디자인 시스템 유지
+
+#### 3.2 레이아웃 구성
+- [x] 헤더 섹션 (로고, 발행호 정보)
+- [x] 히어로 섹션 (메인 이미지, 헤드라인)
+- [x] 매거진 섹션 (기본 구조)
+- [x] 사이드바 (기본 구조)
+- [x] 푸터
+
+#### 3.3 이미지 최적화
+- [x] Next.js Image 컴포넌트 적용
+- [x] 이미지 최적화 설정 (`next.config.js`)
+
+---
+
+### ✅ Phase 4: UI 컴포넌트 시스템
+
+#### 4.1 Shadcn/UI 컴포넌트
+- [x] **Button** (`components/ui/button.tsx`)
+  - 다양한 variant (default, destructive, outline, secondary, ghost, link)
+  - 다양한 size (default, sm, lg, icon)
+  - asChild prop 지원
+
+- [x] **Input** (`components/ui/input.tsx`)
+  - 기본 입력 필드
+  - 접근성 지원
+  - 포커스 스타일
+
+- [x] **Label** (`components/ui/label.tsx`)
+  - Radix UI 기반
+  - 접근성 지원
+
+- [x] **Card** (`components/ui/card.tsx`)
+  - Card, CardHeader, CardTitle, CardDescription
+  - CardContent, CardFooter
+
+#### 4.2 유틸리티
+- [x] **cn 함수** (`lib/utils/cn.ts`)
+  - className 병합 유틸리티
+  - clsx + tailwind-merge 통합
+
+---
+
+## 데이터베이스 스키마
+
+### 테이블 구조
+
+#### 1. `users` 테이블
+```sql
+- id (UUID, PK, FK → auth.users)
+- email (TEXT, UNIQUE)
+- nickname (TEXT)
+- avatar_url (TEXT)
+- role (TEXT: 'admin', 'teacher', 'academy_owner', 'user')
+- academy_name (TEXT)
+- referrer_code (TEXT)
+- point (INTEGER, DEFAULT 0)
+- level (TEXT: 'bronze', 'silver', 'gold', DEFAULT 'bronze')
+- created_at, updated_at (TIMESTAMP)
+```
+
+#### 2. `articles` 테이블
+```sql
+- id (SERIAL, PK)
+- title (TEXT, NOT NULL)
+- subtitle (TEXT)
+- content (TEXT - HTML/Markdown)
+- category (TEXT: 'news', 'column', 'update', 'event')
+- thumbnail_url (TEXT)
+- author_id (UUID, FK → users)
+- published_at (TIMESTAMP)
+- is_published (BOOLEAN, DEFAULT FALSE)
+- views (INTEGER, DEFAULT 0)
+- created_at, updated_at (TIMESTAMP)
+```
+
+#### 3. `posts` 테이블
+```sql
+- id (SERIAL, PK)
+- board_type (TEXT: 'free', 'qna', 'tip', 'market')
+- title (TEXT, NOT NULL)
+- content (TEXT, NOT NULL)
+- author_id (UUID, FK → users)
+- images (TEXT[] - Supabase Storage URL 배열)
+- likes_count (INTEGER, DEFAULT 0)
+- comments_count (INTEGER, DEFAULT 0)
+- created_at, updated_at (TIMESTAMP)
+```
+
+#### 4. `comments` 테이블
+```sql
+- id (SERIAL, PK)
+- post_id (INTEGER, FK → posts)
+- author_id (UUID, FK → users)
+- content (TEXT, NOT NULL)
+- created_at, updated_at (TIMESTAMP)
+```
+
+#### 5. `likes` 테이블
+```sql
+- id (SERIAL, PK)
+- post_id (INTEGER, FK → posts)
+- user_id (UUID, FK → users)
+- created_at (TIMESTAMP)
+- UNIQUE(post_id, user_id)
+```
+
+#### 6. `resources` 테이블
+```sql
+- id (SERIAL, PK)
+- title (TEXT, NOT NULL)
+- description (TEXT)
+- file_url (TEXT - Supabase Storage URL)
+- file_type (TEXT: 'pdf', 'excel', 'image', 'video', 'other')
+- file_size (INTEGER)
+- point_cost (INTEGER, DEFAULT 0)
+- download_count (INTEGER, DEFAULT 0)
+- is_premium (BOOLEAN, DEFAULT FALSE)
+- created_by (UUID, FK → users)
+- created_at, updated_at (TIMESTAMP)
+```
+
+#### 7. `point_logs` 테이블
+```sql
+- id (SERIAL, PK)
+- user_id (UUID, FK → users)
+- point_change (INTEGER)
+- point_balance (INTEGER)
+- reason (TEXT)
+- related_type (TEXT: 'post', 'comment', 'download', 'admin')
+- related_id (INTEGER)
+- created_at (TIMESTAMP)
+```
+
+#### 8. `downloads` 테이블
+```sql
+- id (SERIAL, PK)
+- user_id (UUID, FK → users)
+- resource_id (INTEGER, FK → resources)
+- point_spent (INTEGER)
+- created_at (TIMESTAMP)
+```
+
+### 자동화 기능 (트리거)
+
+1. **사용자 프로필 자동 생성**
+   - `auth.users`에 새 사용자 생성 시 `public.users` 프로필 자동 생성
+
+2. **포인트 시스템**
+   - 게시글 작성 시: +10 포인트
+   - 댓글 작성 시: +5 포인트
+   - 자료 다운로드 시: 포인트 차감 및 로그 기록
+
+3. **통계 자동 업데이트**
+   - 좋아요 수 자동 업데이트
+   - 댓글 수 자동 업데이트
+   - 다운로드 수 자동 업데이트
+
+4. **레벨 자동 업데이트**
+   - 포인트에 따른 레벨 자동 변경 (bronze → silver → gold)
+
+---
+
+## API 및 라우팅
+
+### 인증 라우트
+
+| 경로 | 메서드 | 설명 | 상태 |
+|------|--------|------|------|
+| `/login` | GET | 로그인 페이지 | ✅ |
+| `/signup` | GET | 회원가입 페이지 | ✅ |
+| `/api/auth/signout` | POST | 로그아웃 (서버 액션) | ✅ |
+
+### 메인 라우트
+
+| 경로 | 메서드 | 설명 | 상태 |
+|------|--------|------|------|
+| `/` | GET | 메인 페이지 | ✅ |
+
+---
+
+## 컴포넌트 명세
+
+### 페이지 컴포넌트
+
+#### `app/page.tsx` (메인 페이지)
+- **타입**: Server Component
 - **기능**: 
-  - 초기 진입 시 호별 목록(카드 그리드) 표시
-  - "📋 호별 목록" 버튼으로 목록 ↔ 본문 뷰 전환
-  - 카드 클릭 시 해당 호 본문으로 이동
-- **파일**: `js/edition-manager.js` - `showListView()`, `showEditionView()`
+  - 최신 발행호 표시
+  - 히어로 섹션 렌더링
+  - 매거진 섹션 렌더링
+- **상태**: 기본 구조 완료, 데이터 연동 예정
 
-#### 1.4 발행물 네비게이션
+#### `app/(auth)/login/page.tsx` (로그인 페이지)
+- **타입**: Client Component
 - **기능**:
-  - 드롭다운: 발행일 선택
-  - 이전/다음 버튼: 인접 호 이동
-  - URL 파라미터: `?edition=YYYY-MM-DD`로 특정 호 직접 접근
-- **파일**: `js/edition-manager.js` - `setupNavigation()`, `populateEditionSelector()`
+  - 이메일/비밀번호 로그인 폼
+  - 로그인 상태 유지 옵션
+  - 에러 처리 및 피드백
+  - 로그인 성공 시 리다이렉트
+- **상태**: ✅ 완료
 
-### 2. 콘텐츠 렌더링 시스템
+#### `app/(auth)/signup/page.tsx` (회원가입 페이지)
+- **타입**: Client Component
+- **기능**:
+  - 회원가입 폼 (이메일, 비밀번호, 이름 등)
+  - 비밀번호 확인
+  - 이메일 인증 플로우 지원
+  - 에러 처리 및 피드백
+- **상태**: ✅ 완료
 
-#### 2.1 헤더 정보 업데이트
-- **표시 항목**:
-  - 호수 (VOL. YYYY-MM)
-  - 발행일 (YYYY.MM.DD WEEKDAY)
-  - 특별 에디션 배지
-- **파일**: `js/edition-manager.js` - `updateHeader()`
+### 레이아웃 컴포넌트
 
-#### 2.2 헤드라인 섹션
-- **표시 항목**:
-  - 메인 헤드라인
-  - 서브 헤드라인 (선택)
-  - 소셜 공유 버튼 (링크 복사 ✅, 카카오톡 🔜 준비중)
-- **파일**: `js/edition-manager.js` - `updateHeadline()`
+#### `app/layout.tsx` (루트 레이아웃)
+- **타입**: Server Component
+- **기능**:
+  - 전역 메타데이터 설정
+  - 폰트 로딩 (Noto Sans KR, Noto Serif KR)
+  - Header 컴포넌트 포함
+- **상태**: ✅ 완료
 
-#### 2.3 Hero 이미지
-- **기능**: 발행물별 최대 3개 이미지 지원
-  - 첫 번째 이미지: Hero 섹션 (상단 큰 이미지)
-  - 나머지 이미지: Features 섹션에 표시 (최대 2개)
-- **파일**: `js/edition-manager.js` - `updateImages()`
+#### `components/layout/header.tsx` (헤더)
+- **타입**: Server Component
+- **기능**:
+  - 로고 및 네비게이션 링크
+  - UserButton 통합
+  - 반응형 디자인
+- **상태**: ✅ 완료
 
-#### 2.4 본문 콘텐츠
-- **기능**: HTML 지원 본문 렌더링
-- **파일**: `js/edition-manager.js` - `updateContent()`
+### 인증 컴포넌트
 
-#### 2.5 업데이트 로그
-- **카테고리**: 소프트웨어, 하드웨어, 서비스, 컨텐츠
-- **표시 정보**: 카테고리, 버전, 설명, 날짜
-- **파일**: `js/edition-manager.js` - `updateUpdates()`
+#### `components/auth/user-button.tsx` (사용자 버튼)
+- **타입**: Client Component
+- **기능**:
+  - 인증 상태 확인
+  - 로그인 전: 로그인/회원가입 버튼
+  - 로그인 후: 사용자 이름 및 로그아웃 버튼
+  - 실시간 인증 상태 업데이트
+- **상태**: ✅ 완료
 
-#### 2.6 매거진 섹션 (리뉴얼)
-- **기능**: 호별 칼럼/기사 표시
-- **구분**: 
-  - 넥소 에디터 (작성자: "넥소 에디터" 또는 "넥소 마케팅")
-  - 칼럼 (기타 작성자)
-- **레이아웃**: CSS Grid 2~3단 고정 컬럼
-- **파일**: `js/edition-manager.js` - `renderArticles()`
+### UI 컴포넌트
 
-#### 2.7 NEXO 쌤 도구함 (리뉴얼)
-- **기능**: 선생님용 위젯 및 다운로드 자료 제공
-- **위젯 타입**:
-  - `type: 'widget'`: 클릭 시 모달 열림 (예: 5분 집중 타이머)
-  - `type: 'download'`: 파일 다운로드 (파일 없으면 "준비 중" 안내)
-- **위치**: 
-  - 데스크톱: 우측 사이드바
-  - 태블릿/모바일: 하단 섹션 (접기/펼치기 토글)
-- **파일**: `js/edition-manager.js` - `renderTools()`, `updateToolsSidebar()`
+#### `components/ui/button.tsx`
+- **Props**: `variant`, `size`, `asChild`, `className`
+- **Variants**: default, destructive, outline, secondary, ghost, link
+- **Sizes**: default, sm, lg, icon
+- **상태**: ✅ 완료
 
-### 3. 관리자 에디터
+#### `components/ui/input.tsx`
+- **Props**: 표준 HTML input props
+- **기능**: 접근성 지원, 포커스 스타일
+- **상태**: ✅ 완료
 
-#### 3.1 인증 시스템
-- **방법**: 비밀번호 기반 로그인 (기본: `nexo2026`)
-- **세션**: `sessionStorage`에 인증 상태 저장
-- **파일**: `js/admin-editor.js` - `checkAuth()`
+#### `components/ui/label.tsx`
+- **Props**: Radix UI Label props
+- **기능**: 접근성 지원
+- **상태**: ✅ 완료
 
-#### 3.2 발행물 작성 폼
-- **입력 항목**:
-  - 발행일 (날짜 선택)
-  - 제목
-  - 본문 (텍스트 에리어)
-  - 이미지 (최대 3개)
-- **자동 기능**:
-  - 목요일 확인 경고
-  - 이미지 미리보기
-  - 텍스트 파싱 (✅ 체크리스트 → 업데이트, 🏆 → 업적)
-- **파일**: `js/admin-editor.js` - `parseContent()`
-
-#### 3.3 파일 생성 및 다운로드
-- **출력**: `editions-data.js` 형식 파일 다운로드
-- **다음 단계**: 
-  1. 다운로드된 파일을 `js/editions-data.js`로 교체
-  2. 이미지 파일을 `assets/images/`에 복사
-- **파일**: `js/admin-editor.js` - `generateEditionFile()`
-
-### 4. 사용자 인터페이스
-
-#### 4.1 반응형 디자인
-- **데스크톱 (1024px 이상)**:
-  - 2단 레이아웃 (메인 + 사이드바)
-  - 쌤 도구함 우측 고정
-- **태블릿/모바일 (1024px 이하)**:
-  - 단일 컬럼 레이아웃
-  - 쌤 도구함 하단 섹션 (접기/펼치기)
-  - 모바일 고정 문의 버튼
-- **파일**: `css/style.css`
-
-#### 4.2 소셜 공유
-- **링크 복사**: 현재 페이지 URL 복사 (쿼리 파라미터 제외)
-- **카카오톡 공유**: 준비중 (모바일 Web Share API 지원 예정)
-- **파일**: `index.html` - `copyToClipboard()` 함수
-
-#### 4.3 접근성 (A11y)
-- **ARIA 속성**: 모달, 버튼, 목록에 적절한 ARIA 레이블
-- **키보드 네비게이션**: Enter/Space로 카드 클릭
-- **파일**: `index.html`, `js/edition-manager.js`
-
-### 5. 특수 기능
-
-#### 5.1 준비중 발행물
-- **조건**: `status === 'preparing'` 또는 제목이 "발행물 준비중"
-- **표시**: "🔜 발행물 준비중" 전용 화면
-- **파일**: `js/edition-manager.js` - `showPreparingMessage()`
-
-#### 5.2 테스트 모드
-- **활성화**: URL에 `?test=1` 또는 `?test=true`
-- **표시**: 상단에 "🧪 테스트 모드 · 개발용" 배너
-- **파일**: `index.html` - 테스트 모드 스크립트
-
-#### 5.3 5분 집중 타이머 위젯
-- **기능**: 시작/일시정지/리셋 버튼
-- **표시**: 모달 창에서 실행
-- **파일**: `js/edition-manager.js` - `runTimerWidget()`
+#### `components/ui/card.tsx`
+- **Sub-components**: CardHeader, CardTitle, CardDescription, CardContent, CardFooter
+- **상태**: ✅ 완료
 
 ---
 
-## 기술 아키텍처
+## 환경 설정
 
-### 프론트엔드 스택
-- **HTML5**: 시맨틱 마크업
-- **CSS3**: 반응형 디자인, Grid 레이아웃
-- **JavaScript (ES6+)**: 
-  - 클래스 기반 구조 (`EditionManager`)
-  - 모듈화된 함수
-  - 비동기 처리 (async/await)
+### 환경 변수 (`.env.local`)
 
-### 데이터 관리
-- **형식**: JavaScript 객체 (`EDITIONS_DATA`)
-- **이유**: CORS 문제 해결 (JSON 파일 대신 JS 파일 사용)
-- **위치**: `js/editions-data.js`
-- **백업**: `data/editions.json` (참고용)
+```env
+# Supabase 연결 정보
+NEXT_PUBLIC_SUPABASE_URL=https://icriajfrxwykufhmkfun.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-### 호스팅
-- **플랫폼**: Netlify
-- **배포**: 정적 웹사이트 (Git, 자동 배포)
-- **설정**: `netlify.toml`
+# 앱 설정
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-### 백엔드 기능 (선택)
-- **Netlify Functions**: Google Sheets 연동 (폼 제출 시)
-- **파일**: `netlify/functions/form-to-sheets.js`, `save-to-sheets.js`
+### npm 스크립트
 
----
-
-## 데이터 구조
-
-### Edition 객체 스키마
-
-```javascript
+```json
 {
-  // 필수 필드
-  "id": "2026-02-05",                    // YYYY-MM-DD 형식 (발행일)
-  "date": "2026년 2월 5일 목요일",        // 발행일 표시 형식
-  "volume": "VOL. 2026-02",              // 호수
-  "title": "발행물 제목",                 // 제목
-  "headline": "메인 헤드라인",            // 메인 헤드라인
-  "updates": [                            // 업데이트 배열 (최소 1개)
-    {
-      "category": "소프트웨어",            // 소프트웨어/하드웨어/서비스/컨텐츠
-      "version": "UMIND v2.3.0",
-      "description": "업데이트 설명",
-      "date": "2026-02-05"
-    }
-  ],
-  "content": {                            // 콘텐츠 객체
-    "main": "<p>본문 HTML</p>",           // HTML 지원
-    "features": ["기능1", "기능2"]        // 주요 기능 리스트
-  },
-  "stats": {                              // 통계 객체
-    "totalInstallations": 15100,
-    "activeUsers": 3100,
-    "contentUpdates": 9
-  },
-  "achievements": [                       // 업적 배열 (최소 1개)
-    {
-      "type": "innovation",              // innovation/product/growth/partnership
-      "category": "혁신",
-      "title": "업적 제목",
-      "description": "업적 설명",
-      "date": "2026-02-05",
-      "value": "값",
-      "milestone": "이정표"
-    }
-  ],
-  
-  // 선택 필드
-  "subHeadline": "서브 헤드라인",         // 서브 헤드라인
-  "leadText": "리드 텍스트",              // Hero 섹션 리드 텍스트
-  "images": [                             // 이미지 배열 (최대 3개)
-    {
-      "filename": "2.png",                // assets/images/ 폴더의 파일명
-      "alt": "이미지 설명",
-      "caption": "이미지 캡션"
-    }
-  ],
-  "articles": [                           // 매거진 (리뉴얼, 선택)
-    {
-      "type": "column",                   // column 또는 news
-      "title": "칼럼 제목",
-      "author": "작성자명",
-      "content": "<p>칼럼 내용 HTML</p>",
-      "tags": ["태그1", "태그2"]
-    }
-  ],
-  "tools": [                              // 쌤 도구함 (리뉴얼, 선택)
-    {
-      "type": "widget",                   // widget 또는 download
-      "name": "timer",
-      "title": "5분 집중 타이머",
-      "icon": "⏰"
-    },
-    {
-      "type": "download",
-      "title": "수업 준비 체크리스트",
-      "url": "assets/downloads/파일명.pdf",
-      "fileType": "PDF"
-    }
-  ],
-  
-  // 특수 필드
-  "status": "preparing"                   // "preparing"이면 준비중 화면 표시
+  "dev": "next dev",                    # 개발 서버 실행
+  "build": "next build",                 # 프로덕션 빌드
+  "start": "next start",                 # 프로덕션 서버 실행
+  "lint": "next lint",                   # ESLint 실행
+  "type-check": "tsc --noEmit",          # TypeScript 타입 체크
+  "dev:legacy": "npx serve -l 3000"     # 기존 정적 사이트 실행
 }
 ```
 
-### 하위 호환성
-- **원칙**: 기존 발행 호에 `articles`, `tools` 필드가 없어도 정상 동작
-- **구현**: `if (edition.articles?.length)`, `if (edition.tools?.length)` 조건 체크
-- **파일**: `js/edition-manager.js` - `renderArticles()`, `renderTools()`
-
 ---
 
-## 사용자 시나리오
+## 다음 단계
 
-### 시나리오 1: 일반 사용자 - 최신 호 확인
-1. 웹사이트 접속 (`index.html`)
-2. 초기 화면: 호별 목록 뷰 (카드 그리드)
-3. 최신 호 카드 클릭 → 본문 뷰로 전환
-4. 헤드라인, Hero 이미지, 본문, 업데이트 로그 확인
-5. 소셜 공유 버튼으로 링크 복사
+### 🔄 진행 중
+- [ ] 메인 페이지 데이터 연동 (editions-data.js → Supabase)
+- [ ] 기존 CSS 통합 (css/style.css)
 
-### 시나리오 2: 일반 사용자 - 과거 호 조회
-1. 상단 드롭다운에서 발행일 선택
-2. 또는 "이전" 버튼으로 이전 호 이동
-3. URL이 `?edition=YYYY-MM-DD`로 변경됨
-4. 해당 호의 본문 및 업데이트 확인
-
-### 시나리오 3: 관리자 - 발행물 작성
-1. `admin.html` 접속
-2. 비밀번호 입력 (`nexo2026`)
-3. 발행일, 제목, 본문, 이미지 입력
-4. "발행물 등록" 클릭
-5. `editions-data.js` 파일 다운로드
-6. 다운로드된 파일을 `js/editions-data.js`로 교체
-7. 이미지 파일을 `assets/images/`에 복사
-8. 브라우저 새로고침하여 확인
-
-### 시나리오 4: 관리자 - 발행 전 호 미리보기
-1. 메인 페이지에서 "관리자 로그인" 클릭
-2. 비밀번호 입력
-3. 드롭다운에 발행 예정 호까지 표시됨
-4. 발행 예정 호 선택 → 본문 확인 (상단에 "관리자 미리보기" 배너)
-5. 로그아웃 시 일반 사용자 모드로 복귀
-
-### 시나리오 5: 선생님 - 쌤 도구함 활용
-1. 발행물 본문 확인 중
-2. 우측 사이드바(데스크톱) 또는 하단(모바일)에서 "NEXO 쌤 도구함" 확인
-3. "5분 집중 타이머" 클릭 → 모달 열림
-4. 타이머 시작/일시정지/리셋 사용
-5. "수업 준비 체크리스트" 다운로드
-
-### 시나리오 6: 사용자 - 호별 목록에서 선택
-1. 초기 진입 또는 "📋 호별 목록" 버튼 클릭
-2. 카드 그리드에서 원하는 호 확인
-3. 카드 클릭 → 해당 호 본문으로 이동
-4. URL이 `?edition=YYYY-MM-DD`로 변경됨
-
----
-
-## 비즈니스 목적
-
-### 1. 정기적인 브랜드 노출
-- 매주 목요일 정기 발행으로 지속적인 고객 접촉
-- 노원지구 협력업체 카카오톡 단톡방을 통한 타겟 마케팅
-
-### 2. 제품 정보 전달
-- 신제품 출시, 기능 업데이트, 소프트웨어 개선사항 체계적 전달
-- 과거 발행물 아카이브로 정보 접근성 향상
-
-### 3. 이벤트 및 프로모션 관리
-- 노원지구 협력업체 대상 특별 프로모션 진행
-- 웹사이트 경유 카카오톡 문의 시 자동 프로모션 적용
-
-### 4. 회사 성장 이력 기록
-- 넥소의 발전 과정을 시계열로 기록하는 "회사 연대기"
-- 주요 업적, 설치 실적, 파트너십 시각적 표현
-
-### 5. 고객 참여 및 소통 강화
-- 소셜 공유 기능으로 바이럴 마케팅
-- 카카오톡 연동을 통한 즉각적인 문의 및 상담 연결
-
----
-
-## 향후 발전 방향
-
-### 단기 (1-3개월)
-- [ ] 카카오톡 공유 기능 완성
-- [ ] 발행물별 OG 이미지 동적 변경
-- [ ] 통계 대시보드 추가
-
-### 중기 (3-6개월)
-- [ ] RSS 피드 제공
-- [ ] 뉴스레터 구독 기능
-- [ ] 태그/카테고리 시스템
-
-### 장기 (6개월 이상)
-- [ ] 고객 포털 확장 (로그인, 개인화)
-- [ ] API 연동으로 자동화된 콘텐츠 업데이트
-- [ ] AI 기반 콘텐츠 추천 시스템
+### 📋 예정
+- [ ] 발행호 선택 기능
+- [ ] 검색 기능
+- [ ] 커뮤니티 기능 (게시판, 댓글, 좋아요)
+- [ ] 자료실 기능 (다운로드, 포인트 시스템)
+- [ ] 마이페이지
+- [ ] 관리자 페이지
 
 ---
 
 ## 참고 문서
 
-- **README.md**: 프로젝트 개요 및 사용 방법
-- **CURRENT_AND_FUTURE.md**: 현재 구현 내용과 앞으로의 방향
-- **RENEWAL_PLAN.md**: 리뉴얼 계획 및 사전 결정사항
-- **HOW_TO_ADD_EDITION.md**: 새 발행분 추가 가이드
-- **BUSINESS_PROPOSAL.md**: 비즈니스 목적 및 기대 효과
-- **ADMIN_GUIDE.md**: 관리자 에디터 사용법
-- **TOOLS_AND_ARTICLES_GUIDE.md**: 매거진·도구함 추가 방법
-- **DOCS_INDEX.md**: 전체 문서 목록
+- [리팩터링 계획서](./REFACTORING_PLAN.md)
+- [설정 가이드](./REFACTORING_SETUP.md)
+- [데이터베이스 스키마](./supabase-schema-v2.sql)
 
 ---
 
-**작성일**: 2026년 2월  
-**버전**: 1.0  
-**작성자**: NEXO Weekly 개발팀
-
-© 2026 주식회사 넥소 (NEXO). All rights reserved.
-
-
+**마지막 업데이트**: 2026년 2월 6일
