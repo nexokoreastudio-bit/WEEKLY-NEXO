@@ -35,8 +35,9 @@ js/config.js
 .env
 *.env.local
 
-# 문서 파일 (README.md와 REFACTORING_REPORT.md는 제외)
+# 문서 파일 (중요 문서만 포함)
 *.md
 !README.md
 !REFACTORING_REPORT.md
 !SECURITY_INCIDENT_RESPONSE.md
+!BRAINSTORMING.md
