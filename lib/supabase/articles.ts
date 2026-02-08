@@ -36,7 +36,9 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
     .single()
 
   if (error) {
-    console.error('최신 발행호 조회 실패:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('최신 발행호 조회 실패:', error)
+    }
     return null
   }
 
@@ -49,8 +51,6 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
 export async function getArticleByEditionId(editionId: string): Promise<EditionArticle | null> {
   const supabase = await createClient()
 
-  console.log(`🔍 Supabase 조회 시작: edition_id = "${editionId}"`)
-
   const { data, error } = await supabase
     .from('articles')
     .select('*')
@@ -61,24 +61,15 @@ export async function getArticleByEditionId(editionId: string): Promise<EditionA
     .single()
 
   if (error) {
-    console.error(`❌ 발행호 ${editionId} 조회 실패:`, error)
-    console.error('   에러 코드:', error.code)
-    console.error('   에러 메시지:', error.message)
-    console.error('   에러 상세:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`❌ 발행호 ${editionId} 조회 실패:`, error)
+    }
     return null
   }
 
   if (!data) {
-    console.warn(`⚠️  발행호 ${editionId}에 대한 데이터가 없습니다`)
     return null
   }
-
-  const articleData = data as EditionArticle
-  console.log(`✅ 발행호 ${editionId} 조회 성공:`, {
-    id: articleData.id,
-    title: articleData.title?.substring(0, 50),
-    edition_id: articleData.edition_id
-  })
 
   return data as EditionArticle
 }
@@ -97,11 +88,13 @@ export async function getArticlesByEditionId(editionId: string): Promise<Edition
     .order('id', { ascending: true })
 
   if (error) {
-    console.error(`발행호 ${editionId}의 articles 조회 실패:`, error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`발행호 ${editionId}의 articles 조회 실패:`, error)
+    }
     return []
   }
 
-  return data as EditionArticle[]
+  return (data || []) as EditionArticle[]
 }
 
 /**
@@ -117,12 +110,14 @@ export async function getAllEditions(): Promise<string[]> {
     .eq('is_published', true)
 
   if (error) {
-    console.error('발행호 목록 조회 실패:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('발행호 목록 조회 실패:', error)
+    }
     return []
   }
 
   // 중복 제거 및 정렬
-  const articles = data as Array<{ edition_id: string | null }>
+  const articles = (data || []) as Array<{ edition_id: string | null }>
   const editionIds = [...new Set(articles.map(a => a.edition_id).filter(Boolean) as string[])]
   return editionIds.sort().reverse() // 최신순
 }
@@ -141,7 +136,9 @@ export async function getAllEditionsWithInfo(): Promise<EditionInfo[]> {
     .order('published_at', { ascending: false })
 
   if (error) {
-    console.error('발행호 정보 조회 실패:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('발행호 정보 조회 실패:', error)
+    }
     return []
   }
 
@@ -168,6 +165,10 @@ export async function getAllEditionsWithInfo(): Promise<EditionInfo[]> {
 
 /**
  * 이전/다음 발행호 ID 가져오기
+ */
+/**
+ * 이전/다음 발행호 ID 계산 (getAllEditions 결과를 재사용)
+ * @deprecated 이 함수는 더 이상 사용하지 않습니다. 직접 계산하세요.
  */
 export async function getPrevNextEditions(currentEditionId: string): Promise<{
   prev: string | null

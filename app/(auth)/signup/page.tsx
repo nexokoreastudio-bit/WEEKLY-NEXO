@@ -1,16 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { signup } from '@/app/actions/signup'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { normalizeReferralCode } from '@/lib/utils/referral'
 
 export default function SignupPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,6 +24,15 @@ export default function SignupPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // URL 파라미터에서 추천인 코드 읽기
+  useEffect(() => {
+    const refCode = searchParams.get('ref')
+    if (refCode) {
+      const normalizedCode = normalizeReferralCode(refCode)
+      setFormData(prev => ({ ...prev, referrer_code: normalizedCode }))
+    }
+  }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -50,50 +61,27 @@ export default function SignupPage() {
         return
       }
 
-      const supabase = createClient()
-
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      // 서버 액션으로 회원가입 처리 (추천인 코드 처리 포함)
+      const result = await signup({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: {
-            name: formData.name,
-            academy_name: formData.academy_name || '',
-            phone: formData.phone || '',
-            referrer_code: formData.referrer_code || '',
-          },
-          emailRedirectTo: window.location.origin,
-        },
+        name: formData.name,
+        academy_name: formData.academy_name || '',
+        phone: formData.phone || '',
+        referrer_code: formData.referrer_code || '',
       })
 
-      if (signUpError) {
-        let errorMsg = signUpError.message || '알 수 없는 오류가 발생했습니다.'
-
-        if (errorMsg.includes('rate limit')) {
-          errorMsg = '이메일 전송 제한에 걸렸습니다. 잠시 후 다시 시도해주세요.'
-        } else if (errorMsg.includes('invalid')) {
-          errorMsg = '이메일 주소가 유효하지 않습니다.'
-        } else if (errorMsg.includes('already registered')) {
-          errorMsg = '이미 가입된 이메일입니다. 로그인을 시도해주세요.'
-        } else if (errorMsg.includes('Email signups are disabled')) {
-          errorMsg = '이메일 회원가입이 비활성화되어 있습니다.'
-        }
-
-        setError(errorMsg)
+      if (!result.success) {
+        setError(result.error || '회원가입에 실패했습니다.')
         setLoading(false)
         return
       }
 
-      // 이메일 확인이 필요한 경우
-      if (data.user && !data.session) {
-        alert('회원가입이 완료되었습니다! 이메일을 확인하여 계정을 활성화해주세요.')
-        router.push('/login')
-      } else {
-        alert('구독이 완료되었습니다! 🎉')
-        router.push('/')
-      }
-    } catch (err) {
-      setError('회원 가입 중 오류가 발생했습니다.')
+      // 회원가입 성공
+      alert('회원가입이 완료되었습니다! 🎉\n이메일을 확인하여 계정을 활성화해주세요.')
+      router.push('/login')
+    } catch (err: any) {
+      setError(err.message || '회원 가입 중 오류가 발생했습니다.')
       setLoading(false)
     }
   }
@@ -198,16 +186,25 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="referrer_code">추천인 코드</Label>
+              <Label htmlFor="referrer_code">추천인 코드 (선택사항)</Label>
               <Input
                 id="referrer_code"
                 name="referrer_code"
                 type="text"
-                placeholder="추천인 코드 (선택사항)"
+                placeholder="NEXO-XXXX 형식으로 입력"
                 value={formData.referrer_code}
                 onChange={handleChange}
                 disabled={loading}
+                className="uppercase"
               />
+              {formData.referrer_code && (
+                <p className="text-xs text-green-600">
+                  ✅ 추천인 코드가 적용되었습니다! 가입 시 양쪽 모두 포인트를 받습니다.
+                </p>
+              )}
+              <p className="text-xs text-gray-500">
+                추천인 코드로 가입하면 신규 회원 +100P, 추천인 +50P를 받습니다! 💰
+              </p>
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>

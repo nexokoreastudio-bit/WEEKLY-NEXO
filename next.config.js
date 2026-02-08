@@ -2,7 +2,7 @@
 const nextConfig = {
   images: {
     domains: [
-      'weekly-nexo.netlify.app',
+      'daily-nexo.netlify.app',
       'supabase.co',
       'icriajfrxwykufhmkfun.supabase.co',
     ],

@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SubscriberVerification } from '@/components/mypage/subscriber-verification'
 import { DiscountBadge } from '@/components/mypage/discount-badge'
+import { ReferralSection } from '@/components/mypage/referral-section'
+import { DailyCheckin } from '@/components/mypage/daily-checkin'
 import { Database } from '@/types/database'
 import styles from './mypage.module.css'
 
@@ -62,6 +64,12 @@ export default async function MyPage() {
       {!userProfile.subscriber_verified && (
         <SubscriberVerification userId={user.id} />
       )}
+
+      {/* 일일 출석 */}
+      <DailyCheckin />
+
+      {/* 추천인 시스템 */}
+      <ReferralSection userId={user.id} />
 
       {/* 사용자 정보 */}
       <div className={styles.section}>

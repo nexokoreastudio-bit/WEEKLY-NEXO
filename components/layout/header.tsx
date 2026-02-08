@@ -22,16 +22,16 @@ export async function Header() {
       const profile = profileData as Pick<UserRow, 'role'> | null
       
       if (error) {
-        console.error('사용자 프로필 조회 실패:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.error('사용자 프로필 조회 실패:', error)
+        }
       } else {
         isAdmin = profile?.role === 'admin'
-        // 디버깅용 로그 (개발 환경에서만)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('관리자 권한 확인:', { userId: user.id, role: profile?.role, isAdmin })
-        }
       }
     } catch (error) {
-      console.error('관리자 권한 확인 오류:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('관리자 권한 확인 오류:', error)
+      }
     }
   }
 

@@ -245,6 +245,7 @@ export interface Database {
           amount: number
           reason: string | null
           related_id: number | null
+          related_type: 'article' | 'post' | 'comment' | 'resource' | 'checkin' | null
           created_at: string
         }
         Insert: {
@@ -253,6 +254,7 @@ export interface Database {
           amount: number
           reason?: string | null
           related_id?: number | null
+          related_type?: 'article' | 'post' | 'comment' | 'resource' | 'checkin' | null
           created_at?: string
         }
         Update: {
@@ -261,6 +263,27 @@ export interface Database {
           amount?: number
           reason?: string | null
           related_id?: number | null
+          related_type?: 'article' | 'post' | 'comment' | 'resource' | 'checkin' | null
+          created_at?: string
+        }
+      }
+      daily_checkins: {
+        Row: {
+          id: number
+          user_id: string
+          checkin_date: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          user_id: string
+          checkin_date: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          user_id?: string
+          checkin_date?: string
           created_at?: string
         }
       }

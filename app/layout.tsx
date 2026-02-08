@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Noto_Sans_KR, Noto_Serif_KR } from 'next/font/google'
 import './globals.css'
 import { Header } from '@/components/layout/header'
+import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld'
 
 const notoSans = Noto_Sans_KR({
   subsets: ['latin'],
@@ -15,13 +16,71 @@ const notoSerif = Noto_Serif_KR({
   variable: '--font-serif',
 })
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://daily-nexo.netlify.app'
+
 export const metadata: Metadata = {
-  title: 'NEXO Daily - 매일 아침 발행',
-  description: '넥소 전자신문 플랫폼. 매주 목요일 발행, 전자칠판과 스마트 교육 정보를 전달합니다.',
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: 'NEXO Daily - 전자칠판 교육 정보 큐레이션',
+    template: '%s | NEXO Daily',
+  },
+  description: '넥소 전자칠판 사용자들을 위한 교육 정보 큐레이션 및 커뮤니티 플랫폼. 일일 발행 콘텐츠, 입시 자료, 학원 운영 팁을 제공합니다.',
+  keywords: [
+    '전자칠판',
+    '스마트보드',
+    '학원 운영',
+    '입시 자료',
+    '교육 정보',
+    '학원장',
+    '교육 커뮤니티',
+    '넥소',
+    'NEXO',
+  ],
+  authors: [{ name: 'NEXO Korea' }],
+  creator: 'NEXO Korea',
+  publisher: 'NEXO Korea',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: 'NEXO Daily Edition - 매일 아침 발행',
-    description: '넥소 전자신문 플랫폼. 매주 목요일 발행, 전자칠판과 스마트 교육 정보를 전달합니다.',
+    type: 'website',
+    locale: 'ko_KR',
+    url: baseUrl,
+    siteName: 'NEXO Daily',
+    title: 'NEXO Daily - 전자칠판 교육 정보 큐레이션',
+    description: '넥소 전자칠판 사용자들을 위한 교육 정보 큐레이션 및 커뮤니티 플랫폼',
+    images: [
+      {
+        url: '/assets/images/og-image.png',
+        width: 1200,
+        height: 1200,
+        alt: 'NEXO Daily 로고',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NEXO Daily - 전자칠판 교육 정보 큐레이션',
+    description: '넥소 전자칠판 사용자들을 위한 교육 정보 큐레이션 및 커뮤니티 플랫폼',
     images: ['/assets/images/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // Google Search Console, Naver Search Advisor 등에서 제공받은 코드 추가 가능
+    // google: 'your-google-verification-code',
+    // naver: 'your-naver-verification-code',
   },
 }
 
@@ -32,6 +91,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" className={`${notoSans.variable} ${notoSerif.variable}`}>
+      <head>
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
+      </head>
       <body className="font-sans antialiased">
         <Header />
         {children}

@@ -25,6 +25,9 @@ function formatEditionDate(editionId: string | null): string {
   }
 }
 
+// 정적 생성 및 재검증 설정 (성능 최적화)
+export const revalidate = 3600 // 1시간마다 재검증
+
 export default async function HomePage() {
   // 최신 발행호 가져오기
   const latestArticle = await getLatestArticle()

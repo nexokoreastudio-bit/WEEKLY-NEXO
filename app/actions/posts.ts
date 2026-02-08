@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createPost as createPostQuery } from '@/lib/supabase/posts'
-import { rewardReadingPoint } from '@/lib/actions/point'
 import { revalidatePath } from 'next/cache'
 
 /**
@@ -24,15 +23,13 @@ export async function createPost(
       return { success: false, error: '인증되지 않은 사용자입니다.' }
     }
 
-    // 게시글 작성
+    // 게시글 작성 (DB 트리거가 자동으로 +20 포인트 지급)
     const result = await createPostQuery(boardType, title, content, authorId, images)
 
     if (result.success && result.postId) {
-      // 게시글 작성 포인트 적립 (+5점)
-      await rewardReadingPoint(authorId)
-
       revalidatePath('/community')
       revalidatePath(`/community/${result.postId}`)
+      revalidatePath('/mypage')
     }
 
     return result
