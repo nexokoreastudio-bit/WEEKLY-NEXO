@@ -591,10 +591,11 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
                   if (editorRef.current) {
                     const imgElements = editorRef.current.querySelectorAll('img[data-temp-image="true"], img')
                     imgElements.forEach((img) => {
-                      if (img.src === base64Data || img.getAttribute('data-temp-image') === 'true') {
-                        img.src = uploadResult.url!
-                        img.style.opacity = '1'
-                        img.removeAttribute('data-temp-image')
+                      const imgEl = img as HTMLImageElement
+                      if (imgEl.src === base64Data || imgEl.getAttribute('data-temp-image') === 'true') {
+                        imgEl.src = uploadResult.url!
+                        imgEl.style.opacity = '1'
+                        imgEl.removeAttribute('data-temp-image')
                       }
                     })
                     
