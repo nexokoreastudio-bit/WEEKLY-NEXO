@@ -8,6 +8,7 @@ import { ko } from 'date-fns/locale'
 import { ArrowLeft, MessageSquare, HelpCircle, Lightbulb, ShoppingBag } from 'lucide-react'
 import { HtmlContent } from '@/components/html-content'
 import { DeletePostButton } from '@/components/community/delete-post-button'
+import { Database } from '@/types/database'
 import styles from '../community.module.css'
 
 const BOARD_TYPE_INFO = {
@@ -48,7 +49,8 @@ export default async function PostDetailPage({ params }: PageProps) {
       .select('role')
       .eq('id', user.id)
       .single()
-    isAdmin = profile?.role === 'admin'
+    const profileData = profile as Pick<Database['public']['Tables']['users']['Row'], 'role'> | null
+    isAdmin = profileData?.role === 'admin'
   }
 
   const canDelete = isAuthor || isAdmin

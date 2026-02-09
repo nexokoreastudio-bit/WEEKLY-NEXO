@@ -8,6 +8,7 @@ import { DiscountBanner } from '@/components/promotion/discount-banner'
 import { EditionNavigation } from '@/components/edition-navigation'
 import { EditionSelector } from '@/components/edition-selector'
 import { SafeImage } from '@/components/safe-image'
+import { Database } from '@/types/database'
 import { NewsArticleJsonLd } from '@/components/seo/json-ld'
 import { ShareButtons } from '@/components/social/share-buttons'
 import { InsightsSection } from '@/components/insights/insights-section'
@@ -66,7 +67,8 @@ export default async function EditionPage({
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    const profileData = profile as Pick<Database['public']['Tables']['users']['Row'], 'role'> | null
+    if (profileData?.role !== 'admin') {
       notFound() // 관리자가 아니면 미리보기 불가
     }
   }

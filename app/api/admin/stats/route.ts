@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
 
 type UserRow = Database['public']['Tables']['users']['Row']
+type PostRow = Database['public']['Tables']['posts']['Row']
+type ReviewRatingRow = Pick<PostRow, 'rating'>
 
 export async function GET() {
   try {
@@ -44,9 +46,14 @@ export async function GET() {
     // 평균 평점 계산
     let averageRating = 0
     if (reviewsResult.data && reviewsResult.data.length > 0) {
-      const ratings = reviewsResult.data.map((r) => (r as { rating: number }).rating)
-      const sum = ratings.reduce((acc, rating) => acc + rating, 0)
-      averageRating = Math.round((sum / ratings.length) * 10) / 10
+      const typedReviews = reviewsResult.data as ReviewRatingRow[]
+      const ratings = typedReviews
+        .map((r) => r.rating)
+        .filter((rating): rating is number => rating !== null)
+      if (ratings.length > 0) {
+        const sum = ratings.reduce((acc, rating) => acc + rating, 0)
+        averageRating = Math.round((sum / ratings.length) * 10) / 10
+      }
     }
 
     return NextResponse.json({

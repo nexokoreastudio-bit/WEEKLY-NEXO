@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
 
 type UserRow = Database['public']['Tables']['users']['Row']
+type PostRow = Database['public']['Tables']['posts']['Row']
+type ReviewRatingRow = Pick<PostRow, 'rating'>
 
 export async function GET() {
   try {
@@ -39,10 +41,10 @@ export async function GET() {
     const ratingCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
 
     if (reviews) {
-      reviews.forEach((review) => {
-        const rating = (review as { rating: number }).rating
-        if (rating >= 1 && rating <= 5) {
-          ratingCounts[rating] = (ratingCounts[rating] || 0) + 1
+      const typedReviews = reviews as ReviewRatingRow[]
+      typedReviews.forEach((review) => {
+        if (review.rating !== null && review.rating >= 1 && review.rating <= 5) {
+          ratingCounts[review.rating] = (ratingCounts[review.rating] || 0) + 1
         }
       })
     }

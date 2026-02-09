@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { isValidUrl } from '@/lib/utils/security'
 import { sanitizeHtml } from '@/lib/utils/sanitize'
+import { Database } from '@/types/database'
 // v1 API 직접 호출로 변경 (SDK는 v1beta 사용으로 인한 모델 호환성 문제)
 
 /**
@@ -27,7 +28,8 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    const profileData = profile as Pick<Database['public']['Tables']['users']['Row'], 'role'> | null
+    if (profileData?.role !== 'admin') {
       return NextResponse.json(
         { error: '관리자 권한이 필요합니다.' },
         { status: 403 }
