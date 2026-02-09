@@ -4,6 +4,7 @@ import { Database } from '@/types/database'
 import { format, subDays } from 'date-fns'
 
 type UserRow = Database['public']['Tables']['users']['Row']
+type UserGrowthRow = Pick<UserRow, 'created_at'>
 
 export async function GET() {
   try {
@@ -51,7 +52,8 @@ export async function GET() {
 
     // 사용자 데이터 집계
     if (users) {
-      users.forEach((user) => {
+      const typedUsers = users as UserGrowthRow[]
+      typedUsers.forEach((user) => {
         const dateKey = format(new Date(user.created_at), 'yyyy-MM-dd')
         if (dailyCounts[dateKey] !== undefined) {
           dailyCounts[dateKey]++
