@@ -115,7 +115,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
         const imgCount = (cleanedHtml.match(/<img/gi) || []).length
         const imgTags = cleanedHtml.match(/<img[^>]*>/gi) || []
         console.log(`📸 handleInput: 이미지 ${imgCount}개 포함된 HTML 길이: ${cleanedHtml.length}자`)
-        if (imgTags.length > 0) {
+        if (imgTags.length > 0 && imgTags[0]) {
           console.log(`   첫 번째 이미지 태그: ${imgTags[0].substring(0, 100)}...`)
         }
       } else if (hasImages) {
