@@ -51,8 +51,8 @@ export async function createDemoRequest(
       status: 'pending',
     }
 
-    const { data: lead, error } = await supabase
-      .from('leads')
+    const { data: lead, error } = await (supabase
+      .from('leads') as any)
       .insert(leadData)
       .select()
       .single()
@@ -96,8 +96,8 @@ export async function createQuoteRequest(
       status: 'pending',
     }
 
-    const { data: lead, error } = await supabase
-      .from('leads')
+    const { data: lead, error } = await (supabase
+      .from('leads') as any)
       .insert(leadData)
       .select()
       .single()
@@ -152,9 +152,9 @@ export async function updateLeadStatus(
       updated_at: new Date().toISOString(),
     }
 
-    const { error } = await supabase
-      .from('leads')
-      .update(updateData as any)
+    const { error } = await (supabase
+      .from('leads') as any)
+      .update(updateData)
       .eq('id', leadId)
 
     if (error) {
