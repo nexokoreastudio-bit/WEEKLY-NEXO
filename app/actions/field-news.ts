@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { Database } from '@/types/database'
 
 type UserRow = Database['public']['Tables']['users']['Row']
+type FieldNewsUpdate = Database['public']['Tables']['field_news']['Update']
 
 interface CreateFieldNewsData {
   title: string
@@ -76,9 +77,9 @@ export async function createFieldNews(
       })
     }
     
-    const { data: fieldNewsData, error } = await adminSupabase
-      .from('field_news')
-      .insert(insertData as any)
+    const { data: fieldNewsData, error } = await (adminSupabase
+      .from('field_news') as any)
+      .insert(insertData)
       .select()
       .single()
     
@@ -143,8 +144,6 @@ export async function updateFieldNews(
     const adminSupabase = await createAdminClient()
 
     // 현장 소식 수정
-    type FieldNewsUpdate = Database['public']['Tables']['field_news']['Update']
-    
     const updateData: FieldNewsUpdate = {
       title: data.title,
       content: data.content,
@@ -154,9 +153,9 @@ export async function updateFieldNews(
       updated_at: new Date().toISOString(),
     }
     
-    const { error } = await adminSupabase
-      .from('field_news')
-      .update(updateData as any as never)
+    const { error } = await (adminSupabase
+      .from('field_news') as any)
+      .update(updateData)
       .eq('id', id)
 
     if (error) {
@@ -261,15 +260,15 @@ export async function toggleFieldNewsPublish(
     const adminSupabase = await createAdminClient()
 
     const newStatus = !currentStatus
-    const updateData: Database['public']['Tables']['field_news']['Update'] = {
+    const updateData: FieldNewsUpdate = {
       is_published: newStatus,
       published_at: newStatus ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
     }
 
-    const { error } = await adminSupabase
-      .from('field_news')
-      .update(updateData as any)
+    const { error } = await (adminSupabase
+      .from('field_news') as any)
+      .update(updateData)
       .eq('id', id)
 
     if (error) {
@@ -362,9 +361,13 @@ export async function incrementFieldNewsViews(
     const currentViews = currentData?.views || 0
 
     // 조회수 증가
-    const { error } = await adminSupabase
-      .from('field_news')
-      .update({ views: currentViews + 1 })
+    const updateData: FieldNewsUpdate = {
+      views: currentViews + 1,
+    }
+    
+    const { error } = await (adminSupabase
+      .from('field_news') as any)
+      .update(updateData)
       .eq('id', id)
 
     if (error) {
