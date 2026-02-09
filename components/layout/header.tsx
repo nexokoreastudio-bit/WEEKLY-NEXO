@@ -27,7 +27,6 @@ export async function Header() {
         .from('users')
         .select('role')
         .eq('id', user.id)
-        .single()
         .maybeSingle() // 데이터가 없어도 에러가 아닌 null 반환
       
       const profile = profileData as Pick<UserRow, 'role'> | null

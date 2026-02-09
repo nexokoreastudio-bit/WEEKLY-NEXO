@@ -458,7 +458,7 @@ ${linkContent ? `기사 본문 내용:\n${linkContent.substring(0, 2500)}` : '�
       }
 
       // JSON이 아닌 경우 텍스트를 그대로 사용
-      const lines = generatedText.split('\n').filter(line => line.trim())
+      const lines = generatedText.split('\n').filter((line: string) => line.trim())
       const summary = lines[0] || `넥소에디터가 ${title}에 대해 분석합니다. 학부모님 상담 시 활용하실 수 있는 전문적인 인사이트를 제공합니다.`
       const content = wrapInHtmlTemplate(generatedText, url, title)
       
@@ -635,8 +635,8 @@ export async function createInsight(
       thumbnail_url: imageUrl || null, // 이미지 URL 추가
     }
 
-    const { data, error } = await supabase
-      .from('insights')
+    const { data, error } = await (supabase
+      .from('insights') as any)
       .insert(insertData)
       .select()
       .single()
@@ -657,11 +657,12 @@ export async function createInsight(
     const { revalidatePath } = await import('next/cache')
     revalidatePath('/') // 홈페이지 캐시 무효화
     revalidatePath('/news', 'layout') // 모든 발행호 페이지 캐시 무효화
-    if (data?.edition_id) {
-      revalidatePath(`/news/${data.edition_id}`) // 특정 발행호 페이지 캐시 무효화
+    const typedData = data as InsightRow | null
+    if (typedData?.edition_id) {
+      revalidatePath(`/news/${typedData.edition_id}`) // 특정 발행호 페이지 캐시 무효화
     }
 
-    return { data: data as InsightRow }
+    return { data: typedData as InsightRow }
   } catch (error) {
     console.error('인사이트 생성 오류:', error)
     return { error: '인사이트 생성 중 오류가 발생했습니다.' }
@@ -683,9 +684,10 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
     // 예약 발행된 인사이트 자동 발행 처리 (미리보기 모드가 아닐 때만)
     // 단, 사용자가 명시적으로 비발행 처리한 것은 제외 (published_at이 설정되어 있고 is_published가 false인 경우만 자동 발행)
     if (!previewMode) {
-      const { error: autoPublishError } = await supabase
-        .from('insights')
-        .update({ is_published: true })
+      const updateData: InsightUpdate = { is_published: true }
+      const { error: autoPublishError } = await (supabase
+        .from('insights') as any)
+        .update(updateData)
         .eq('is_published', false)
         .lte('published_at', now)
         .not('published_at', 'is', null)
@@ -696,8 +698,8 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
     }
 
     // insights 테이블이 존재하지 않을 수 있으므로 안전하게 처리
-    let query = supabase
-      .from('insights')
+    let query = (supabase
+      .from('insights') as any)
       .select('*')
       .order('published_at', { ascending: false, nullsLast: true })
       .order('created_at', { ascending: false })
@@ -731,11 +733,12 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
 
     // 디버깅: 개발 환경에서 상세 로그 출력
     if (process.env.NODE_ENV === 'development') {
+      const typedData = data as InsightRow[] | null
       console.log(`[getInsights] editionId: ${editionId || 'null'}`)
       console.log(`[getInsights] 쿼리 결과:`, { 
-        count: data?.length || 0, 
+        count: typedData?.length || 0, 
         error: error?.message,
-        insights: data?.map(i => ({ id: i.id, title: i.title, edition_id: i.edition_id, is_published: i.is_published }))
+        insights: typedData?.map((i: InsightRow) => ({ id: i.id, title: i.title, edition_id: i.edition_id, is_published: i.is_published }))
       })
     }
 
@@ -754,7 +757,7 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
       return []
     }
 
-    return (data || []) as InsightRow[]
+    return (typedData || []) as InsightRow[]
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('인사이트 조회 중 예외 발생:', error)
@@ -817,8 +820,8 @@ export async function updateInsight(
     }
   }
 
-  const { data, error } = await supabase
-    .from('insights')
+  const { data, error } = await (supabase
+    .from('insights') as any)
     .update(updateData)
     .eq('id', id)
     .select()
@@ -833,11 +836,12 @@ export async function updateInsight(
   const { revalidatePath } = await import('next/cache')
   revalidatePath('/') // 홈페이지 캐시 무효화
   revalidatePath('/news', 'layout') // 모든 발행호 페이지 캐시 무효화
-  if (data?.edition_id) {
-    revalidatePath(`/news/${data.edition_id}`) // 특정 발행호 페이지 캐시 무효화
+  const typedData = data as InsightRow | null
+  if (typedData?.edition_id) {
+    revalidatePath(`/news/${typedData.edition_id}`) // 특정 발행호 페이지 캐시 무효화
   }
 
-  return { data: data as InsightRow }
+  return { data: typedData as InsightRow }
 }
 
 /**
@@ -872,8 +876,8 @@ export async function bulkPublishInsightsByDate(date: string, publish: boolean) 
   }
 
   // published_at이 해당 날짜 범위 내에 있는 인사이트 업데이트
-  const { data, error } = await supabase
-    .from('insights')
+  const { data, error } = await (supabase
+    .from('insights') as any)
     .update(updateData)
     .gte('published_at', startDate)
     .lte('published_at', endDate)
@@ -890,7 +894,8 @@ export async function bulkPublishInsightsByDate(date: string, publish: boolean) 
   revalidatePath('/news', 'layout') // 모든 발행호 페이지 캐시 무효화
   revalidatePath('/admin/insights') // 관리자 페이지 캐시 무효화
 
-  return { data: data as InsightRow[], count: data?.length || 0 }
+  const typedData = data as InsightRow[] | null
+  return { data: typedData as InsightRow[], count: typedData?.length || 0 }
 }
 
 /**
@@ -925,8 +930,8 @@ export async function toggleInsightPublish(id: number, isPublished: boolean) {
     console.log(`[toggleInsightPublish] id: ${id}, isPublished: ${isPublished}`)
   }
 
-  const { data, error } = await supabase
-    .from('insights')
+  const { data, error } = await (supabase
+    .from('insights') as any)
     .update(updateData)
     .eq('id', id)
     .select()
@@ -938,11 +943,12 @@ export async function toggleInsightPublish(id: number, isPublished: boolean) {
   }
 
   // 디버깅: 업데이트 결과 확인
+  const typedData = data as InsightRow | null
   if (process.env.NODE_ENV === 'development') {
     console.log(`[toggleInsightPublish] 업데이트 완료:`, { 
-      id: data?.id, 
-      is_published: data?.is_published,
-      edition_id: data?.edition_id 
+      id: typedData?.id, 
+      is_published: typedData?.is_published,
+      edition_id: typedData?.edition_id 
     })
   }
 
@@ -950,8 +956,8 @@ export async function toggleInsightPublish(id: number, isPublished: boolean) {
   const { revalidatePath } = await import('next/cache')
   revalidatePath('/') // 홈페이지 캐시 무효화
   revalidatePath('/news', 'layout') // 모든 발행호 페이지 캐시 무효화
-  if (data?.edition_id) {
-    revalidatePath(`/news/${data.edition_id}`) // 특정 발행호 페이지 캐시 무효화
+  if (typedData?.edition_id) {
+    revalidatePath(`/news/${typedData.edition_id}`) // 특정 발행호 페이지 캐시 무효화
   }
 
   return { data: data as InsightRow }

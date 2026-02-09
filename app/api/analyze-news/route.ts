@@ -285,11 +285,11 @@ JSON 형식만 응답하고, 다른 설명은 포함하지 마세요.`
         }
       } catch (parseError) {
         // JSON 파싱 실패 시 기본 구조로 변환
-        const lines = text.split('\n').filter(line => line.trim())
+        const lines = text.split('\n').filter((line: string) => line.trim())
         analysisData = {
           summary: lines.slice(0, 3).join(' ').substring(0, 200) || '기사 요약을 생성할 수 없습니다.',
           insight: lines.slice(3, 6).join(' ').substring(0, 400) || '분석을 생성할 수 없습니다.',
-          consulting_tips: lines.slice(6, 9).filter(tip => tip.length > 10).slice(0, 3) || [
+          consulting_tips: lines.slice(6, 9).filter((tip: string) => tip.length > 10).slice(0, 3) || [
             '학부모님께 이 정보를 자연스럽게 언급하며 신뢰를 구축하세요.',
             '입시 전략 수립 시 참고 자료로 활용하세요.',
             '학생의 학습 방향 설정에 도움이 되는 정보입니다.'

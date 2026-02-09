@@ -54,7 +54,9 @@ export default async function PostDetailPage({ params }: PageProps) {
   }
 
   const canDelete = isAuthor || isAdmin
-  const boardInfo = post.board_type ? BOARD_TYPE_INFO[post.board_type] : null
+  const boardInfo = post.board_type && post.board_type in BOARD_TYPE_INFO 
+    ? BOARD_TYPE_INFO[post.board_type as keyof typeof BOARD_TYPE_INFO] 
+    : null
 
   return (
     <div className={styles.container}>
