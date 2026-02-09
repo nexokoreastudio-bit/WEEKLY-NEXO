@@ -32,7 +32,7 @@ export async function generateUserReferralCode(userId: string): Promise<{ succes
 
     // 고유한 코드 생성 (중복 체크)
     let attempts = 0
-    let newCode: string
+    let newCode: string | undefined
     let isUnique = false
 
     while (!isUnique && attempts < 10) {
@@ -50,7 +50,7 @@ export async function generateUserReferralCode(userId: string): Promise<{ succes
       attempts++
     }
 
-    if (!isUnique) {
+    if (!isUnique || !newCode) {
       return { success: false, error: '추천인 코드 생성에 실패했습니다. 다시 시도해주세요.' }
     }
 
