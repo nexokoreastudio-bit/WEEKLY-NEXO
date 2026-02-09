@@ -8,6 +8,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { SafeImage } from '@/components/safe-image'
 import { Button } from '@/components/ui/button'
+import { getFieldNewsForAdmin, toggleFieldNewsPublish, deleteFieldNews } from '@/app/actions/field-news'
 import styles from './field-news-list.module.css'
 
 type FieldNewsUpdate = Database['public']['Tables']['field_news']['Update']
@@ -35,18 +36,13 @@ export function FieldNewsList() {
 
   const loadFieldNews = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('field_news')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error('현장 소식 조회 실패:', error)
-        return
+      const result = await getFieldNewsForAdmin()
+      
+      if (result.success && result.data) {
+        setFieldNews(result.data)
+      } else {
+        console.error('현장 소식 조회 실패:', result.error)
       }
-
-      setFieldNews(data || [])
     } catch (error) {
       console.error('현장 소식 로드 오류:', error)
     } finally {
@@ -56,48 +52,35 @@ export function FieldNewsList() {
 
   const togglePublish = async (id: number, currentStatus: boolean) => {
     try {
-      const supabase = createClient()
-      const updateData: FieldNewsUpdate = {
-        is_published: !currentStatus,
-        published_at: !currentStatus ? new Date().toISOString() : null,
-      }
-      
-      const { error } = await supabase
-        .from('field_news')
-        .update(updateData as any as never)
-        .eq('id', id)
+      const result = await toggleFieldNewsPublish(id, currentStatus)
 
-      if (error) {
-        alert('발행 상태 변경 실패: ' + error.message)
-        return
+      if (result.success) {
+        loadFieldNews()
+      } else {
+        alert('발행 상태 변경 실패: ' + (result.error || '알 수 없는 오류'))
       }
-
-      loadFieldNews()
     } catch (error: any) {
-      alert('오류: ' + error.message)
+      console.error('발행 상태 변경 오류:', error)
+      alert('오류: ' + (error.message || '알 수 없는 오류가 발생했습니다.'))
     }
   }
 
-  const deleteNews = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) {
+  const deleteNews = async (id: number, title: string) => {
+    if (!confirm(`정말 삭제하시겠습니까?\n\n제목: ${title}\n\n이 작업은 되돌릴 수 없습니다.`)) {
       return
     }
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('field_news')
-        .delete()
-        .eq('id', id)
+      const result = await deleteFieldNews(id)
 
-      if (error) {
-        alert('삭제 실패: ' + error.message)
-        return
+      if (result.success) {
+        loadFieldNews()
+      } else {
+        alert('삭제 실패: ' + (result.error || '알 수 없는 오류'))
       }
-
-      loadFieldNews()
     } catch (error: any) {
-      alert('오류: ' + error.message)
+      console.error('삭제 오류:', error)
+      alert('오류: ' + (error.message || '알 수 없는 오류가 발생했습니다.'))
     }
   }
 
@@ -174,7 +157,7 @@ export function FieldNewsList() {
                 {news.is_published ? '발행 취소' : '발행하기'}
               </Button>
               <Button
-                onClick={() => deleteNews(news.id)}
+                onClick={() => deleteNews(news.id, news.title)}
                 variant="destructive"
                 size="sm"
               >

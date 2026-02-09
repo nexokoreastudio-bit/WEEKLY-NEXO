@@ -1,0 +1,174 @@
+'use server'
+
+import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { Database } from '@/types/database'
+
+type LeadInsert = Database['public']['Tables']['leads']['Insert']
+type LeadUpdate = Database['public']['Tables']['leads']['Update']
+
+interface DemoRequestData {
+  name: string
+  email: string
+  phone: string
+  academy_name?: string
+  region: string
+  message?: string
+  referrer_code?: string
+}
+
+interface QuoteRequestData {
+  name: string
+  email: string
+  phone: string
+  academy_name?: string
+  region: string
+  size: string
+  mount_type: string
+  quantity?: number
+  message?: string
+  referrer_code?: string
+}
+
+/**
+ * 상담 신청 리드 생성
+ */
+export async function createDemoRequest(
+  data: DemoRequestData
+): Promise<{ success: boolean; error?: string; leadId?: number }> {
+  try {
+    const supabase = await createClient()
+
+    const leadData: LeadInsert = {
+      type: 'demo',
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      academy_name: data.academy_name || null,
+      region: data.region,
+      message: data.message || null,
+      referrer_code: data.referrer_code || null,
+      status: 'pending',
+    }
+
+    const { data: lead, error } = await supabase
+      .from('leads')
+      .insert(leadData)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('상담 신청 리드 생성 실패:', error)
+      return { success: false, error: '상담 신청 처리 중 오류가 발생했습니다.' }
+    }
+
+    // 관리자 페이지 캐시 무효화
+    revalidatePath('/admin/leads')
+
+    return { success: true, leadId: lead?.id }
+  } catch (error: any) {
+    console.error('상담 신청 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
+  }
+}
+
+/**
+ * 견적 요청 리드 생성
+ */
+export async function createQuoteRequest(
+  data: QuoteRequestData
+): Promise<{ success: boolean; error?: string; leadId?: number }> {
+  try {
+    const supabase = await createClient()
+
+    const leadData: LeadInsert = {
+      type: 'quote',
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      academy_name: data.academy_name || null,
+      region: data.region,
+      size: data.size || null,
+      mount_type: data.mount_type || null,
+      quantity: data.quantity || null,
+      message: data.message || null,
+      referrer_code: data.referrer_code || null,
+      status: 'pending',
+    }
+
+    const { data: lead, error } = await supabase
+      .from('leads')
+      .insert(leadData)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('견적 요청 리드 생성 실패:', error)
+      return { success: false, error: '견적 요청 처리 중 오류가 발생했습니다.' }
+    }
+
+    // 관리자 페이지 캐시 무효화
+    revalidatePath('/admin/leads')
+
+    return { success: true, leadId: lead?.id }
+  } catch (error: any) {
+    console.error('견적 요청 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
+  }
+}
+
+/**
+ * 리드 상태 업데이트 (관리자용)
+ */
+export async function updateLeadStatus(
+  leadId: number,
+  status: 'pending' | 'contacted' | 'completed' | 'cancelled',
+  adminNotes?: string | null
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    // 관리자 권한 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { success: false, error: '로그인이 필요합니다.' }
+    }
+
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const profile = profileData as { role: string | null } | null
+    if (profile?.role !== 'admin') {
+      return { success: false, error: '관리자 권한이 필요합니다.' }
+    }
+
+    // 리드 상태 업데이트
+    const updateData: LeadUpdate = {
+      status,
+      admin_notes: adminNotes || null,
+      updated_at: new Date().toISOString(),
+    }
+
+    const { error } = await supabase
+      .from('leads')
+      .update(updateData as any)
+      .eq('id', leadId)
+
+    if (error) {
+      console.error('리드 상태 업데이트 실패:', error)
+      return { success: false, error: '상태 업데이트에 실패했습니다.' }
+    }
+
+    // 관리자 페이지 캐시 무효화
+    revalidatePath('/admin/leads')
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('리드 상태 업데이트 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
+  }
+}
+

@@ -77,3 +77,4 @@ CREATE TRIGGER on_daily_checkin_created
   AFTER INSERT ON public.daily_checkins
   FOR EACH ROW EXECUTE FUNCTION public.add_points_for_daily_checkin();
 
+

@@ -21,3 +21,4 @@ SELECT id, email, nickname, role
 FROM public.users
 WHERE email = 'your-email@example.com';
 
+

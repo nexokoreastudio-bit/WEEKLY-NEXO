@@ -22,22 +22,45 @@ WHERE is_published = TRUE;
 
 CREATE INDEX IF NOT EXISTS idx_field_news_location ON public.field_news(location);
 
--- RLS 정책 (모든 사용자가 읽기 가능, 작성자는 본인만 수정/삭제)
+-- RLS 정책 (모든 사용자가 읽기 가능, 관리자만 작성/수정/삭제 가능)
 ALTER TABLE public.field_news ENABLE ROW LEVEL SECURITY;
 
+-- 발행된 현장 소식은 모든 사용자가 조회 가능
 CREATE POLICY "Anyone can view published field news"
   ON public.field_news FOR SELECT
   USING (is_published = TRUE);
 
-CREATE POLICY "Users can insert their own field news"
+-- 관리자만 현장 소식 작성 가능
+CREATE POLICY "Admins can insert field news"
   ON public.field_news FOR INSERT
-  WITH CHECK (auth.uid() = author_id);
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.users
+      WHERE users.id = auth.uid()
+      AND users.role = 'admin'
+    )
+  );
 
-CREATE POLICY "Users can update their own field news"
+-- 관리자만 현장 소식 수정 가능
+CREATE POLICY "Admins can update field news"
   ON public.field_news FOR UPDATE
-  USING (auth.uid() = author_id);
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users
+      WHERE users.id = auth.uid()
+      AND users.role = 'admin'
+    )
+  );
 
-CREATE POLICY "Users can delete their own field news"
+-- 관리자만 현장 소식 삭제 가능
+CREATE POLICY "Admins can delete field news"
   ON public.field_news FOR DELETE
-  USING (auth.uid() = author_id);
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users
+      WHERE users.id = auth.uid()
+      AND users.role = 'admin'
+    )
+  );
+
 

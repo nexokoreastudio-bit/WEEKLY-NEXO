@@ -22,18 +22,19 @@ export interface EditionInfo {
 
 /**
  * 최신 발행호 가져오기
+ * 성능 최적화: 필요한 컬럼만 선택
  */
 export async function getLatestArticle(): Promise<EditionArticle | null> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
     .not('edition_id', 'is', null)
     .eq('is_published', true)
     .order('published_at', { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (error) {
     if (process.env.NODE_ENV === 'development') {
@@ -42,23 +43,24 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
     return null
   }
 
-  return data as EditionArticle
+  return data as EditionArticle | null
 }
 
 /**
  * 특정 발행호의 메인 article 가져오기
+ * 성능 최적화: 필요한 컬럼만 선택
  */
 export async function getArticleByEditionId(editionId: string): Promise<EditionArticle | null> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
     .eq('edition_id', editionId)
     .eq('is_published', true)
     .order('id', { ascending: true }) // 가장 먼저 생성된 것이 메인 article
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (error) {
     if (process.env.NODE_ENV === 'development') {
@@ -67,22 +69,19 @@ export async function getArticleByEditionId(editionId: string): Promise<EditionA
     return null
   }
 
-  if (!data) {
-    return null
-  }
-
-  return data as EditionArticle
+  return data as EditionArticle | null
 }
 
 /**
  * 특정 발행호의 모든 articles 가져오기 (메인 + 하위)
+ * 성능 최적화: 필요한 컬럼만 선택
  */
 export async function getArticlesByEditionId(editionId: string): Promise<EditionArticle[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('articles')
-    .select('*')
+    .select('id, title, subtitle, content, thumbnail_url, edition_id, category, created_at')
     .eq('edition_id', editionId)
     .eq('is_published', true)
     .order('id', { ascending: true })
@@ -99,15 +98,18 @@ export async function getArticlesByEditionId(editionId: string): Promise<Edition
 
 /**
  * 모든 발행호 목록 가져오기 (edition_id 기준)
+ * 성능 최적화: DISTINCT 사용 및 인덱스 활용
  */
 export async function getAllEditions(): Promise<string[]> {
   const supabase = await createClient()
 
+  // DISTINCT ON을 사용하여 중복 제거 (더 효율적)
   const { data, error } = await supabase
     .from('articles')
     .select('edition_id')
     .not('edition_id', 'is', null)
     .eq('is_published', true)
+    .order('published_at', { ascending: false })
 
   if (error) {
     if (process.env.NODE_ENV === 'development') {
@@ -116,10 +118,10 @@ export async function getAllEditions(): Promise<string[]> {
     return []
   }
 
-  // 중복 제거 및 정렬
+  // 중복 제거 및 정렬 (Set 사용으로 최적화)
   const articles = (data || []) as Array<{ edition_id: string | null }>
   const editionIds = [...new Set(articles.map(a => a.edition_id).filter(Boolean) as string[])]
-  return editionIds.sort().reverse() // 최신순
+  return editionIds // 이미 published_at DESC로 정렬되어 있으므로 reverse 불필요
 }
 
 /**
@@ -142,12 +144,19 @@ export async function getAllEditionsWithInfo(): Promise<EditionInfo[]> {
     return []
   }
 
-  // edition_id별로 그룹화하고 각 발행호의 첫 번째 article 정보 사용
+  // edition_id별로 그룹화하고 각 발행호의 가장 최신 article 정보 사용 (published_at 기준)
   const editionMap = new Map<string, EditionInfo>()
   
   const articles = (data || []) as Pick<ArticleRow, 'edition_id' | 'title' | 'subtitle' | 'thumbnail_url' | 'published_at'>[]
   
-  for (const article of articles) {
+  // published_at 기준으로 정렬 (이미 정렬되어 있지만 확실하게)
+  const sortedArticles = [...articles].sort((a, b) => {
+    const dateA = a.published_at ? new Date(a.published_at).getTime() : 0
+    const dateB = b.published_at ? new Date(b.published_at).getTime() : 0
+    return dateB - dateA // 최신순
+  })
+  
+  for (const article of sortedArticles) {
     const editionId = article.edition_id
     if (editionId && !editionMap.has(editionId)) {
       editionMap.set(editionId, {

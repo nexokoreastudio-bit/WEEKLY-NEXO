@@ -20,9 +20,10 @@ export interface PostWithAuthor extends Post {
 
 /**
  * 게시판 타입별 게시글 목록 가져오기
+ * 중고장터(market) 게시글은 제외
  */
 export async function getPostsByBoardType(
-  boardType: 'free' | 'qna' | 'tip' | 'market' | null = null,
+  boardType: 'free' | 'qna' | 'tip' | 'market' | 'review' | null = null,
   limit: number = 20,
   offset: number = 0
 ): Promise<PostWithAuthor[]> {
@@ -41,14 +42,19 @@ export async function getPostsByBoardType(
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
-  if (boardType) {
+  // 중고장터 게시글은 항상 제외
+  query = query.neq('board_type', 'market')
+
+  if (boardType && boardType !== 'market') {
     query = query.eq('board_type', boardType)
   }
 
   const { data, error } = await query
 
   if (error) {
-    console.error('게시글 조회 실패:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('게시글 조회 실패:', error)
+    }
     return []
   }
 
@@ -86,11 +92,12 @@ export async function getPostById(postId: number): Promise<PostWithAuthor | null
  * 게시글 작성
  */
 export async function createPost(
-  boardType: 'free' | 'qna' | 'tip' | 'market',
+  boardType: 'free' | 'qna' | 'tip' | 'market' | 'review',
   title: string,
   content: string,
   authorId: string,
-  images?: string[]
+  images?: string[],
+  rating?: number
 ): Promise<{ success: boolean; postId?: number; error?: string }> {
   try {
     const supabase = await createClient()
@@ -103,6 +110,9 @@ export async function createPost(
       images: images || null,
       likes_count: 0,
       comments_count: 0,
+      rating: boardType === 'review' ? (rating || null) : null,
+      is_best: false,
+      is_verified_review: false,
     }
 
     const { data: postResult, error } = await supabase
@@ -174,15 +184,22 @@ export async function updatePost(
 
 /**
  * 게시글 삭제
+ * 작성자 본인 또는 관리자만 삭제 가능
  */
 export async function deletePost(
   postId: number,
-  authorId: string
+  userId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
 
-    // 작성자 확인
+    // 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user || user.id !== userId) {
+      return { success: false, error: '인증되지 않은 사용자입니다.' }
+    }
+
+    // 게시글 정보 조회
     const { data: postData } = await supabase
       .from('posts')
       .select('author_id')
@@ -191,7 +208,22 @@ export async function deletePost(
 
     const post = postData as Pick<PostRow, 'author_id'> | null
 
-    if (!post || post.author_id !== authorId) {
+    if (!post) {
+      return { success: false, error: '게시글을 찾을 수 없습니다.' }
+    }
+
+    // 관리자 권한 확인
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    const isAdmin = profile?.role === 'admin'
+    const isAuthor = post.author_id === userId
+
+    // 작성자 본인 또는 관리자만 삭제 가능
+    if (!isAuthor && !isAdmin) {
       return { success: false, error: '권한이 없습니다.' }
     }
 
@@ -201,13 +233,17 @@ export async function deletePost(
       .eq('id', postId)
 
     if (error) {
-      console.error('게시글 삭제 실패:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('게시글 삭제 실패:', error)
+      }
       return { success: false, error: error.message }
     }
 
     return { success: true }
   } catch (error: any) {
-    console.error('게시글 삭제 오류:', error)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('게시글 삭제 오류:', error)
+    }
     return { success: false, error: error.message || '알 수 없는 오류' }
   }
 }

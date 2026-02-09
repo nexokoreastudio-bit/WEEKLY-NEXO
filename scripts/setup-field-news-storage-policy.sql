@@ -1,0 +1,27 @@
+-- Supabase Storage 버킷 정책 설정
+-- Supabase Dashboard > Storage > field-news 버킷 > Policies에서 실행하거나
+-- SQL Editor에서 실행하세요
+
+-- 관리자가 field-news 버킷에 업로드할 수 있도록 정책 추가
+-- 참고: Storage 정책은 SQL로 직접 생성할 수 없으므로, Supabase Dashboard에서 수동으로 설정해야 합니다.
+
+-- ============================================
+-- Supabase Dashboard에서 설정 방법:
+-- ============================================
+-- 1. Storage > field-news 버킷으로 이동
+-- 2. "Policies" 탭 클릭
+-- 3. "New Policy" 클릭
+-- 4. Policy name: "Admins can upload to field-news"
+-- 5. Allowed operation: INSERT
+-- 6. Policy definition:
+--    USING (
+--      EXISTS (
+--        SELECT 1 FROM public.users
+--        WHERE users.id = auth.uid()
+--        AND users.role = 'admin'
+--      )
+--    )
+-- 7. "Save" 클릭
+--
+-- 또는 공개 버킷으로 설정하면 정책 없이도 업로드 가능합니다.
+-- (버킷 생성 시 "Public bucket" 옵션 체크)

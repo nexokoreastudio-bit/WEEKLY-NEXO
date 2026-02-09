@@ -64,3 +64,4 @@ export function DiscountBadge({ isVerified, verifiedAt }: DiscountBadgeProps) {
   )
 }
 
+

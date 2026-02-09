@@ -6,9 +6,12 @@ import { getArticleByEditionId, getArticlesByEditionId, getAllEditions } from '@
 import { HtmlContent } from '@/components/html-content'
 import { DiscountBanner } from '@/components/promotion/discount-banner'
 import { EditionNavigation } from '@/components/edition-navigation'
+import { EditionSelector } from '@/components/edition-selector'
 import { SafeImage } from '@/components/safe-image'
 import { NewsArticleJsonLd } from '@/components/seo/json-ld'
 import { ShareButtons } from '@/components/social/share-buttons'
+import { InsightsSection } from '@/components/insights/insights-section'
+import { createClient } from '@/lib/supabase/server'
 import styles from '../../page.module.css'
 
 // 날짜 포맷팅 유틸리티 함수 (서버와 클라이언트에서 동일한 결과 보장)
@@ -33,13 +36,40 @@ interface PageProps {
   params: {
     editionId: string
   }
+  searchParams?: {
+    preview?: string
+  }
 }
 
 // 정적 생성 및 재검증 설정 (성능 최적화)
-export const revalidate = 3600 // 1시간마다 재검증
+export const revalidate = 60 // 1분마다 재검증 (발행호 업데이트 즉시 반영)
 
-export default async function EditionPage({ params }: PageProps) {
+export default async function EditionPage({ 
+  params,
+  searchParams 
+}: PageProps & { searchParams?: { preview?: string } }) {
   const { editionId } = params
+  const isPreview = searchParams?.preview === 'true'
+
+  // 미리보기 모드일 때 관리자 권한 확인
+  if (isPreview) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      notFound() // 로그인하지 않은 사용자는 미리보기 불가
+    }
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      notFound() // 관리자가 아니면 미리보기 불가
+    }
+  }
 
   // 병렬로 데이터 가져오기 (성능 최적화)
   const [mainArticle, allArticles, allEditions] = await Promise.all([
@@ -48,12 +78,26 @@ export default async function EditionPage({ params }: PageProps) {
     getAllEditions(),
   ])
   
-  if (!mainArticle) {
+  // 미리보기 모드가 아니고 발행호가 없으면 404
+  if (!mainArticle && !isPreview) {
     notFound()
   }
 
+  // 미리보기 모드이고 발행호가 없을 때 기본 정보 생성
+  const displayArticle = mainArticle || {
+    title: `NEXO Daily ${editionId}`,
+    subtitle: `${editionId} 교육 뉴스`,
+    content: null,
+    thumbnail_url: null,
+    edition_id: editionId,
+    published_at: editionId + 'T00:00:00Z',
+    updated_at: new Date().toISOString(),
+    category: 'news' as const,
+    is_published: false,
+  }
+
   // 메인 article과 하위 articles 분리
-  const subArticles = allArticles.filter(a => a.id !== mainArticle.id)
+  const subArticles = mainArticle ? allArticles.filter(a => a.id !== mainArticle.id) : []
 
   // 이전/다음 발행호 정보 계산 (이미 가져온 데이터 사용)
   const currentIndex = allEditions.indexOf(editionId)
@@ -67,95 +111,123 @@ export default async function EditionPage({ params }: PageProps) {
     <>
       {/* JSON-LD 구조화 데이터 */}
       <NewsArticleJsonLd
-        headline={mainArticle.title || 'NEXO Daily'}
-        description={mainArticle.subtitle || mainArticle.title || '넥소 전자칠판 교육 정보'}
-        image={mainArticle.thumbnail_url || undefined}
-        datePublished={mainArticle.published_at || undefined}
-        dateModified={mainArticle.updated_at || mainArticle.published_at || undefined}
+        headline={displayArticle.title || 'NEXO Daily'}
+        description={displayArticle.subtitle || displayArticle.title || '넥소 전자칠판 교육 정보'}
+        image={displayArticle.thumbnail_url || undefined}
+        datePublished={displayArticle.published_at || undefined}
+        dateModified={displayArticle.updated_at || displayArticle.published_at || undefined}
         author="NEXO Korea"
         url={currentUrl}
       />
       
       <div className={styles.paper}>
-      {/* 헤더 */}
-      <header className={styles.magazineHeader}>
-        <div className={styles.topMeta}>
-          <span>VOL. {editionId}</span>
-          <span>{formatEditionDate(editionId)}</span>
-        </div>
-        
-        <div className={styles.brandLogoArea}>
-          <Link href="/" className={styles.logoHomeLink}>
-            <div className={styles.logoContainer}>
-              <Image
-                src="/assets/images/nexo_logo_black.png"
-                alt="NEXO 로고"
-                width={120}
-                height={40}
-                className={styles.nexoLogo}
-              />
-              <h1>DAILY</h1>
+      {/* 히어로 배너 섹션 */}
+      {displayArticle.thumbnail_url ? (
+        <div className={styles.heroBanner}>
+          <SafeImage
+            src={displayArticle.thumbnail_url}
+            alt={displayArticle.title}
+            width={1920}
+            height={600}
+            className={styles.heroBannerImg}
+          />
+          <div className={styles.heroBannerOverlay}>
+            <div className={styles.heroBannerContent}>
+              <div className={styles.heroBannerMeta}>
+                <span>VOL. {editionId}</span>
+                <span>{formatEditionDate(editionId)}</span>
+              </div>
+              <h1 className={styles.heroBannerTitle}>{displayArticle.title}</h1>
+              {displayArticle.subtitle && (
+                <p className={styles.heroBannerSubtitle}>{displayArticle.subtitle}</p>
+              )}
             </div>
-          </Link>
-          <div className={styles.conceptBadge}>
-            <span className={styles.conceptIcon}>📰</span>
-            <span className={styles.conceptText}>
-              전자칠판 = 전자신문 | 매일 아침, 정보의 새로운 전달 방식
-            </span>
           </div>
         </div>
-      </header>
+      ) : isPreview ? (
+        // 미리보기 모드이고 썸네일이 없을 때 기본 헤더 표시
+        <div className={styles.heroBanner} style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={styles.heroBannerContent}>
+            <div className={styles.heroBannerMeta}>
+              <span>VOL. {editionId}</span>
+              <span>{formatEditionDate(editionId)}</span>
+            </div>
+            <h1 className={styles.heroBannerTitle}>{displayArticle.title}</h1>
+            {displayArticle.subtitle && (
+              <p className={styles.heroBannerSubtitle}>{displayArticle.subtitle}</p>
+            )}
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 font-medium">
+                👁️ 관리자 미리보기 모드: 발행호가 아직 생성되지 않았습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* 메인 레이아웃 */}
       <div className={styles.mainLayout}>
         <main>
-          {/* 헤드라인 그룹 */}
-          <div className={styles.headlineGroup}>
-            <h2 className={styles.mainHeadline}>
-              {mainArticle.title}
-            </h2>
-            {mainArticle.subtitle && (
-              <p className={styles.subHeadline}>
-                {mainArticle.subtitle}
-              </p>
-            )}
-            
-            {/* 소셜 공유 버튼 */}
-            <div className="mt-4">
-              <ShareButtons
-                title={mainArticle.title || 'NEXO Daily'}
-                description={mainArticle.subtitle || undefined}
-                url={currentUrl}
-                image={mainArticle.thumbnail_url || undefined}
+          {/* 발행호 선택 */}
+          {allEditions.length > 0 && (
+            <div className={styles.editionSelectorWrapper}>
+              <EditionSelector 
+                editions={allEditions}
+                currentEditionId={editionId}
               />
             </div>
-          </div>
+          )}
 
-          {/* 히어로 섹션 */}
-          {mainArticle.thumbnail_url && (
-            <div className={styles.heroSection}>
-              <div className={styles.heroImage}>
-                <SafeImage
-                  src={mainArticle.thumbnail_url}
-                  alt={mainArticle.title}
-                  width={800}
-                  height={400}
-                  className={styles.heroImageImg}
-                />
-              </div>
+          {/* 소셜 공유 버튼 */}
+          {mainArticle && (
+            <div className="mb-6">
+              <ShareButtons
+                title={displayArticle.title || 'NEXO Daily'}
+                description={displayArticle.subtitle || undefined}
+                url={currentUrl}
+                image={displayArticle.thumbnail_url || undefined}
+              />
             </div>
           )}
 
           {/* 할인 홍보 배너 */}
           <DiscountBanner />
 
+          {/* CTA 버튼 (상담 신청 / 견적 요청) */}
+          <div className="mt-8 p-6 bg-gradient-to-r from-nexo-navy to-nexo-cyan rounded-xl text-white">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold mb-2">전자칠판 상담 및 견적 문의</h3>
+                <p className="text-white/90">구독자 전용 특별 할인 혜택을 받아보세요</p>
+              </div>
+              <div className="flex gap-3">
+                <Link
+                  href="/leads/demo"
+                  className="px-6 py-3 bg-white text-nexo-navy font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  상담 신청
+                </Link>
+                <Link
+                  href="/leads/quote"
+                  className="px-6 py-3 bg-nexo-cyan text-white font-semibold rounded-lg hover:bg-nexo-cyan/90 transition-colors"
+                >
+                  견적 요청
+                </Link>
+              </div>
+            </div>
+          </div>
+
           {/* 본문 콘텐츠 */}
-          {mainArticle.content && (
+          {displayArticle.content && (
             <HtmlContent 
-              html={mainArticle.content}
+              html={displayArticle.content}
               className={styles.heroDesc}
             />
           )}
+
+          {/* 학부모님 상담용 인사이트 섹션 */}
+          {/* 에러 발생 시에도 페이지가 정상 로드되도록 try-catch는 InsightsSection 내부에서 처리 */}
+          <InsightsSection editionId={editionId} previewMode={isPreview} />
 
           {/* 매거진 섹션 (하위 articles) */}
           {subArticles.length > 0 && (

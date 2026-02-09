@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getPostsByBoardType } from '@/lib/supabase/posts'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { MessageSquare, HelpCircle, Lightbulb, ShoppingBag } from 'lucide-react'
+import { MessageSquare, HelpCircle, Lightbulb } from 'lucide-react'
 import styles from './community.module.css'
 
 const BOARD_TYPES = [
@@ -12,7 +12,8 @@ const BOARD_TYPES = [
   { type: 'free', label: '자유게시판', icon: MessageSquare },
   { type: 'qna', label: 'Q&A', icon: HelpCircle },
   { type: 'tip', label: '팁 & 노하우', icon: Lightbulb },
-  { type: 'market', label: '중고장터', icon: ShoppingBag },
+  // 중고장터는 숨김
+  // { type: 'market', label: '중고장터', icon: ShoppingBag },
 ] as const
 
 interface PageProps {
@@ -27,10 +28,10 @@ export default async function CommunityPage({ searchParams }: PageProps) {
   // 현재 사용자 확인
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 게시판 타입 파싱
+  // 게시판 타입 파싱 (중고장터 제외)
   const boardType =
-    searchParams.board && ['free', 'qna', 'tip', 'market'].includes(searchParams.board)
-      ? (searchParams.board as 'free' | 'qna' | 'tip' | 'market')
+    searchParams.board && ['free', 'qna', 'tip'].includes(searchParams.board)
+      ? (searchParams.board as 'free' | 'qna' | 'tip')
       : null
 
   // 게시글 목록 가져오기
@@ -96,7 +97,9 @@ export default async function CommunityPage({ searchParams }: PageProps) {
               <div className={styles.postHeader}>
                 <div className={styles.postMeta}>
                   <span className={styles.boardType}>
-                    {BOARD_TYPES.find(b => b.type === post.board_type)?.label || '전체'}
+                    {post.board_type === 'market' 
+                      ? '중고장터' 
+                      : BOARD_TYPES.find(b => b.type === post.board_type)?.label || '전체'}
                   </span>
                   <span className={styles.author}>
                     {post.author?.nickname || '익명'}
@@ -130,4 +133,5 @@ export default async function CommunityPage({ searchParams }: PageProps) {
     </div>
   )
 }
+
 

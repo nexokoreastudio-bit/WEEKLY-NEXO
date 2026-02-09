@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { Noto_Sans_KR, Noto_Serif_KR } from 'next/font/google'
 import './globals.css'
-import { Header } from '@/components/layout/header'
+import { HeaderClient } from '@/components/layout/header-client'
 import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld'
+import { KakaoSDKLoader } from '@/components/kakao/kakao-sdk-loader'
 
 const notoSans = Noto_Sans_KR({
   subsets: ['latin'],
@@ -89,6 +90,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const kakaoJsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || ''
+
   return (
     <html lang="ko" className={`${notoSans.variable} ${notoSerif.variable}`}>
       <head>
@@ -96,8 +99,10 @@ export default function RootLayout({
         <WebSiteJsonLd />
       </head>
       <body className="font-sans antialiased">
-        <Header />
+        <HeaderClient />
         {children}
+        {/* 카카오 SDK 로드 (JavaScript 키가 설정된 경우에만) */}
+        {kakaoJsKey && <KakaoSDKLoader jsKey={kakaoJsKey} />}
       </body>
     </html>
   )

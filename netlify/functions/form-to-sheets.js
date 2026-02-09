@@ -3,11 +3,22 @@ const { GoogleSpreadsheet } = require('google-spreadsheet');
 const { JWT } = require('google-auth-library');
 
 exports.handler = async (event, context) => {
-    // CORS 헤더 설정
+    // CORS 헤더 설정 (보안 강화)
+    const allowedOrigins = [
+        'https://daily-nexo.netlify.app',
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+        'http://localhost:3003',
+    ];
+    const origin = event.headers.origin || event.headers.Origin;
+    const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+    
     const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Origin': corsOrigin,
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Credentials': 'true',
     };
 
     // OPTIONS 요청 처리 (CORS preflight)

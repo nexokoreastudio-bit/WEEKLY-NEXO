@@ -47,3 +47,4 @@ SELECT
 FROM public.users
 WHERE email = 'nexo.korea.studio@gmail.com';
 
+

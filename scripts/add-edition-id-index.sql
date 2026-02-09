@@ -13,3 +13,4 @@ WHERE edition_id IS NOT NULL AND is_published = true;
 CREATE INDEX IF NOT EXISTS idx_articles_edition_published_at ON public.articles(edition_id, published_at DESC)
 WHERE edition_id IS NOT NULL AND is_published = true;
 
+

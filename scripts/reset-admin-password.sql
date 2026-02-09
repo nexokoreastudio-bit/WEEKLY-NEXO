@@ -17,3 +17,4 @@
 -- SET role = 'admin'
 -- WHERE email = 'new-admin-email@example.com';
 
+

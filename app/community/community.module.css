@@ -317,6 +317,62 @@
   background: #fdd;
 }
 
+.deleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.deleteConfirmText {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.deleteConfirmButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.deleteConfirmButton,
+.cancelButton {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteConfirmButton {
+  background: #c00;
+  color: white;
+}
+
+.deleteConfirmButton:hover:not(:disabled) {
+  background: #a00;
+}
+
+.cancelButton {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.deleteConfirmButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .commentsSection {
   background: white;
   border: 1px solid #e8e8e8;

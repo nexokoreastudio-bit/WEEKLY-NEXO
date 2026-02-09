@@ -56,6 +56,8 @@ const config: Config = {
           navy: '#1a1a1a',
           cyan: '#00c4b4',
         },
+        'nexo-navy': '#1a1a1a',
+        'nexo-cyan': '#00c4b4',
       },
       borderRadius: {
         lg: 'var(--radius)',

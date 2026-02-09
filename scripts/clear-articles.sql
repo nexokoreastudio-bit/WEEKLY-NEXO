@@ -15,3 +15,4 @@ DELETE FROM articles;
 -- 4. 삭제 확인
 SELECT COUNT(*) as remaining_articles FROM articles;
 
+

@@ -16,3 +16,4 @@ ADD COLUMN IF NOT EXISTS published_at TIMESTAMP WITH TIME ZONE;
 CREATE INDEX IF NOT EXISTS idx_field_news_author ON public.field_news(author_id);
 CREATE INDEX IF NOT EXISTS idx_field_news_published ON public.field_news(is_published, published_at DESC);
 
+

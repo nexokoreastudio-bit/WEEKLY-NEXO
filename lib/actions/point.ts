@@ -60,6 +60,7 @@ export async function rewardReadingPoint(
       amount: 10,
       reason: 'article_read',
       related_id: articleId || null,
+      related_type: 'article',
     }
     
     const { error: logError } = await supabase
@@ -158,6 +159,7 @@ export async function deductPoint(
       amount: -amount,
       reason,
       related_id: relatedId || null,
+      related_type: relatedType as 'article' | 'post' | 'comment' | 'resource' | 'checkin' | null || null,
     }
     
     const { error: logError } = await supabase

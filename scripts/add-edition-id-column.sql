@@ -17,3 +17,4 @@ WHERE edition_id IS NULL AND published_at IS NOT NULL;
 -- 4. 코멘트 추가
 COMMENT ON COLUMN public.articles.edition_id IS '발행호 ID (예: 2026-02-05)';
 
+

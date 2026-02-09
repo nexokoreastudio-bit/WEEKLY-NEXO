@@ -2,10 +2,12 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getPostById } from '@/lib/supabase/posts'
+import { deletePost } from '@/app/actions/posts'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { ArrowLeft, MessageSquare, HelpCircle, Lightbulb, ShoppingBag } from 'lucide-react'
 import { HtmlContent } from '@/components/html-content'
+import { DeletePostButton } from '@/components/community/delete-post-button'
 import styles from '../community.module.css'
 
 const BOARD_TYPE_INFO = {
@@ -38,6 +40,18 @@ export default async function PostDetailPage({ params }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   const isAuthor = user?.id === post.author_id
 
+  // 관리자 권한 확인
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    isAdmin = profile?.role === 'admin'
+  }
+
+  const canDelete = isAuthor || isAdmin
   const boardInfo = post.board_type ? BOARD_TYPE_INFO[post.board_type] : null
 
   return (
@@ -94,16 +108,14 @@ export default async function PostDetailPage({ params }: PageProps) {
             <span>💬 {post.comments_count}</span>
           </div>
 
-          {isAuthor && (
+          {canDelete && (
             <div className={styles.postActions}>
-              <Link href={`/community/${post.id}/edit`} className={styles.editButton}>
-                수정
-              </Link>
-              <form action={`/community/${post.id}/delete`} method="post">
-                <button type="submit" className={styles.deleteButton}>
-                  삭제
-                </button>
-              </form>
+              {isAuthor && (
+                <Link href={`/community/${post.id}/edit`} className={styles.editButton}>
+                  수정
+                </Link>
+              )}
+              <DeletePostButton postId={post.id} />
             </div>
           )}
         </div>
@@ -117,4 +129,5 @@ export default async function PostDetailPage({ params }: PageProps) {
     </div>
   )
 }
+
 

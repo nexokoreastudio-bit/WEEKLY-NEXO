@@ -422,3 +422,4 @@ CREATE TRIGGER on_user_point_updated
   WHEN (OLD.point IS DISTINCT FROM NEW.point)
   EXECUTE FUNCTION public.update_user_level();
 
+

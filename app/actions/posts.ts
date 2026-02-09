@@ -1,18 +1,20 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { createPost as createPostQuery } from '@/lib/supabase/posts'
+import { createPost as createPostQuery, deletePost as deletePostQuery } from '@/lib/supabase/posts'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 /**
  * 게시글 작성 서버 액션
  */
 export async function createPost(
-  boardType: 'free' | 'qna' | 'tip' | 'market',
+  boardType: 'free' | 'qna' | 'tip' | 'market' | 'review',
   title: string,
   content: string,
   authorId: string,
-  images?: string[]
+  images?: string[],
+  rating?: number
 ): Promise<{ success: boolean; postId?: number; error?: string }> {
   try {
     const supabase = await createClient()
@@ -23,11 +25,17 @@ export async function createPost(
       return { success: false, error: '인증되지 않은 사용자입니다.' }
     }
 
-    // 게시글 작성 (DB 트리거가 자동으로 +20 포인트 지급)
-    const result = await createPostQuery(boardType, title, content, authorId, images)
+    // 후기 작성 시 평점 필수 확인
+    if (boardType === 'review' && !rating) {
+      return { success: false, error: '후기 작성 시 평점을 선택해주세요.' }
+    }
+
+    // 게시글 작성 (DB 트리거가 자동으로 포인트 지급)
+    const result = await createPostQuery(boardType, title, content, authorId, images, rating)
 
     if (result.success && result.postId) {
       revalidatePath('/community')
+      revalidatePath('/reviews')
       revalidatePath(`/community/${result.postId}`)
       revalidatePath('/mypage')
     }
@@ -36,6 +44,45 @@ export async function createPost(
   } catch (error: any) {
     console.error('게시글 작성 오류:', error)
     return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
+  }
+}
+
+/**
+ * 게시글 삭제 서버 액션
+ * 작성자 본인 또는 관리자만 삭제 가능
+ */
+export async function deletePost(postId: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    // 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { success: false, error: '인증되지 않은 사용자입니다.' }
+    }
+
+    // 게시글 삭제 (작성자 본인 또는 관리자 확인 포함)
+    const result = await deletePostQuery(postId, user.id)
+
+    if (result.success) {
+      // 캐시 무효화
+      revalidatePath('/community')
+      revalidatePath('/reviews')
+      revalidatePath(`/community/${postId}`)
+      revalidatePath('/mypage')
+      
+      // 커뮤니티 목록 페이지로 리다이렉트
+      redirect('/community')
+    }
+
+    return result
+  } catch (error: any) {
+    // redirect는 throw하므로 여기서는 다른 에러만 처리
+    if (error.message && !error.message.includes('NEXT_REDIRECT')) {
+      console.error('게시글 삭제 오류:', error)
+      return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
+    }
+    throw error // redirect는 다시 throw
   }
 }
 

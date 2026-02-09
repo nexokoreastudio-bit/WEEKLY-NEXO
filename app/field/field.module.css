@@ -13,8 +13,7 @@
   font-size: 2.5rem;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 16px;
-  font-family: 'Noto Serif KR', serif;
+  margin-bottom: 12px;
 }
 
 .subtitle {
@@ -25,56 +24,188 @@
 .empty {
   text-align: center;
   padding: 80px 20px;
-  color: #999;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.empty p {
+  font-size: 1.125rem;
+  color: #666;
+  margin-bottom: 8px;
 }
 
 .emptySubtext {
-  margin-top: 8px;
   font-size: 0.875rem;
+  color: #999;
 }
 
 .newsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 32px;
-  margin-bottom: 64px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
 }
 
-@media (max-width: 768px) {
-  .newsGrid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
+.newsCardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 
 .newsCard {
   background: white;
+  border: 1px solid #e8e8e8;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .newsCard:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: #d0d0d0;
 }
 
-.imageContainer {
+.thumbnail {
   width: 100%;
-  height: 250px;
+  height: 240px;
   overflow: hidden;
   background: #f5f5f5;
+  position: relative;
 }
 
-.image {
+.thumbnailImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.newsCard:hover .thumbnailImage {
+  transform: scale(1.05);
+}
+
+.cardContent {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 12px 0;
+  line-height: 1.4;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.summary {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #666;
+  margin: 8px 0 16px 0;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 0.875rem;
+  color: #999;
+  margin-top: auto;
 }
 
 .content {
-  padding: 24px;
+  padding: 48px 64px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* 상세 페이지 스타일 */
+.detailHeader {
+  margin-bottom: 24px;
+}
+
+.backButton {
+  color: #666;
+}
+
+.backButton:hover {
+  color: #1a1a1a;
+}
+
+.detailCard {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 32px;
+}
+
+.detailContent {
+  padding: 48px 64px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.detailTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 32px;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+.detailDescription {
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  color: #333;
+  margin-bottom: 32px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  max-width: 100%;
+}
+
+.detailFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 0.9375rem;
+  color: #666;
+}
+
+.detailActions {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.backLink {
+  display: inline-block;
+  margin-top: 16px;
+  color: #0066cc;
+  text-decoration: underline;
 }
 
 .meta {
@@ -86,32 +217,171 @@
   color: #666;
 }
 
-.location {
-  color: #00c4b4;
-  font-weight: 600;
-}
-
+.location,
 .date {
-  color: #999;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 12px;
-  line-height: 1.4;
+  margin-bottom: 24px;
+  line-height: 1.5;
+  word-break: keep-all;
 }
 
 .description {
-  font-size: 0.9375rem;
-  color: #555;
-  line-height: 1.7;
+  font-size: 1.0625rem;
+  line-height: 2;
+  color: #333;
+  margin-bottom: 20px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  max-width: 100%;
+}
+
+/* 상세 페이지용 description 스타일 */
+.detailDescription {
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  color: #333;
+  margin-bottom: 32px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  max-width: 100%;
+}
+
+/* 네이버 카페 스타일: 이미지와 텍스트가 자연스럽게 섞인 레이아웃 */
+.description :global(.field-news-image-wrapper),
+.detailDescription :global(.field-news-image-wrapper) {
+  position: relative;
+  width: 100%;
+  margin: 32px 0;
+}
+
+.description :global(img.field-news-image),
+.description :global(img),
+.detailDescription :global(img.field-news-image),
+.detailDescription :global(img) {
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 12px;
+  margin: 0 auto;
+  display: block !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  background: #fafafa;
+  object-fit: contain;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.description :global(img.field-news-image:hover),
+.description :global(img:hover),
+.detailDescription :global(img.field-news-image:hover),
+.detailDescription :global(img:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 이미지가 숨겨지지 않도록 */
+.description :global(img[src]) {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.description :global(p),
+.description :global(.field-news-paragraph),
+.detailDescription :global(p),
+.detailDescription :global(.field-news-paragraph) {
+  margin-bottom: 20px;
+  line-height: 1.9;
+  color: #333;
+  font-size: 1.0625rem;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 첫 번째 문단 스타일 */
+.description :global(p:first-child),
+.description :global(.field-news-paragraph:first-child) {
+  margin-top: 0;
+}
+
+/* 마지막 문단 스타일 */
+.description :global(p:last-child),
+.description :global(.field-news-paragraph:last-child) {
+  margin-bottom: 0;
+}
+
+.description :global(br) {
+  line-height: 2;
+  display: block;
+  content: '';
+  margin-bottom: 12px;
+}
+
+/* 단락 구분을 명확하게 */
+.description :global(div) {
   margin-bottom: 16px;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 2;
+}
+
+/* 텍스트 블록 스타일 개선 */
+.description :global(*) {
+  max-width: 100%;
+}
+
+/* 제목 스타일 (h2, h3 등이 있다면) */
+.description :global(h2),
+.description :global(h3),
+.description :global(h4) {
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  color: #1a1a1a;
+  font-size: 1.25rem;
+}
+
+.description :global(h3) {
+  font-size: 1.125rem;
+}
+
+.description :global(h4) {
+  font-size: 1rem;
+}
+
+/* 리스트 스타일 */
+.description :global(ul),
+.description :global(ol) {
+  margin: 16px 0;
+  padding-left: 24px;
+  line-height: 2;
+}
+
+.description :global(li) {
+  margin-bottom: 8px;
+}
+
+/* 강조 텍스트 */
+.description :global(strong),
+.description :global(b) {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* 링크 스타일 */
+.description :global(a) {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.description :global(a:hover) {
+  color: #0052a3;
 }
 
 .footer {
@@ -119,13 +389,13 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 16px;
-  border-top: 1px solid #e8e8e8;
-  font-size: 0.8125rem;
+  border-top: 1px solid #f0f0f0;
+  font-size: 0.875rem;
   color: #999;
 }
 
 .views {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }
@@ -135,39 +405,72 @@
 }
 
 .cta {
-  background: linear-gradient(135deg, #1a1a1a 0%, #00c4b4 100%);
-  color: white;
-  padding: 48px 32px;
-  border-radius: 16px;
   text-align: center;
-  margin-top: 64px;
+  padding: 32px;
+  background: #f9f9f9;
+  border-radius: 12px;
 }
 
 .cta h3 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  color: #1a1a1a;
+  margin-bottom: 8px;
 }
 
 .cta p {
-  font-size: 1rem;
-  margin-bottom: 24px;
-  opacity: 0.9;
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.6;
 }
 
-.contactButton {
-  display: inline-block;
-  background: white;
-  color: #1a1a1a;
-  font-weight: 700;
-  padding: 12px 32px;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
+@media (max-width: 768px) {
+  .container {
+    padding: 24px 16px;
+  }
 
-.contactButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
+  .header h1 {
+    font-size: 2rem;
+  }
 
+  .newsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .newsCard {
+    border-radius: 8px;
+  }
+
+  .thumbnail {
+    height: 200px;
+  }
+
+  .cardContent {
+    padding: 16px;
+  }
+
+  .cardTitle {
+    font-size: 1.125rem;
+  }
+
+  .summary {
+    font-size: 0.875rem;
+  }
+
+  .content,
+  .detailContent {
+    padding: 24px 20px;
+    max-width: 100%;
+  }
+
+  .title,
+  .detailTitle {
+    font-size: 1.25rem;
+  }
+
+  .description,
+  .detailDescription {
+    font-size: 0.9375rem;
+  }
+}

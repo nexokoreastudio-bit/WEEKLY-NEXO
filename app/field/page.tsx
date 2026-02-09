@@ -8,6 +8,21 @@ import styles from './field.module.css'
 
 type FieldNewsRow = Database['public']['Tables']['field_news']['Row']
 
+// content에서 첫 번째 이미지 URL 추출
+function getFirstImageUrl(content: string | null): string | null {
+  if (!content) return null
+  const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i)
+  return imgMatch ? imgMatch[1] : null
+}
+
+// content에서 텍스트만 추출 (요약용)
+function getTextSummary(content: string | null, maxLength: number = 150): string {
+  if (!content) return ''
+  const text = content.replace(/<[^>]*>/g, '').trim()
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
+}
+
 export default async function FieldNewsPage() {
   const supabase = await createClient()
 
@@ -20,10 +35,11 @@ export default async function FieldNewsPage() {
     .limit(20)
 
   if (error) {
-    console.error('현장 소식 조회 실패:', error)
+    console.error('❌ 현장 소식 조회 실패:', error)
   }
 
   const fieldNews = (fieldNewsData || []) as FieldNewsRow[]
+
 
   return (
     <div className={styles.container}>
@@ -43,46 +59,52 @@ export default async function FieldNewsPage() {
         </div>
       ) : (
         <div className={styles.newsGrid}>
-          {fieldNews.map((news) => (
-            <article key={news.id} className={styles.newsCard}>
-              {news.images && news.images.length > 0 && (
-                <div className={styles.imageContainer}>
-                  <SafeImage
-                    src={news.images[0]}
-                    alt={news.title}
-                    width={400}
-                    height={300}
-                    className={styles.image}
-                  />
-                </div>
-              )}
-              <div className={styles.content}>
-                <div className={styles.meta}>
-                  {news.location && (
-                    <span className={styles.location}>📍 {news.location}</span>
+          {fieldNews.map((news) => {
+            const thumbnailUrl = getFirstImageUrl(news.content)
+            const summary = getTextSummary(news.content)
+            
+            return (
+              <Link key={news.id} href={`/field/${news.id}`} className={styles.newsCardLink}>
+                <article className={styles.newsCard}>
+                  {thumbnailUrl && (
+                    <div className={styles.thumbnail}>
+                      <SafeImage
+                        src={thumbnailUrl}
+                        alt={news.title || '현장 소식'}
+                        width={400}
+                        height={300}
+                        className={styles.thumbnailImage}
+                      />
+                    </div>
                   )}
-                  {news.installation_date && (
-                    <span className={styles.date}>
-                      📅 {format(new Date(news.installation_date), 'yyyy년 M월 d일', { locale: ko })}
-                    </span>
-                  )}
-                </div>
-                <h2 className={styles.title}>{news.title}</h2>
-                <div
-                  className={styles.description}
-                  dangerouslySetInnerHTML={{ __html: news.content }}
-                />
-                <div className={styles.footer}>
-                  <span className={styles.views}>👁️ {news.views || 0}</span>
-                  {news.published_at && (
-                    <span className={styles.publishedAt}>
-                      {format(new Date(news.published_at), 'yyyy.MM.dd', { locale: ko })}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </article>
-          ))}
+                  <div className={styles.cardContent}>
+                    <div className={styles.meta}>
+                      {news.location && (
+                        <span className={styles.location}>📍 {news.location}</span>
+                      )}
+                      {news.installation_date && (
+                        <span className={styles.date}>
+                          📅 {format(new Date(news.installation_date), 'yyyy년 M월 d일', { locale: ko })}
+                        </span>
+                      )}
+                    </div>
+                    <h2 className={styles.cardTitle}>{news.title}</h2>
+                    {summary && (
+                      <p className={styles.summary}>{summary}</p>
+                    )}
+                    <div className={styles.cardFooter}>
+                      <span className={styles.views}>👁️ {news.views || 0}</span>
+                      {news.published_at && (
+                        <span className={styles.publishedAt}>
+                          {format(new Date(news.published_at), 'yyyy.MM.dd', { locale: ko })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              </Link>
+            )
+          })}
         </div>
       )}
 

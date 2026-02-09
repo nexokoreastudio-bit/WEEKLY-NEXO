@@ -2,7 +2,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { PostWriteForm } from '@/components/community/post-write-form'
 
-export default async function WritePostPage() {
+interface PageProps {
+  searchParams: {
+    type?: string
+  }
+}
+
+export default async function WritePostPage({ searchParams }: PageProps) {
   const supabase = await createClient()
 
   // 현재 사용자 확인
@@ -12,14 +18,28 @@ export default async function WritePostPage() {
     redirect('/login?redirect=/community/write')
   }
 
+  // URL 파라미터에서 타입 확인 (중고장터 제외)
+  const initialBoardType =
+    searchParams.type === 'review'
+      ? ('review' as const)
+      : searchParams.type && ['free', 'qna', 'tip'].includes(searchParams.type)
+      ? (searchParams.type as 'free' | 'qna' | 'tip')
+      : undefined
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-nexo-navy mb-2">글쓰기</h1>
-        <p className="text-gray-600">커뮤니티에 글을 작성해주세요</p>
+        <h1 className="text-3xl font-bold text-nexo-navy mb-2">
+          {initialBoardType === 'review' ? '후기 작성' : '글쓰기'}
+        </h1>
+        <p className="text-gray-600">
+          {initialBoardType === 'review'
+            ? '전자칠판 사용 후기를 작성해주세요'
+            : '커뮤니티에 글을 작성해주세요'}
+        </p>
       </div>
 
-      <PostWriteForm userId={user.id} />
+      <PostWriteForm userId={user.id} initialBoardType={initialBoardType} />
     </div>
   )
 }

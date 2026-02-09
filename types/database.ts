@@ -119,37 +119,46 @@ export interface Database {
       posts: {
         Row: {
           id: number
-          board_type: 'free' | 'qna' | 'tip' | 'market' | null
+          board_type: 'free' | 'qna' | 'tip' | 'market' | 'review' | null
           title: string
           content: string
           author_id: string | null
           images: string[] | null
           likes_count: number
           comments_count: number
+          rating: number | null
+          is_best: boolean
+          is_verified_review: boolean
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: number
-          board_type?: 'free' | 'qna' | 'tip' | 'market' | null
+          board_type?: 'free' | 'qna' | 'tip' | 'market' | 'review' | null
           title: string
           content: string
           author_id?: string | null
           images?: string[] | null
           likes_count?: number
           comments_count?: number
+          rating?: number | null
+          is_best?: boolean
+          is_verified_review?: boolean
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: number
-          board_type?: 'free' | 'qna' | 'tip' | 'market' | null
+          board_type?: 'free' | 'qna' | 'tip' | 'market' | 'review' | null
           title?: string
           content?: string
           author_id?: string | null
           images?: string[] | null
           likes_count?: number
           comments_count?: number
+          rating?: number | null
+          is_best?: boolean
+          is_verified_review?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -285,6 +294,112 @@ export interface Database {
           user_id?: string
           checkin_date?: string
           created_at?: string
+        }
+      }
+      leads: {
+        Row: {
+          id: number
+          type: 'demo' | 'quote' | 'consultation'
+          name: string
+          email: string
+          phone: string | null
+          academy_name: string | null
+          region: string | null
+          size: string | null
+          mount_type: string | null
+          quantity: number | null
+          message: string | null
+          referrer_code: string | null
+          status: 'pending' | 'contacted' | 'completed' | 'cancelled'
+          admin_notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          type: 'demo' | 'quote' | 'consultation'
+          name: string
+          email: string
+          phone?: string | null
+          academy_name?: string | null
+          region?: string | null
+          size?: string | null
+          mount_type?: string | null
+          quantity?: number | null
+          message?: string | null
+          referrer_code?: string | null
+          status?: 'pending' | 'contacted' | 'completed' | 'cancelled'
+          admin_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          type?: 'demo' | 'quote' | 'consultation'
+          name?: string
+          email?: string
+          phone?: string | null
+          academy_name?: string | null
+          region?: string | null
+          size?: string | null
+          mount_type?: string | null
+          quantity?: number | null
+          message?: string | null
+          referrer_code?: string | null
+          status?: 'pending' | 'contacted' | 'completed' | 'cancelled'
+          admin_notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      insights: {
+        Row: {
+          id: number
+          url: string
+          title: string
+          summary: string | null
+          content: string | null
+          category: '입시' | '정책' | '학습법' | '상담팁' | '기타' | null
+          edition_id: string | null
+          author_id: string | null
+          is_published: boolean
+          views: number
+          thumbnail_url: string | null
+          published_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          url: string
+          title: string
+          summary?: string | null
+          content?: string | null
+          category?: '입시' | '정책' | '학습법' | '상담팁' | '기타' | null
+          edition_id?: string | null
+          author_id?: string | null
+          is_published?: boolean
+          views?: number
+          thumbnail_url?: string | null
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          url?: string
+          title?: string
+          summary?: string | null
+          content?: string | null
+          category?: '입시' | '정책' | '학습법' | '상담팁' | '기타' | null
+          edition_id?: string | null
+          author_id?: string | null
+          is_published?: boolean
+          views?: number
+          thumbnail_url?: string | null
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       downloads: {

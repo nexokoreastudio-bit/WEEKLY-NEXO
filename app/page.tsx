@@ -1,16 +1,22 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { redirect } from 'next/navigation'
-import { getLatestArticle, getAllEditions } from '@/lib/supabase/articles'
-import { EditionSelector } from '@/components/edition-selector'
-import styles from './page.module.css'
+import { getLatestArticle, getAllEditionsWithInfo } from '@/lib/supabase/articles'
+import { getInsights } from '@/lib/actions/insights'
+import { getPostsByBoardType } from '@/lib/supabase/posts'
+import { getReviews } from '@/lib/supabase/reviews'
+import { createClient } from '@/lib/supabase/server'
+import { Calendar, ArrowRight } from 'lucide-react'
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
-// 날짜 포맷팅 유틸리티 함수 (서버와 클라이언트에서 동일한 결과 보장)
+// 날짜 포맷팅 유틸리티 함수
 function formatEditionDate(editionId: string | null): string {
   if (!editionId) return '최신호'
   
   try {
-    const date = new Date(editionId + 'T00:00:00Z') // UTC로 명시적으로 설정
+    const date = new Date(editionId + 'T00:00:00Z')
     const year = date.getUTCFullYear()
     const month = date.getUTCMonth() + 1
     const day = date.getUTCDate()
@@ -25,134 +31,445 @@ function formatEditionDate(editionId: string | null): string {
   }
 }
 
-// 정적 생성 및 재검증 설정 (성능 최적화)
-export const revalidate = 3600 // 1시간마다 재검증
+// 정적 생성 및 재검증 설정
+export const revalidate = 60 // 1분마다 재검증 (발행호 업데이트 즉시 반영)
 
 export default async function HomePage() {
-  // 최신 발행호 가져오기
   const latestArticle = await getLatestArticle()
+  const allEditions = await getAllEditionsWithInfo()
+  const supabase = await createClient()
+
+  // 최신 콘텐츠 데이터 가져오기
+  const [allInsights, latestReviews, latestFieldNews] = await Promise.all([
+    getInsights(), // 모든 발행된 인사이트 가져오기
+    getReviews('latest', 3, 0),
+    supabase
+      .from('field_news')
+      .select('*')
+      .eq('is_published', true)
+      .order('published_at', { ascending: false })
+      .limit(3)
+      .then(({ data }) => data || [])
+  ])
+
+  // 발행호별 인사이트 개수 및 목록 계산
+  const insightsByEdition = new Map<string, typeof allInsights>()
+  const insightsCountByEdition = new Map<string, number>()
   
-  if (!latestArticle) {
-    // 데이터가 없으면 기존 정적 페이지로 리다이렉트 또는 에러 페이지
-    return (
-      <div className={styles.paper}>
-        <div className={styles.errorMessage}>
-          <h1>발행 데이터를 불러올 수 없습니다</h1>
-          <p>데이터베이스 마이그레이션이 필요합니다.</p>
-          <Link href="/" className={styles.link}>
-            홈으로 돌아가기
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  allInsights.forEach(insight => {
+    if (insight.edition_id) {
+      if (!insightsByEdition.has(insight.edition_id)) {
+        insightsByEdition.set(insight.edition_id, [])
+      }
+      insightsByEdition.get(insight.edition_id)!.push(insight)
+      insightsCountByEdition.set(insight.edition_id, (insightsCountByEdition.get(insight.edition_id) || 0) + 1)
+    }
+  })
 
-  // 최신 발행호의 edition_id로 리다이렉트
-  if (latestArticle.edition_id) {
-    redirect(`/news/${latestArticle.edition_id}`)
+  // 일반 인사이트 (edition_id가 null인 것) - 날짜순 정렬
+  const generalInsights = allInsights
+    .filter(insight => !insight.edition_id)
+    .sort((a, b) => {
+      const dateA = a.published_at ? new Date(a.published_at).getTime() : new Date(a.created_at).getTime()
+      const dateB = b.published_at ? new Date(b.published_at).getTime() : new Date(b.created_at).getTime()
+      return dateB - dateA // 최신순
+    })
+  
+  // 발행호에 인사이트 정보 추가 및 날짜별 정렬
+  type EditionWithInsights = typeof allEditions[0] & {
+    insightsCount: number
+    relatedInsights: typeof allInsights
   }
+  
+  const editionsWithInsights: EditionWithInsights[] = allEditions.map(edition => {
+    // 각 발행호별 고유 인사이트만 표시 (일반 인사이트 제외)
+    const editionSpecificInsights = insightsByEdition.get(edition.edition_id) || []
+    
+    return {
+      ...edition,
+      insightsCount: insightsCountByEdition.get(edition.edition_id) || 0,
+      relatedInsights: editionSpecificInsights.slice(0, 3) // 최대 3개만 표시
+    }
+  }).sort((a, b) => {
+    // published_at 기준으로 정렬 (최신순)
+    const dateA = a.published_at ? new Date(a.published_at).getTime() : 0
+    const dateB = b.published_at ? new Date(b.published_at).getTime() : 0
+    return dateB - dateA
+  })
 
-  // fallback: 직접 렌더링
-  const allEditions = await getAllEditions()
+  // 최신 인사이트 (일반 인사이트 또는 최신 발행호의 인사이트)
+  const latestInsights = allInsights
+    .sort((a, b) => {
+      // published_at 또는 created_at 기준 정렬
+      const dateA = a.published_at ? new Date(a.published_at).getTime() : new Date(a.created_at).getTime()
+      const dateB = b.published_at ? new Date(b.published_at).getTime() : new Date(b.created_at).getTime()
+      return dateB - dateA
+    })
+    .slice(0, 6)
 
   return (
-    <div className={styles.paper}>
-      {/* 헤더 */}
-      <header className={styles.magazineHeader}>
-        <div className={styles.topMeta}>
-          <span>VOL. {latestArticle.edition_id || 'LATEST'}</span>
-          <span>{formatEditionDate(latestArticle.edition_id)}</span>
-        </div>
-        
-        <div className={styles.brandLogoArea}>
-          <Link href="/" className={styles.logoHomeLink}>
-            <div className={styles.logoContainer}>
-              <Image
-                src="/assets/images/nexo_logo_black.png"
-                alt="NEXO 로고"
-                width={120}
-                height={40}
-                className={styles.nexoLogo}
-              />
-              <h1>DAILY</h1>
-            </div>
-          </Link>
-          <div className={styles.conceptBadge}>
-            <span className={styles.conceptIcon}>📰</span>
-            <span className={styles.conceptText}>
-              전자칠판 = 전자신문 | 매일 아침, 정보의 새로운 전달 방식
-            </span>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* 히어로 섹션 - 좌우 분할 레이아웃 */}
+      {latestArticle && (
+        <section className="border-b border-gray-200 bg-white">
+          <div className="container mx-auto max-w-7xl px-4 py-20 md:py-28">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              {/* 좌측: 텍스트 콘텐츠 */}
+              <div className="space-y-8">
+                <div className="flex items-center gap-4 text-sm text-gray-500 tracking-wide">
+                  <Badge variant="outline" className="border-nexo-navy text-nexo-navy font-normal rounded-none px-3 py-1">
+                    최신호
+                  </Badge>
+                  <span className="font-medium">{formatEditionDate(latestArticle.edition_id)}</span>
+                </div>
+                
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight">
+                  {latestArticle.title}
+                </h1>
+                
+                {latestArticle.subtitle && (
+                  <p className="text-xl md:text-2xl text-gray-600 leading-relaxed font-light">
+                    {latestArticle.subtitle}
+                  </p>
+                )}
+                
+                <div className="pt-4">
+                  <Link href={`/news/${latestArticle.edition_id}`}>
+                    <Button 
+                      size="lg" 
+                      className="bg-nexo-navy hover:bg-nexo-navy/90 text-white rounded-none px-10 py-7 text-base font-semibold tracking-wide shadow-sm"
+                    >
+                      기사 읽기
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
 
-          {/* 발행호 선택 드롭다운 */}
-          {allEditions.length > 0 && (
-            <div className={styles.editionNav}>
-              <EditionSelector 
-                editions={allEditions}
-                currentEditionId={latestArticle.edition_id || ''}
-              />
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* 메인 레이아웃 */}
-      <div className={styles.mainLayout}>
-        <main>
-          {/* 헤드라인 그룹 */}
-          <div className={styles.headlineGroup}>
-            <h2 className={styles.mainHeadline}>
-              {latestArticle.title}
-            </h2>
-            {latestArticle.subtitle && (
-              <p className={styles.subHeadline}>
-                {latestArticle.subtitle}
-              </p>
-            )}
-          </div>
-
-          {/* 히어로 섹션 */}
-          {latestArticle.thumbnail_url && (
-            <div className={styles.heroSection}>
-              <div className={styles.heroImage}>
-                <Image
-                  src={latestArticle.thumbnail_url}
-                  alt={latestArticle.title}
-                  width={800}
-                  height={400}
-                  className={styles.heroImageImg}
-                />
+              {/* 우측: 썸네일 이미지 */}
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 group shadow-lg">
+                {latestArticle.thumbnail_url ? (
+                  <Image
+                    src={latestArticle.thumbnail_url}
+                    alt={latestArticle.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    priority
+                  />
+                ) : (
+                  <>
+                    <Image
+                      src="/assets/images/아이와 엄마가 함께 공부하는 사진.png"
+                      alt="어머니와 아이가 함께 태블릿으로 학습하는 모습"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      priority
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
+                  </>
+                )}
               </div>
             </div>
-          )}
-
-          {/* 본문 콘텐츠 */}
-          {latestArticle.content && (
-            <div 
-              className={styles.heroDesc}
-              dangerouslySetInnerHTML={{ __html: latestArticle.content }}
-            />
-          )}
-        </main>
-
-        {/* 사이드바 */}
-        <aside className={styles.sidebar}>
-          <div className={styles.tipsBox}>
-            <h4>💡 실전 팁</h4>
-            <p>
-              <strong>QR 공유:</strong> 판서 내용을 즉시 PDF로 변환하여 학생들에게 전송하세요.
-            </p>
-            <p>
-              <strong>화면 분할:</strong> 한쪽에는 영상을, 다른 한쪽에는 판서를 동시에 진행하세요.
-            </p>
           </div>
-        </aside>
-      </div>
+        </section>
+      )}
 
-      {/* 푸터 */}
-      <footer className={styles.footer}>
-        (주)넥소 | 인천 서구 보듬로 158 블루텍 | Tel: 032-569-5771~2 | www.nexokorea.co.kr | Digital Transformation Partner
-      </footer>
+      {/* 최신 교육 뉴스 섹션 - 3열 그리드 */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto max-w-7xl px-4">
+          <div className="flex items-center justify-between mb-16">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">최신 교육 뉴스</h2>
+              <p className="text-gray-600 text-lg">매일 업데이트되는 교육 정보와 인사이트</p>
+            </div>
+            <Link href="/news" className="text-sm text-gray-500 hover:text-nexo-navy transition-colors font-medium hidden md:block">
+              전체 보기 →
+            </Link>
+          </div>
+          
+          {editionsWithInsights.filter(edition => edition.insightsCount > 0).length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-500 text-lg">발행된 인사이트가 없습니다.</p>
+              <p className="text-gray-400 text-sm mt-2">관리자 페이지에서 인사이트를 발행해주세요.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {editionsWithInsights
+                .filter(edition => edition.insightsCount > 0) // 인사이트가 있는 발행호만 표시
+                .slice(0, 6)
+                .map((edition) => {
+                // 해당 발행호와 연관된 인사이트 (발행호별 고유 인사이트만)
+                const editionInsights = edition.relatedInsights || []
+
+                return (
+                  <Link 
+                    key={edition.edition_id} 
+                    href={`/news/${edition.edition_id}`}
+                    className="group"
+                  >
+                    <article className="h-full flex flex-col bg-white hover:shadow-lg transition-all duration-300 border border-gray-200">
+                      {edition.thumbnail_url ? (
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                          <Image
+                            src={edition.thumbnail_url}
+                            alt={edition.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-nexo-navy/10 to-gray-100">
+                          <Image
+                            src="/assets/images/nexo_logo_black.png"
+                            alt={edition.title}
+                            fill
+                            className="object-contain p-8 opacity-60"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-center gap-2 mb-4 flex-wrap">
+                          <Badge variant="outline" className="text-xs border-gray-300 text-gray-600 font-normal rounded-none">
+                            {formatEditionDate(edition.edition_id)}
+                          </Badge>
+                          {edition.insightsCount > 0 && (
+                            <Badge variant="outline" className="text-xs border-nexo-cyan text-nexo-cyan bg-nexo-cyan/10">
+                              💡 인사이트 {edition.insightsCount}개
+                            </Badge>
+                          )}
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-nexo-navy transition-colors line-clamp-2 leading-tight">
+                          {edition.title}
+                        </h3>
+                        {edition.subtitle && (
+                          <p className="text-gray-600 text-sm line-clamp-2 mb-4 flex-1 leading-relaxed">
+                            {edition.subtitle}
+                          </p>
+                        )}
+                        
+                        {/* 관련 인사이트 미리보기 */}
+                        {editionInsights.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <p className="text-xs font-semibold text-gray-500 mb-2">관련 인사이트</p>
+                            <div className="space-y-2">
+                              {editionInsights.map((insight) => (
+                                <div key={insight.id} className="text-xs text-gray-600 line-clamp-1">
+                                  • {insight.title}
+                                </div>
+                              ))}
+                              {edition.insightsCount > editionInsights.length && (
+                                <div className="text-xs text-gray-400">
+                                  +{edition.insightsCount - editionInsights.length}개 더
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="text-xs text-gray-500 mt-auto pt-4 border-t border-gray-100">
+                          <span className="hover:text-nexo-navy transition-colors font-medium">기사 읽기 →</span>
+                        </div>
+                      </div>
+                    </article>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+
+          {/* 모바일 전체 보기 버튼 */}
+          <div className="mt-12 text-center md:hidden">
+            <Link href="/news">
+              <Button variant="outline" className="border-nexo-navy text-nexo-navy hover:bg-nexo-navy hover:text-white rounded-none">
+                전체 보기
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 메인 콘텐츠 영역 */}
+      <div className="container mx-auto max-w-7xl px-4 py-20">
+        <div className="grid lg:grid-cols-3 gap-20">
+          {/* 좌측: 주요 콘텐츠 (2/3 너비) */}
+          <div className="lg:col-span-2 space-y-24">
+            {/* 넥소 에디터 인사이트 섹션 */}
+            {latestInsights.length > 0 && (
+              <section>
+                <div className="mb-12">
+                  <h2 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">넥소 에디터 인사이트</h2>
+                  <p className="text-gray-600 text-lg">입시 전문가의 깊이 있는 분석과 조언</p>
+                </div>
+                
+                <div className="space-y-8">
+                  {latestInsights.map((insight) => (
+                    <Link 
+                      key={insight.id} 
+                      href={`/news${insight.edition_id ? `/${insight.edition_id}` : ''}#insight-${insight.id}`}
+                      className="block group"
+                    >
+                      <article className="border-l-4 border-nexo-cyan pl-8 py-6 hover:bg-gray-50/50 transition-colors">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-nexo-navy transition-colors line-clamp-2 leading-tight">
+                              {insight.title}
+                            </h3>
+                            {insight.summary && (
+                              <p className="text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+                                {insight.summary}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <Calendar className="w-4 h-4" />
+                              <span>{format(new Date(insight.created_at), 'yyyy년 M월 d일', { locale: ko })}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 현장 소식 & 후기 섹션 */}
+            <section>
+              <div className="grid md:grid-cols-2 gap-16">
+                {/* 현장 소식 */}
+                {latestFieldNews.length > 0 && (
+                  <div>
+                    <div className="mb-10">
+                      <h3 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">현장 소식</h3>
+                      <p className="text-gray-600 text-sm">전국 각지의 설치 현장</p>
+                    </div>
+                    
+                    <div className="space-y-8">
+                      {latestFieldNews.map((news: any) => (
+                        <Link 
+                          key={news.id} 
+                          href={`/field#news-${news.id}`}
+                          className="block group"
+                        >
+                          <article className="hover:shadow-md transition-shadow duration-300">
+                            {news.images && news.images.length > 0 ? (
+                              <div className="relative aspect-video w-full overflow-hidden bg-gray-100 mb-4">
+                                <Image
+                                  src={news.images[0]}
+                                  alt={news.title}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                              </div>
+                            ) : (
+                              <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 mb-4">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-gray-400 text-xs">이미지 준비 중</span>
+                                </div>
+                              </div>
+                            )}
+                            <div>
+                              <h4 className="text-xl font-bold text-gray-900 group-hover:text-nexo-navy transition-colors line-clamp-2 mb-2 leading-tight">
+                                {news.title}
+                              </h4>
+                              {news.location && (
+                                <p className="text-sm text-gray-500">
+                                  {news.location}
+                                </p>
+                              )}
+                            </div>
+                          </article>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 고객 후기 */}
+                {latestReviews.length > 0 && (
+                  <div>
+                    <div className="mb-10">
+                      <h3 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">고객 후기</h3>
+                      <p className="text-gray-600 text-sm">실제 사용자들의 생생한 후기</p>
+                    </div>
+                    
+                    <div className="space-y-8">
+                      {latestReviews.map((review) => (
+                        <Link 
+                          key={review.id} 
+                          href={`/reviews#review-${review.id}`}
+                          className="block group"
+                        >
+                          <article className="hover:shadow-md transition-shadow duration-300 p-6 border-l-2 border-gray-200 hover:border-nexo-navy">
+                            <div className="flex items-start justify-between gap-2 mb-3">
+                              <h4 className="text-xl font-bold text-gray-900 group-hover:text-nexo-navy transition-colors line-clamp-2 flex-1 leading-tight">
+                                {review.title}
+                              </h4>
+                              {review.rating && (
+                                <div className="flex items-center gap-1 text-yellow-500 flex-shrink-0">
+                                  <span className="text-base font-bold">{review.rating}</span>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+                              {review.content.replace(/<[^>]*>/g, '').substring(0, 100)}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Calendar className="w-3 h-3" />
+                              <span>{format(new Date(review.created_at), 'M월 d일', { locale: ko })}</span>
+                              {review.is_verified_review && (
+                                <Badge variant="outline" className="text-xs border-green-500 text-green-700 ml-2 rounded-none">
+                                  인증
+                                </Badge>
+                              )}
+                            </div>
+                          </article>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* 우측: 사이드바 (1/3 너비) */}
+          <aside className="lg:col-span-1 space-y-10">
+            {/* 전자칠판 상담 신청 배너 */}
+            <div className="bg-gradient-to-br from-nexo-navy to-nexo-navy/95 text-white p-10">
+              <h3 className="text-2xl font-bold mb-4">전자칠판 상담 신청</h3>
+              <p className="text-white/90 text-sm mb-8 leading-relaxed">
+                넥소 전자칠판을 직접 체험해보고, 학원 운영에 최적화된 솔루션을 확인하세요.
+              </p>
+              <Link href="/leads/demo">
+                <Button 
+                  className="w-full bg-white text-nexo-navy hover:bg-gray-100 rounded-none font-semibold shadow-sm"
+                >
+                  상담 신청하기
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* 자료실 배너 */}
+            <div className="border border-gray-200 p-10 bg-gray-50/50">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">자료실</h3>
+              <p className="text-gray-600 text-sm mb-8 leading-relaxed">
+                학원 운영에 유용한 자료를 다운로드하세요
+              </p>
+              <Link href="/resources">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-nexo-navy text-nexo-navy hover:bg-nexo-navy hover:text-white rounded-none font-semibold"
+                >
+                  자료실 바로가기
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
   )
 }

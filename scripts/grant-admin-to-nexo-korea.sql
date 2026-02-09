@@ -15,3 +15,4 @@ SELECT id, email, nickname, role
 FROM public.users
 WHERE email = 'nexo.korea.studio@gmail.com';
 
+

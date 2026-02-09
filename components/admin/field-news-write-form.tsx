@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createFieldNews } from '@/app/actions/field-news'
+import { createFieldNews, updateFieldNews } from '@/app/actions/field-news'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, X, Image as ImageIcon } from 'lucide-react'
+import { RichTextEditor, RichTextEditorHandle } from './rich-text-editor'
+import { AutoLayoutEditor } from './auto-layout-editor'
 
 interface FieldNewsWriteFormProps {
   userId: string
@@ -22,110 +23,211 @@ interface FieldNewsWriteFormProps {
 
 export function FieldNewsWriteForm({ userId, initialData }: FieldNewsWriteFormProps) {
   const router = useRouter()
+  
+  // content에서 이미지 URL 추출 함수 (브라우저에서만 실행)
+  const extractImageUrls = (html: string): string[] => {
+    if (typeof window === 'undefined' || !html) return []
+    
+    try {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(html, 'text/html')
+      const imgElements = doc.querySelectorAll('img')
+      const urls: string[] = []
+      imgElements.forEach((img) => {
+        const src = img.getAttribute('src')
+        if (src) {
+          urls.push(src)
+        }
+      })
+      return urls
+    } catch (error) {
+      console.error('이미지 URL 추출 오류:', error)
+      return []
+    }
+  }
+
+  // 초기값 설정 (서버 사이드에서도 안전하게)
+  const initialContent = initialData?.content || ''
   const [title, setTitle] = useState(initialData?.title || '')
-  const [content, setContent] = useState(initialData?.content || '')
+  const [content, setContent] = useState(initialContent)
   const [location, setLocation] = useState(initialData?.location || '')
   const [installationDate, setInstallationDate] = useState(
     initialData?.installation_date || ''
   )
+  
+  // images는 useEffect에서 초기화 (브라우저에서만 실행)
   const [images, setImages] = useState<string[]>(initialData?.images || [])
-  const [imageFiles, setImageFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
-
-    const newFiles = Array.from(files)
-    setImageFiles((prev) => [...prev, ...newFiles])
-
-    // 미리보기용 URL 생성
-    newFiles.forEach((file) => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const url = e.target?.result as string
-        setImages((prev) => [...prev, url])
+  const editorRef = React.useRef<RichTextEditorHandle>(null)
+  
+  // 에디터 모드 선택 (auto: 자동 배치, rich: 리치 텍스트 에디터)
+  const [editorMode, setEditorMode] = useState<'auto' | 'rich'>('auto')
+  
+  // 자동 레이아웃 에디터용 텍스트 상태
+  const [autoLayoutText, setAutoLayoutText] = useState(() => {
+    // 기존 content에서 텍스트만 추출 (이미지 제거)
+    if (typeof window !== 'undefined' && initialContent) {
+      try {
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(initialContent, 'text/html')
+        const paragraphs = Array.from(doc.querySelectorAll('p'))
+        return paragraphs.map(p => p.textContent || '').join('\n\n')
+      } catch {
+        return initialContent.replace(/<[^>]*>/g, '').trim()
       }
-      reader.readAsDataURL(file)
-    })
-  }
-
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index))
-    setImageFiles((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  const uploadImages = async (): Promise<string[]> => {
-    if (imageFiles.length === 0) {
-      return images.filter((img) => img.startsWith('http')) // 기존 URL은 그대로 유지
     }
+    return ''
+  })
 
-    setUploading(true)
-    const uploadedUrls: string[] = []
-
-    try {
-      // Supabase Storage에 업로드
-      // 실제 구현 시 Supabase Storage 사용
-      // 여기서는 임시로 base64 URL 사용 (실제로는 Storage에 업로드 필요)
-      
-      // TODO: Supabase Storage 연동
-      // const supabase = createClient()
-      // for (const file of imageFiles) {
-      //   const fileName = `${Date.now()}-${file.name}`
-      //   const { data, error } = await supabase.storage
-      //     .from('field-news')
-      //     .upload(fileName, file)
-      //   if (!error && data) {
-      //     const { data: urlData } = supabase.storage
-      //       .from('field-news')
-      //       .getPublicUrl(fileName)
-      //     uploadedUrls.push(urlData.publicUrl)
-      //   }
-      // }
-
-      // 임시: base64 URL 사용 (실제로는 Storage URL로 교체 필요)
-      return images.filter((img) => img.startsWith('http') || img.startsWith('data:'))
-    } catch (err: any) {
-      throw new Error('이미지 업로드 실패: ' + err.message)
-    } finally {
-      setUploading(false)
+  // 컴포넌트 마운트 시 content에서 이미지 추출하여 images 배열 초기화
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && initialContent) {
+      const extractedImages = extractImageUrls(initialContent)
+      if (extractedImages.length > 0) {
+        // initialData.images가 없거나 비어있으면 content에서 추출한 이미지 사용
+        if (!initialData?.images || initialData.images.length === 0) {
+          setImages(extractedImages)
+        }
+      }
     }
-  }
+  }, []) // 초기 마운트 시에만 실행
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    if (!title.trim() || !content.trim()) {
-      setError('제목과 내용을 입력해주세요.')
+    if (!title.trim()) {
+      setError('제목을 입력해주세요.')
+      setLoading(false)
+      return
+    }
+
+    // 제출 직전에 에디터의 최신 HTML을 다시 읽어서 content 업데이트
+    let finalContent = content
+    
+    console.log('🔄 제출 직전 에디터 HTML 확인 시작')
+    console.log('   typeof window:', typeof window)
+    console.log('   editorRef.current:', editorRef.current)
+    
+    if (typeof window !== 'undefined' && editorRef.current) {
+      const editorHtml = editorRef.current.getContent()?.trim() || ''
+      const currentContent = content.trim()
+      
+      if (editorHtml) {
+        console.log('🔄 제출 직전 에디터 HTML 확인')
+        console.log('   기존 content 길이:', currentContent.length)
+        console.log('   에디터 HTML 길이:', editorHtml.length)
+        console.log('   기존 content에 이미지:', currentContent.includes('<img'))
+        console.log('   에디터 HTML에 이미지:', editorHtml.includes('<img'))
+        
+        // 에디터에 이미지가 있는데 content에 없으면 무조건 에디터 HTML 사용
+        const hasImagesInEditor = editorHtml.includes('<img')
+        const hasImagesInContent = currentContent.includes('<img')
+        
+        if (hasImagesInEditor && !hasImagesInContent) {
+          console.log('   ⚠️ 에디터에 이미지가 있지만 content에 없음 - 에디터 HTML 사용')
+          finalContent = editorHtml
+          setContent(editorHtml) // state도 업데이트
+        } else if (hasImagesInEditor && editorHtml.length > currentContent.length) {
+          // 에디터 HTML이 더 길고 이미지가 있으면 에디터 HTML 사용
+          console.log('   ⚠️ 에디터 HTML이 더 길고 이미지 포함 - 에디터 HTML 사용')
+          finalContent = editorHtml
+          setContent(editorHtml)
+        } else if (hasImagesInEditor) {
+          // 에디터에 이미지가 있으면 무조건 에디터 HTML 사용 (안전장치)
+          console.log('   ✅ 에디터에 이미지 포함 - 에디터 HTML 사용')
+          finalContent = editorHtml
+          setContent(editorHtml)
+        } else if (editorHtml !== currentContent && editorHtml.length > 0) {
+          // 내용이 다르면 에디터 HTML 사용
+          console.log('   📝 내용이 다름 - 에디터 HTML 사용')
+          finalContent = editorHtml
+          setContent(editorHtml)
+        }
+        
+        console.log('   최종 content 길이:', finalContent.length)
+        console.log('   최종 content에 이미지:', finalContent.includes('<img'))
+      } else {
+        console.warn('⚠️ 제출 직전 에디터 확인 실패 - editorHtml이 비어있음')
+      }
+    } else {
+      console.warn('⚠️ 제출 직전 에디터 확인 실패 - editorRef.current가 null')
+    }
+
+    // content가 실제로 비어있는지 확인 (태그만 있거나 공백만 있는 경우)
+    const textContent = finalContent.replace(/<[^>]*>/g, '').trim()
+    const hasImages = finalContent.includes('<img')
+    
+    if (!textContent && !hasImages) {
+      setError('내용을 입력하거나 사진을 삽입해주세요.')
       setLoading(false)
       return
     }
 
     try {
-      // 이미지 업로드
-      const uploadedImageUrls = await uploadImages()
+      // content에서 이미지 URL 추출
+      const imageUrls = extractImageUrls(finalContent)
 
-      const result = await createFieldNews({
+      const isEditMode = !!initialData?.id
+
+      // content에 실제로 이미지가 포함되어 있는지 확인
+      const hasImagesInContent = finalContent.includes('<img')
+      const imageCountInContent = (finalContent.match(/<img/gi) || []).length
+      
+      console.log(isEditMode ? '📝 수정 데이터:' : '📝 작성 데이터:', {
+        id: initialData?.id,
         title,
-        content,
-        location: location || null,
-        installation_date: installationDate || null,
-        images: uploadedImageUrls.length > 0 ? uploadedImageUrls : null,
-        author_id: userId,
+        contentLength: finalContent.length,
+        hasImages: imageUrls.length > 0,
+        hasImagesInContent,
+        imageCountInContent,
+        imageUrlsCount: imageUrls.length,
+        location,
+        installationDate,
       })
+      
+      // 경고: 이미지가 추출되었지만 content에 없는 경우
+      if (imageUrls.length > 0 && !hasImagesInContent) {
+        console.warn('⚠️ 경고: 이미지 URL은 추출되었지만 content에 <img> 태그가 없습니다!')
+        console.warn('   Content:', finalContent.substring(0, 200))
+      }
+
+      let result
+
+      if (isEditMode) {
+        // 수정 모드
+        result = await updateFieldNews(initialData.id!, {
+          title,
+          content: finalContent || '',
+          location: location || null,
+          installation_date: installationDate || null,
+          images: imageUrls.length > 0 ? imageUrls : null,
+        })
+      } else {
+        // 작성 모드
+        result = await createFieldNews({
+          title,
+          content: finalContent || '', // HTML 형식으로 저장 (이미지 포함)
+          location: location || null,
+          installation_date: installationDate || null,
+          images: imageUrls.length > 0 ? imageUrls : null, // 이미지 URL 배열
+          author_id: userId,
+        })
+      }
+
+      console.log(isEditMode ? '📤 수정 결과:' : '📤 작성 결과:', result)
 
       if (result.success) {
         router.push('/admin/field-news')
         router.refresh()
       } else {
-        setError(result.error || '작성에 실패했습니다.')
+        setError(result.error || (isEditMode ? '수정에 실패했습니다.' : '작성에 실패했습니다.'))
       }
     } catch (err: any) {
-      setError(err.message || '작성 중 오류가 발생했습니다.')
+      console.error('❌ 오류:', err)
+      setError(err.message || '오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -168,65 +270,58 @@ export function FieldNewsWriteForm({ userId, initialData }: FieldNewsWriteFormPr
       </div>
 
       <div>
-        <Label>현장 사진</Label>
-        <div className="mt-2 space-y-4">
-          <div className="flex items-center gap-4">
-            <label
-              htmlFor="image-upload"
-              className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-nexo-cyan transition-colors"
+        <div className="flex items-center justify-between mb-2">
+          <Label htmlFor="content">현장 소식 내용 *</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={editorMode === 'auto' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setEditorMode('auto')}
             >
-              <Upload className="w-5 h-5" />
-              <span>사진 선택</span>
-            </label>
-            <input
-              id="image-upload"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageSelect}
-              className="hidden"
-            />
-            <span className="text-sm text-gray-500">
-              설치기사가 촬영한 현장 사진을 업로드하세요
-            </span>
+              자동 배치 모드
+            </Button>
+            <Button
+              type="button"
+              variant={editorMode === 'rich' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setEditorMode('rich')}
+            >
+              직접 편집 모드
+            </Button>
           </div>
-
-          {images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {images.map((imageUrl, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={imageUrl}
-                    alt={`현장 사진 ${index + 1}`}
-                    className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
+        </div>
+        <div className="mt-2">
+          {editorMode === 'auto' ? (
+            <AutoLayoutEditor
+              onContentChange={(html) => {
+                setContent(html)
+              }}
+              onImagesChange={(newImages) => {
+                setImages(newImages)
+              }}
+              onTextChange={(newText) => {
+                setAutoLayoutText(newText)
+              }}
+              initialText={autoLayoutText}
+              initialImages={images}
+            />
+          ) : (
+            <>
+              <RichTextEditor
+                ref={editorRef}
+                value={content}
+                onChange={setContent}
+                placeholder="설치 현장의 분위기와 특징을 자세히 설명해주세요. 텍스트 중간에 사진을 삽입할 수 있습니다."
+                images={images}
+                onImagesChange={setImages}
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                💡 네이버 카페 글 형식처럼 텍스트와 사진을 자연스럽게 섞어서 작성하세요. "사진 삽입" 버튼을 클릭하거나 이미지를 복사-붙여넣기하여 텍스트 중간에 사진을 넣을 수 있습니다.
+              </p>
+            </>
           )}
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="content">현장 분위기 설명 *</Label>
-        <textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="설치 현장의 분위기와 특징을 자세히 설명해주세요..."
-          className="mt-2 w-full min-h-[300px] p-3 border border-input rounded-md bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          required
-        />
-        <p className="mt-2 text-sm text-gray-500">
-          💡 설치 현장의 분위기, 고객 반응, 특별한 사항 등을 자세히 작성해주세요
-        </p>
       </div>
 
       {error && (
@@ -240,19 +335,22 @@ export function FieldNewsWriteForm({ userId, initialData }: FieldNewsWriteFormPr
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          disabled={loading || uploading}
+          disabled={loading}
         >
           취소
         </Button>
-        <Button type="submit" disabled={loading || uploading} className="flex-1">
-          {uploading
-            ? '이미지 업로드 중...'
-            : loading
-            ? '작성 중...'
+        <Button type="submit" disabled={loading} className="flex-1">
+          {loading
+            ? initialData?.id
+              ? '수정 중...'
+              : '작성 중...'
+            : initialData?.id
+            ? '수정하기'
             : '작성하기'}
         </Button>
       </div>
     </form>
   )
 }
+
 

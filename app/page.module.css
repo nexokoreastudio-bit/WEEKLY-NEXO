@@ -1,24 +1,25 @@
-/* 기존 CSS 스타일을 모듈화하여 사용 */
+/* 라이트바겐 스타일 적용 */
 
 .paper {
-  max-width: 1100px;
+  max-width: 100%;
   margin: 0 auto;
-  background: #fff;
-  padding: 40px 20px 56px;
+  background: #f9fafb;
+  padding: 0;
   box-shadow: none;
   position: relative;
-  border-left: 1px solid #e8e8e8;
-  border-right: 1px solid #e8e8e8;
 }
 
 @media (min-width: 768px) {
   .paper {
-    padding: 48px 40px 72px;
+    padding: 0;
   }
 }
 
 .magazineHeader {
-  margin-bottom: 30px;
+  background: white;
+  padding: 2rem 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .topMeta {
@@ -96,17 +97,20 @@
 }
 
 .mainLayout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 40px;
-  margin-top: 30px;
+  gap: 2rem;
   width: 100%;
 }
 
 @media (min-width: 1024px) {
   .mainLayout {
-    grid-template-columns: 1fr 300px;
-    gap: 48px;
+    grid-template-columns: 1fr 320px;
+    gap: 3rem;
+    padding: 3rem 2rem;
     align-items: start;
   }
 }
@@ -114,54 +118,63 @@
 .mainLayout > main {
   width: 100%;
   min-width: 0;
-  max-width: 45rem;
-  margin-right: auto;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+  .mainLayout > main {
+    padding: 3rem;
+  }
 }
 
 .headlineGroup {
-  border-bottom: none;
-  margin-bottom: 28px;
-  padding-bottom: 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
   max-width: 100%;
 }
 
 .mainHeadline {
-  font-family: 'Noto Serif KR', serif;
-  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
   word-break: keep-all;
-  margin: 0 0 10px 0;
-  color: #1a1a1a;
+  margin: 0 0 0.75rem 0;
+  color: #111827;
   letter-spacing: -0.02em;
 }
 
 .subHeadline {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 0.9375rem;
-  color: #666;
-  margin-top: 10px;
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .heroSection {
-  margin: 24px 0 32px;
+  margin: 2rem 0;
 }
 
 .heroImage {
   width: 100%;
-  max-height: 400px;
-  margin-bottom: 28px;
+  max-height: 500px;
+  margin-bottom: 0;
   border: none;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .heroImageImg {
   width: 100%;
   height: auto;
-  max-height: 400px;
+  max-height: 500px;
   display: block;
   object-fit: cover;
   object-position: center;
@@ -285,36 +298,129 @@
 
 .sidebar {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .tipsBox {
-  background: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
 }
 
 .tipsBox h4 {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 700;
-  margin-bottom: 12px;
-  color: #1a1a1a;
+  margin-bottom: 1rem;
+  color: #111827;
 }
 
 .tipsBox p {
   font-size: 0.875rem;
   line-height: 1.6;
-  margin-bottom: 8px;
-  color: #444;
+  margin-bottom: 0.75rem;
+  color: #4b5563;
+}
+
+.tipsBox p:last-child {
+  margin-bottom: 0;
+}
+
+.heroBanner {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+@media (min-width: 768px) {
+  .heroBanner {
+    height: 500px;
+  }
+}
+
+.heroBannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+}
+
+.heroBannerOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroBannerContent {
+  max-width: 1280px;
+  width: 100%;
+  padding: 2rem;
+  text-align: center;
+  color: white;
+}
+
+.heroBannerMeta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.heroBannerTitle {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.75rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.heroBannerSubtitle {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  opacity: 0.95;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.editionSelectorWrapper {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .footer {
-  margin-top: 60px;
-  padding-top: 30px;
-  border-top: 1px solid #e8e8e8;
+  margin-top: 4rem;
+  padding: 3rem 2rem;
+  background: white;
+  border-top: 1px solid #e5e7eb;
   text-align: center;
-  font-size: 0.8125rem;
-  color: #666;
+}
+
+.footerContent {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.footerContent p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.5rem 0;
 }
 
 .errorMessage {

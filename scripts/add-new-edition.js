@@ -137,3 +137,4 @@ async function proceedWithInsert(editionId, title, subtitle, category, content) 
 
 addNewEdition().catch(console.error);
 
+
