@@ -339,9 +339,10 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
               if (editorRef.current) {
                 const imgElements = editorRef.current.querySelectorAll('img[data-temp-image="true"], img')
                 imgElements.forEach((img) => {
-                  if (img.src === base64Data || img.getAttribute('data-temp-image') === 'true') {
-                    img.style.opacity = '1'
-                    img.removeAttribute('data-temp-image')
+                  const imgEl = img as HTMLImageElement
+                  if (imgEl.src === base64Data || imgEl.getAttribute('data-temp-image') === 'true') {
+                    imgEl.style.opacity = '1'
+                    imgEl.removeAttribute('data-temp-image')
                   }
                 })
                 
@@ -631,8 +632,9 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
                 if (editorRef.current) {
                   const imgElements = editorRef.current.querySelectorAll('img[data-temp-image="true"]')
                   imgElements.forEach((img) => {
-                    img.style.opacity = '1'
-                    img.removeAttribute('data-temp-image')
+                    const imgEl = img as HTMLImageElement
+                    imgEl.style.opacity = '1'
+                    imgEl.removeAttribute('data-temp-image')
                   })
                   handleInput()
                 }
