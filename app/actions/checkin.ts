@@ -4,7 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Database } from '@/types/database'
 
-type DailyCheckinInsert = Database['public']['Tables']['daily_checkins']['Insert']
+// daily_checkins 타입 정의 (Database 타입에서 추출)
+type DailyCheckinInsert = Database['public']['Tables']['daily_checkins'] extends { Insert: infer T } 
+  ? T 
+  : {
+      id?: number
+      user_id: string
+      checkin_date: string
+      created_at?: string
+    }
 
 /**
  * 일일 출석 체크인
@@ -43,7 +51,7 @@ export async function dailyCheckin(): Promise<{ success: boolean; error?: string
 
     const { error: insertError } = await supabase
       .from('daily_checkins')
-      .insert(checkinData)
+      .insert(checkinData as any)
 
     if (insertError) {
       console.error('출석 기록 실패:', insertError)
