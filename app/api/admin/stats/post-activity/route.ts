@@ -4,6 +4,8 @@ import { Database } from '@/types/database'
 import { format, subDays } from 'date-fns'
 
 type UserRow = Database['public']['Tables']['users']['Row']
+type PostRow = Database['public']['Tables']['posts']['Row']
+type PostActivityRow = Pick<PostRow, 'created_at' | 'board_type'>
 
 export async function GET() {
   try {
@@ -51,7 +53,8 @@ export async function GET() {
 
     // 게시글 데이터 집계
     if (posts) {
-      posts.forEach((post) => {
+      const typedPosts = posts as PostActivityRow[]
+      typedPosts.forEach((post) => {
         const dateKey = format(new Date(post.created_at), 'yyyy-MM-dd')
         if (dailyCounts[dateKey]) {
           if (post.board_type === 'review') {
