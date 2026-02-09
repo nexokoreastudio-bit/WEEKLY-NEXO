@@ -22,7 +22,29 @@ export async function InsightsSection({ editionId, previewMode = false }: Insigh
       }
     }
 
+    // 미리보기 모드일 때는 인사이트가 없어도 안내 메시지 표시
     if (!insights || insights.length === 0) {
+      if (previewMode) {
+        return (
+          <section className="mb-8">
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800 font-medium">
+                👁️ 관리자 미리보기 모드: 예약 발행된 인사이트도 표시됩니다.
+              </p>
+            </div>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              💡 학부모님 상담용 인사이트
+            </h2>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <p className="text-gray-500">
+                {editionId 
+                  ? `이 발행호(${editionId})에 연결된 인사이트가 없습니다.`
+                  : '등록된 인사이트가 없습니다.'}
+              </p>
+            </div>
+          </section>
+        )
+      }
       return null
     }
 

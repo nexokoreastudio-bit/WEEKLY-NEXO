@@ -715,7 +715,7 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
       query = query.or(`published_at.is.null,published_at.lte.${now}`)
     }
     // 미리보기 모드: 모든 인사이트 조회 (발행 여부 무관, published_at이 미래인 경우도 포함)
-    // 미리보기 모드: 모든 인사이트 조회 (발행 여부 무관, published_at이 미래인 경우도 포함)
+    // previewMode가 true이면 필터링 없이 모든 인사이트 조회
 
     if (editionId !== undefined) {
       if (editionId) {
