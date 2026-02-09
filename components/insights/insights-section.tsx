@@ -14,12 +14,18 @@ export async function InsightsSection({ editionId, previewMode = false }: Insigh
   try {
     const insights = await getInsights(editionId, previewMode)
 
-    // 디버깅: 인사이트 조회 결과 확인
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[InsightsSection] editionId: ${editionId}, 조회된 인사이트 수: ${insights?.length || 0}`)
-      if (insights && insights.length > 0) {
-        console.log('[InsightsSection] 인사이트 목록:', insights.map(i => ({ id: i.id, title: i.title, is_published: i.is_published, edition_id: i.edition_id })))
-      }
+    // 디버깅: 인사이트 조회 결과 확인 (프로덕션에서도 로그 출력)
+    console.log(`[InsightsSection] editionId: ${editionId}, previewMode: ${previewMode}, 조회된 인사이트 수: ${insights?.length || 0}`)
+    if (insights && insights.length > 0) {
+      console.log('[InsightsSection] 인사이트 목록:', insights.map(i => ({ 
+        id: i.id, 
+        title: i.title, 
+        is_published: i.is_published, 
+        edition_id: i.edition_id,
+        published_at: i.published_at 
+      })))
+    } else {
+      console.log('[InsightsSection] 인사이트가 없습니다. editionId:', editionId, 'previewMode:', previewMode)
     }
 
     // 미리보기 모드일 때는 인사이트가 없어도 안내 메시지 표시

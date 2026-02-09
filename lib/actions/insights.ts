@@ -719,9 +719,15 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
 
     if (editionId !== undefined) {
       if (editionId) {
-        // 특정 editionId가 주어진 경우: 해당 edition_id에만 연결된 인사이트만 조회
-        // 일반 인사이트(edition_id = null)는 제외하여 다른 발행호에 표시되지 않도록 함
-        query = query.eq('edition_id', editionId)
+        // 특정 editionId가 주어진 경우
+        if (previewMode) {
+          // 미리보기 모드: 해당 edition_id에 연결된 인사이트 + 일반 인사이트(edition_id = null) 모두 표시
+          query = query.or(`edition_id.eq.${editionId},edition_id.is.null`)
+        } else {
+          // 일반 모드: 해당 edition_id에만 연결된 인사이트만 조회
+          // 일반 인사이트(edition_id = null)는 제외하여 다른 발행호에 표시되지 않도록 함
+          query = query.eq('edition_id', editionId)
+        }
       } else {
         // editionId가 명시적으로 null로 전달된 경우: 일반 인사이트만
         query = query.is('edition_id', null)
