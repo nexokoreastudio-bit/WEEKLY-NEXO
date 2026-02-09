@@ -25,7 +25,8 @@ export function HeaderClient() {
           .eq('id', user.id)
           .maybeSingle()
         
-        if (profileData && profileData.role === 'admin') {
+        const profile = profileData as { role: string | null } | null
+        if (profile && profile.role === 'admin') {
           setIsAdmin(true)
         }
       }

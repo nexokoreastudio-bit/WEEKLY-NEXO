@@ -731,9 +731,11 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
 
     const { data, error } = await query
 
+    // 타입 캐스팅
+    const typedData = data as InsightRow[] | null
+
     // 디버깅: 개발 환경에서 상세 로그 출력
     if (process.env.NODE_ENV === 'development') {
-      const typedData = data as InsightRow[] | null
       console.log(`[getInsights] editionId: ${editionId || 'null'}`)
       console.log(`[getInsights] 쿼리 결과:`, { 
         count: typedData?.length || 0, 

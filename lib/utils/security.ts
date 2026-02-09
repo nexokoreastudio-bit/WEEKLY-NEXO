@@ -22,7 +22,8 @@ export async function isAdmin(): Promise<boolean> {
       .eq('id', user.id)
       .single()
 
-    return profile?.role === 'admin'
+    const profileData = profile as { role: string | null } | null
+    return profileData?.role === 'admin'
   } catch (error) {
     console.error('관리자 권한 확인 실패:', error)
     return false

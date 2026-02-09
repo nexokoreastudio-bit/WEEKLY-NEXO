@@ -219,7 +219,8 @@ export async function deletePost(
       .eq('id', userId)
       .single()
 
-    const isAdmin = profile?.role === 'admin'
+    const profileData = profile as { role: string | null } | null
+    const isAdmin = profileData?.role === 'admin'
     const isAuthor = post.author_id === userId
 
     // 작성자 본인 또는 관리자만 삭제 가능
