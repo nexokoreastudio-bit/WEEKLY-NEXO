@@ -23,7 +23,6 @@ export function HeaderClient() {
           .from('users')
           .select('role')
           .eq('id', user.id)
-          .single()
           .maybeSingle()
         
         if (profileData && profileData.role === 'admin') {
