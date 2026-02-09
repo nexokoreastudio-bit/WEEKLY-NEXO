@@ -124,7 +124,7 @@ export function ReferralSection({ userId }: { userId: string }) {
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             </Button>
-            {typeof navigator !== 'undefined' && navigator.share && (
+            {typeof navigator !== 'undefined' && 'share' in navigator && (
               <Button
                 variant="outline"
                 size="sm"
