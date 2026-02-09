@@ -857,7 +857,8 @@ export async function bulkPublishInsightsByDate(date: string, publish: boolean) 
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  const profileData = profile as Pick<Database['public']['Tables']['users']['Row'], 'role'> | null
+  if (profileData?.role !== 'admin') {
     return { error: '관리자 권한이 필요합니다.' }
   }
 
@@ -909,7 +910,8 @@ export async function toggleInsightPublish(id: number, isPublished: boolean) {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  const profileData = profile as Pick<Database['public']['Tables']['users']['Row'], 'role'> | null
+  if (profileData?.role !== 'admin') {
     return { error: '관리자 권한이 필요합니다.' }
   }
 
