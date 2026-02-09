@@ -5,6 +5,15 @@ import { revalidatePath } from 'next/cache'
 import { Database } from '@/types/database'
 
 // daily_checkins 타입 정의 (Database 타입에서 추출)
+type DailyCheckinRow = Database['public']['Tables']['daily_checkins'] extends { Row: infer T } 
+  ? T 
+  : {
+      id: number
+      user_id: string
+      checkin_date: string
+      created_at: string
+    }
+
 type DailyCheckinInsert = Database['public']['Tables']['daily_checkins'] extends { Insert: infer T } 
   ? T 
   : {
@@ -114,12 +123,15 @@ export async function getCheckinStreak(): Promise<{ streak: number; error?: stri
     }
 
     // 최근 출석 기록 가져오기 (최신순)
-    const { data: checkins } = await supabase
+    const { data: checkinsData } = await supabase
       .from('daily_checkins')
       .select('checkin_date')
       .eq('user_id', user.id)
       .order('checkin_date', { ascending: false })
       .limit(30) // 최근 30일만 확인
+
+    // 타입 명시적으로 지정
+    const checkins: Pick<DailyCheckinRow, 'checkin_date'>[] = (checkinsData || []) as any
 
     if (!checkins || checkins.length === 0) {
       return { streak: 0 }
