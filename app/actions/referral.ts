@@ -24,8 +24,10 @@ export async function generateUserReferralCode(userId: string): Promise<{ succes
       .eq('id', userId)
       .single()
 
-    if (existingUser?.referrer_code) {
-      return { success: true, code: existingUser.referrer_code }
+    // 타입 안전성을 위해 명시적 타입 지정
+    const userData = existingUser as Pick<UserRow, 'referrer_code'> | null
+    if (userData?.referrer_code) {
+      return { success: true, code: userData.referrer_code }
     }
 
     // 고유한 코드 생성 (중복 체크)
@@ -42,7 +44,7 @@ export async function generateUserReferralCode(userId: string): Promise<{ succes
         .eq('referrer_code', newCode)
         .single()
 
-      if (!existing) {
+      if (!(existing as Pick<UserRow, 'id'> | null)) {
         isUnique = true
       }
       attempts++
@@ -58,8 +60,8 @@ export async function generateUserReferralCode(userId: string): Promise<{ succes
       updated_at: new Date().toISOString(),
     }
 
-    const { error } = await supabase
-      .from('users')
+    const { error } = await (supabase
+      .from('users') as any)
       .update(updateData)
       .eq('id', userId)
 
@@ -100,12 +102,13 @@ export async function processReferralSignup(
       .eq('referrer_code', normalizedCode)
       .single()
 
-    if (!referrer) {
+    const referrerData = referrer as Pick<UserRow, 'id' | 'point'> | null
+    if (!referrerData) {
       return { success: false, error: '추천인을 찾을 수 없습니다.' }
     }
 
     // 자기 자신을 추천인으로 등록하는 것 방지
-    if (referrer.id === newUserId) {
+    if (referrerData.id === newUserId) {
       return { success: false, error: '자기 자신을 추천인으로 등록할 수 없습니다.' }
     }
 
@@ -117,53 +120,54 @@ export async function processReferralSignup(
       .eq('id', newUserId)
       .single()
 
-    if (newUser) {
+    const newUserData = newUser as Pick<UserRow, 'point'> | null
+    if (newUserData) {
       const newUserUpdateData: UserUpdate = {
-        point: (newUser.point || 0) + welcomePoints,
+        point: (newUserData.point || 0) + welcomePoints,
         updated_at: new Date().toISOString(),
       }
 
-      await supabase
-        .from('users')
+      await (supabase
+        .from('users') as any)
         .update(newUserUpdateData)
         .eq('id', newUserId)
 
       // 포인트 로그 기록
-      const newUserLogData: ExtendedPointLogInsert = {
+      const newUserLogData: PointLogInsert = {
         user_id: newUserId,
         amount: welcomePoints,
         reason: 'referral_signup_welcome',
         related_id: null,
         related_type: null,
-      }
-      await supabase.from('point_logs').insert(newUserLogData as PointLogInsert)
+      } as PointLogInsert
+      await (supabase.from('point_logs') as any).insert(newUserLogData)
     }
 
     // 추천인에게 추천 포인트 지급 (50포인트)
     const referralPoints = 50
     const referrerUpdateData: UserUpdate = {
-      point: (referrer.point || 0) + referralPoints,
+      point: (referrerData.point || 0) + referralPoints,
       updated_at: new Date().toISOString(),
     }
 
-    const { error: referrerUpdateError } = await supabase
-      .from('users')
+    const { error: referrerUpdateError } = await (supabase
+      .from('users') as any)
       .update(referrerUpdateData)
-      .eq('id', referrer.id)
+      .eq('id', referrerData.id)
 
     if (referrerUpdateError) {
       console.error('추천인 포인트 지급 실패:', referrerUpdateError)
       // 신규 사용자 포인트는 이미 지급되었으므로 계속 진행
     } else {
       // 추천인 포인트 로그 기록
-      const referrerLogData: ExtendedPointLogInsert = {
-        user_id: referrer.id,
+      const referrerLogData: PointLogInsert = {
+        user_id: referrerData.id,
         amount: referralPoints,
         reason: 'referral_reward',
         related_id: null,
         related_type: null,
-      }
-      await supabase.from('point_logs').insert(referrerLogData as PointLogInsert)
+      } as PointLogInsert
+      await (supabase.from('point_logs') as any).insert(referrerLogData)
     }
 
     revalidatePath('/mypage')
@@ -191,13 +195,16 @@ export async function getUserReferralCode(userId: string): Promise<{ code: strin
       return { code: null, error: '추천인 코드를 가져올 수 없습니다.' }
     }
 
+    // 타입 안전성을 위해 명시적 타입 지정
+    const userData = data as Pick<UserRow, 'referrer_code'> | null
+
     // 코드가 없으면 생성
-    if (!data?.referrer_code) {
+    if (!userData?.referrer_code) {
       const result = await generateUserReferralCode(userId)
       return { code: result.code || null, error: result.error }
     }
 
-    return { code: data.referrer_code }
+    return { code: userData.referrer_code }
   } catch (error: any) {
     return { code: null, error: error.message || '알 수 없는 오류가 발생했습니다.' }
   }
