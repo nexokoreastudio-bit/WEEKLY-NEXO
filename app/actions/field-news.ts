@@ -6,6 +6,7 @@ import { Database } from '@/types/database'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 type FieldNewsUpdate = Database['public']['Tables']['field_news']['Update']
+type FieldNewsRow = Database['public']['Tables']['field_news']['Row']
 
 interface CreateFieldNewsData {
   title: string
@@ -358,7 +359,8 @@ export async function incrementFieldNewsViews(
       .eq('id', id)
       .single()
 
-    const currentViews = currentData?.views || 0
+    // 타입 안전성을 위해 명시적 타입 지정
+    const currentViews = (currentData as Pick<FieldNewsRow, 'views'> | null)?.views || 0
 
     // 조회수 증가
     const updateData: FieldNewsUpdate = {
