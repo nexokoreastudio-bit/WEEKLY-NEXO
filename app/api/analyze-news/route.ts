@@ -145,8 +145,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 2. article 태그에서 텍스트 추출
-      const articleMatch = sanitizedHtml.match(/<article[^>]*>([\s\S]{0,10000})<\/article>/i)
+      // 2. article 태그에서 텍스트 추출 (범위 확대)
+      const articleMatch = sanitizedHtml.match(/<article[^>]*>([\s\S]{0,50000})<\/article>/i)
       if (articleMatch) {
         const articleContent = extractTextFromHtml(articleMatch[1])
         if (articleContent.length > articleText.length) {
@@ -154,27 +154,70 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // 3. div.content, div.article-content 등 일반적인 본문 클래스에서 추출
-      const contentDivMatch = sanitizedHtml.match(/<div[^>]*class=["'][^"']*(?:content|article|body|text|본문)[^"']*["'][^>]*>([\s\S]{0,10000})<\/div>/i)
-      if (contentDivMatch) {
-        const contentText = extractTextFromHtml(contentDivMatch[1])
-        if (contentText.length > articleText.length) {
-          articleText = contentText.substring(0, 3000)
-        }
-      }
-
-      // 4. 본문이 없으면 body에서 추출 시도 (더 많은 텍스트 추출)
-      if (!articleText || articleText.length < 100) {
-        const bodyMatch = sanitizedHtml.match(/<body[^>]*>([\s\S]{0,15000})<\/body>/i)
-        if (bodyMatch) {
-          const bodyText = extractTextFromHtml(bodyMatch[1])
-          if (bodyText.length > articleText.length) {
-            articleText = bodyText.substring(0, 3000)
+      // 3. div.content, div.article-content 등 일반적인 본문 클래스에서 추출 (패턴 확대)
+      const contentPatterns = [
+        /<div[^>]*class=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/div>/i,
+        /<div[^>]*id=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/div>/i,
+        /<section[^>]*class=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/section>/i,
+        /<main[^>]*>([\s\S]{0,50000})<\/main>/i,
+      ]
+      
+      for (const pattern of contentPatterns) {
+        const matches = sanitizedHtml.matchAll(new RegExp(pattern.source, pattern.flags))
+        for (const match of matches) {
+          if (match[1]) {
+            const contentText = extractTextFromHtml(match[1])
+            // 최소 100자 이상인 텍스트만 고려 (노이즈 제거)
+            if (contentText.length > 100 && contentText.length > articleText.length) {
+              articleText = contentText.substring(0, 3000)
+            }
           }
         }
       }
 
-      // 5. 최소 길이 요구사항 완화 (한국어 사이트의 경우)
+      // 4. p 태그들을 모아서 본문 추출 (뉴스 사이트에서 흔한 패턴)
+      if (!articleText || articleText.length < 100) {
+        const pMatches = sanitizedHtml.matchAll(/<p[^>]*>([\s\S]{0,2000})<\/p>/gi)
+        const pTexts: string[] = []
+        for (const match of pMatches) {
+          if (match[1]) {
+            const pText = extractTextFromHtml(match[1])
+            // 최소 20자 이상인 문단만 고려
+            if (pText.length > 20 && !pText.match(/^(댓글|좋아요|응원수|공유|로그인|회원가입|이메일|전화번호)/i)) {
+              pTexts.push(pText)
+            }
+          }
+        }
+        if (pTexts.length > 0) {
+          const combinedPText = pTexts.join(' ').substring(0, 3000)
+          if (combinedPText.length > articleText.length) {
+            articleText = combinedPText
+          }
+        }
+      }
+
+      // 5. 본문이 없으면 body에서 추출 시도 (더 많은 텍스트 추출, 범위 확대)
+      if (!articleText || articleText.length < 100) {
+        const bodyMatch = sanitizedHtml.match(/<body[^>]*>([\s\S]{0,100000})<\/body>/i)
+        if (bodyMatch) {
+          const bodyText = extractTextFromHtml(bodyMatch[1])
+          // body에서 추출한 텍스트가 너무 길면 본문 부분만 추출 시도
+          if (bodyText.length > 100) {
+            // 본문으로 보이는 긴 연속 텍스트 블록 찾기
+            const sentences = bodyText.split(/[.!?]\s+/).filter(s => s.length > 30)
+            if (sentences.length > 3) {
+              const mainContent = sentences.slice(0, 20).join('. ').substring(0, 3000)
+              if (mainContent.length > articleText.length) {
+                articleText = mainContent
+              }
+            } else if (bodyText.length > articleText.length) {
+              articleText = bodyText.substring(0, 3000)
+            }
+          }
+        }
+      }
+
+      // 6. 최소 길이 요구사항 완화 (한국어 사이트의 경우)
       if (!articleText || articleText.length < 30) {
         throw new Error('기사 본문을 추출할 수 없습니다.')
       }
