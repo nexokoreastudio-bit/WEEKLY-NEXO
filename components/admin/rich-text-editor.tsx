@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react'
-import { Upload, X, Image as ImageIcon } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { uploadImageToStorage } from '@/app/actions/upload-image'
 import { compressImage, needsCompression } from '@/lib/utils/image-compress'
 
@@ -39,6 +40,8 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
   }), [])
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
+  const [showVideoDialog, setShowVideoDialog] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
 
   // 초기값 설정
   useEffect(() => {
@@ -670,6 +673,114 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     }
   }
 
+  // YouTube/Vimeo URL을 embed URL로 변환
+  const convertToEmbedUrl = (url: string): string | null => {
+    try {
+      // YouTube URL 처리
+      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+      const youtubeMatch = url.match(youtubeRegex)
+      if (youtubeMatch) {
+        return `https://www.youtube.com/embed/${youtubeMatch[1]}`
+      }
+
+      // Vimeo URL 처리
+      const vimeoRegex = /(?:vimeo\.com\/)(\d+)/
+      const vimeoMatch = url.match(vimeoRegex)
+      if (vimeoMatch) {
+        return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+      }
+
+      // 이미 embed URL인 경우
+      if (url.includes('youtube.com/embed') || url.includes('youtu.be/') || url.includes('vimeo.com/video')) {
+        return url
+      }
+
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const handleVideoInsert = () => {
+    if (!videoUrl.trim()) {
+      alert('동영상 URL을 입력해주세요.')
+      return
+    }
+
+    const embedUrl = convertToEmbedUrl(videoUrl.trim())
+    if (!embedUrl) {
+      alert('YouTube 또는 Vimeo URL을 입력해주세요.')
+      return
+    }
+
+    if (!editorRef.current) return
+
+    const selection = window.getSelection()
+    let range: Range | null = null
+
+    try {
+      if (selection && selection.rangeCount > 0) {
+        range = selection.getRangeAt(0)
+      } else {
+        range = document.createRange()
+        range.selectNodeContents(editorRef.current)
+        range.collapse(false)
+      }
+    } catch {
+      range = document.createRange()
+      if (editorRef.current.lastChild) {
+        range.setStartAfter(editorRef.current.lastChild)
+      } else {
+        range.setStart(editorRef.current, 0)
+      }
+      range.collapse(false)
+    }
+
+    // 동영상 iframe 생성
+    const videoWrapper = document.createElement('div')
+    videoWrapper.className = 'field-news-video-wrapper'
+    videoWrapper.style.textAlign = 'center'
+    videoWrapper.style.margin = '32px 0'
+    videoWrapper.style.position = 'relative'
+    videoWrapper.style.paddingBottom = '56.25%' // 16:9 비율
+    videoWrapper.style.height = '0'
+    videoWrapper.style.overflow = 'hidden'
+
+    const iframe = document.createElement('iframe')
+    iframe.src = embedUrl
+    iframe.style.position = 'absolute'
+    iframe.style.top = '0'
+    iframe.style.left = '0'
+    iframe.style.width = '100%'
+    iframe.style.height = '100%'
+    iframe.style.border = 'none'
+    iframe.style.borderRadius = '12px'
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture')
+    iframe.setAttribute('allowFullScreen', 'true')
+    iframe.setAttribute('frameborder', '0')
+
+    videoWrapper.appendChild(iframe)
+
+    if (range) {
+      range.insertNode(videoWrapper)
+      const br = document.createElement('br')
+      range.setStartAfter(videoWrapper)
+      range.insertNode(br)
+      range.collapse(false)
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(range)
+      }
+    } else {
+      editorRef.current.appendChild(videoWrapper)
+      editorRef.current.appendChild(document.createElement('br'))
+    }
+
+    handleInput()
+    setVideoUrl('')
+    setShowVideoDialog(false)
+  }
+
   return (
     <div className="space-y-4">
       {/* 툴바 */}
@@ -690,10 +801,62 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
           className="hidden"
           disabled={uploading}
         />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setShowVideoDialog(true)}
+          className="flex items-center gap-2"
+        >
+          <Video className="w-4 h-4" />
+          <span>동영상 삽입</span>
+        </Button>
         {uploading && (
           <span className="text-sm text-gray-500">이미지 처리 중...</span>
         )}
       </div>
+
+      {/* 동영상 삽입 다이얼로그 */}
+      {showVideoDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold mb-4">동영상 삽입</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              YouTube 또는 Vimeo URL을 입력하세요.
+            </p>
+            <Input
+              type="text"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+              className="mb-4"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleVideoInsert()
+                }
+              }}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowVideoDialog(false)
+                  setVideoUrl('')
+                }}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                onClick={handleVideoInsert}
+              >
+                삽입
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 에디터 영역 */}
       <div
@@ -727,7 +890,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
 
       {/* 도움말 */}
       <p className="text-xs text-gray-500">
-        💡 텍스트를 입력하고, "사진 삽입" 버튼을 클릭하거나 이미지를 복사-붙여넣기하여 텍스트 중간에 사진을 넣을 수 있습니다.
+        💡 텍스트를 입력하고, "사진 삽입" 버튼을 클릭하거나 이미지를 복사-붙여넣기하여 텍스트 중간에 사진을 넣을 수 있습니다. "동영상 삽입" 버튼으로 YouTube 또는 Vimeo 동영상을 삽입할 수 있습니다.
       </p>
     </div>
   )

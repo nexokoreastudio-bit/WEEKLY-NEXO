@@ -240,7 +240,7 @@
   margin-bottom: 20px;
   word-wrap: break-word;
   white-space: pre-wrap;
-  text-align: left;
+  text-align: center;
   max-width: 100%;
 }
 
@@ -252,7 +252,7 @@
   margin-bottom: 32px;
   word-wrap: break-word;
   white-space: pre-wrap;
-  text-align: left;
+  text-align: center;
   max-width: 100%;
 }
 
@@ -262,6 +262,32 @@
   position: relative;
   width: 100%;
   margin: 32px 0;
+  text-align: center;
+}
+
+/* 동영상 래퍼 스타일 */
+.description :global(.field-news-video-wrapper),
+.detailDescription :global(.field-news-video-wrapper) {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 32px auto;
+  padding-bottom: 56.25%; /* 16:9 비율 */
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.description :global(.field-news-video-wrapper iframe),
+.detailDescription :global(.field-news-video-wrapper iframe) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 12px;
 }
 
 .description :global(img.field-news-image),
@@ -304,6 +330,7 @@
   font-size: 1.0625rem;
   word-break: keep-all;
   overflow-wrap: break-word;
+  text-align: center;
 }
 
 /* 첫 번째 문단 스타일 */

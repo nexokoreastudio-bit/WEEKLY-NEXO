@@ -15,6 +15,13 @@ interface CreateFieldNewsData {
   installation_date?: string | null
   images?: string[] | null
   author_id: string
+  store_name?: string | null
+  model?: string | null
+  additional_cables?: string | null
+  stand?: string | null
+  wall_mount?: string | null
+  payment?: string | null
+  notes?: string | null
 }
 
 /**
@@ -67,6 +74,13 @@ export async function createFieldNews(
       author_id: data.author_id,
       is_published: false, // 기본값은 임시저장
       views: 0,
+      store_name: data.store_name || null,
+      model: data.model || null,
+      additional_cables: data.additional_cables || null,
+      stand: data.stand || null,
+      wall_mount: data.wall_mount || null,
+      payment: data.payment || null,
+      notes: data.notes || null,
     }
     
     if (process.env.NODE_ENV === 'development') {
@@ -152,6 +166,13 @@ export async function updateFieldNews(
       installation_date: data.installation_date,
       images: data.images,
       updated_at: new Date().toISOString(),
+      store_name: data.store_name,
+      model: data.model,
+      additional_cables: data.additional_cables,
+      stand: data.stand,
+      wall_mount: data.wall_mount,
+      payment: data.payment,
+      notes: data.notes,
     }
     
     const { error } = await (adminSupabase

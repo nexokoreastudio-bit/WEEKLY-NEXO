@@ -73,6 +73,13 @@ export default async function EditFieldNewsPage({ params }: PageProps) {
           location: news.location || undefined,
           installation_date: news.installation_date || undefined,
           images: news.images || undefined,
+          store_name: news.store_name || undefined,
+          model: news.model || undefined,
+          additional_cables: news.additional_cables || undefined,
+          stand: news.stand || undefined,
+          wall_mount: news.wall_mount || undefined,
+          payment: news.payment || undefined,
+          notes: news.notes || undefined,
         }}
       />
     </div>

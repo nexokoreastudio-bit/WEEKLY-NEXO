@@ -9,6 +9,9 @@ import { ko } from 'date-fns/locale'
 import { ArrowLeft, MessageSquare, HelpCircle, Lightbulb, ShoppingBag } from 'lucide-react'
 import { HtmlContent } from '@/components/html-content'
 import { DeletePostButton } from '@/components/community/delete-post-button'
+import { LikeButton } from '@/components/community/like-button'
+import { CommentsSection } from '@/components/community/comments-section'
+import { checkUserLiked } from '@/app/actions/likes'
 import { Database } from '@/types/database'
 import { JsonLd } from '@/components/seo/json-ld'
 import styles from '../community.module.css'
@@ -56,6 +59,9 @@ export default async function PostDetailPage({ params }: PageProps) {
   }
 
   const canDelete = isAuthor || isAdmin
+
+  // 좋아요 상태 확인
+  const isLiked = user ? await checkUserLiked(post.id, user.id) : false
   const boardInfo = post.board_type && post.board_type in BOARD_TYPE_INFO 
     ? BOARD_TYPE_INFO[post.board_type as keyof typeof BOARD_TYPE_INFO] 
     : null
@@ -158,8 +164,16 @@ export default async function PostDetailPage({ params }: PageProps) {
 
         <div className={styles.postDetailFooter}>
           <div className={styles.postStats}>
-            <span>👍 {post.likes_count}</span>
-            <span>💬 {post.comments_count}</span>
+            <LikeButton
+              postId={post.id}
+              userId={user?.id || null}
+              initialLikesCount={post.likes_count}
+              initialIsLiked={isLiked}
+            />
+            <span className="flex items-center gap-1">
+              <MessageSquare className="w-4 h-4" />
+              {post.comments_count}
+            </span>
           </div>
 
           {canDelete && (
@@ -175,11 +189,13 @@ export default async function PostDetailPage({ params }: PageProps) {
         </div>
       </article>
 
-      {/* 댓글 섹션 (향후 구현) */}
-      <div className={styles.commentsSection}>
-        <h2 className={styles.commentsTitle}>💬 댓글 ({post.comments_count})</h2>
-        <p className={styles.commentsComingSoon}>댓글 기능은 곧 추가될 예정입니다.</p>
-      </div>
+      {/* 댓글 섹션 */}
+      <CommentsSection
+        postId={post.id}
+        userId={user?.id || null}
+        initialCommentsCount={post.comments_count}
+        isAdmin={isAdmin}
+      />
     </div>
     </>
   )

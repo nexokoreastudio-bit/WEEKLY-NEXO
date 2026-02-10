@@ -245,9 +245,18 @@ CREATE POLICY "Users can delete own comments" ON public.comments
 CREATE POLICY "Likes are viewable by everyone" ON public.likes
   FOR SELECT USING (true);
 
--- 인증된 사용자는 좋아요 추가/삭제 가능
-CREATE POLICY "Authenticated users can manage likes" ON public.likes
-  FOR ALL USING (auth.role() = 'authenticated');
+-- 인증된 사용자는 자신의 좋아요를 추가할 수 있음
+CREATE POLICY "Authenticated users can insert likes" ON public.likes
+  FOR INSERT 
+  WITH CHECK (
+    auth.role() = 'authenticated' 
+    AND auth.uid() = user_id
+  );
+
+-- 사용자는 자신의 좋아요를 삭제할 수 있음
+CREATE POLICY "Users can delete own likes" ON public.likes
+  FOR DELETE 
+  USING (auth.uid() = user_id);
 
 -- ============================================
 -- RLS 정책: 자료실 (resources)

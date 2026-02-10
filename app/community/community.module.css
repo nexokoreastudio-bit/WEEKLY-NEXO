@@ -392,6 +392,115 @@
   font-style: italic;
 }
 
+.commentForm {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.commentLoginPrompt {
+  margin-bottom: 32px;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.commentLoginPrompt p {
+  margin-bottom: 12px;
+  color: #666;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.commentsLoading,
+.commentsEmpty {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.commentItem {
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.commentAuthor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commentAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.commentAvatarPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.commentAuthorName {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.9375rem;
+}
+
+.commentDate {
+  color: #999;
+  font-size: 0.875rem;
+}
+
+.commentDeleteButton {
+  color: #999;
+  padding: 4px;
+}
+
+.commentDeleteButton:hover {
+  color: #c00;
+  background: #fee;
+}
+
+.commentContent {
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.commentContent p {
+  margin-bottom: 8px;
+}
+
+.commentContent p:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 20px 16px;
@@ -420,6 +529,19 @@
 
   .postDetailTitle {
     font-size: 1.5rem;
+  }
+
+  .commentsSection {
+    padding: 20px;
+  }
+
+  .commentItem {
+    padding: 16px;
+  }
+
+  .commentForm {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
   }
 }
 
