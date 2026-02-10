@@ -100,11 +100,12 @@ const nextConfig = {
           cacheGroups: {
             default: false,
             vendors: false,
-            // 공통 라이브러리 분리
+            // 공통 라이브러리 분리 (CSS 제외)
             vendor: {
               name: 'vendor',
               chunks: 'all',
               test: /node_modules/,
+              type: 'javascript/auto', // JavaScript만 처리
               priority: 20,
             },
             // Supabase 분리
@@ -112,6 +113,7 @@ const nextConfig = {
               name: 'supabase',
               chunks: 'all',
               test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+              type: 'javascript/auto', // JavaScript만 처리
               priority: 30,
             },
             // React 관련 분리
@@ -119,6 +121,7 @@ const nextConfig = {
               name: 'react',
               chunks: 'all',
               test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              type: 'javascript/auto', // JavaScript만 처리
               priority: 40,
             },
           },
