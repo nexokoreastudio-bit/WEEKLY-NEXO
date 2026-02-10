@@ -42,7 +42,14 @@ function formatEditionDate(editionId: string | null): string {
   }
 }
 
-export default async function NewsArchivePage() {
+interface PageProps {
+  searchParams: { page?: string }
+}
+
+export default async function NewsArchivePage({ searchParams }: PageProps) {
+  const currentPage = Math.max(1, parseInt(searchParams?.page || '1', 10))
+  const itemsPerPage = 9
+  
   const [allEditions, allInsights] = await Promise.all([
     getAllEditionsWithInfo(),
     getInsights() // 모든 발행된 인사이트 가져오기
@@ -107,11 +114,18 @@ export default async function NewsArchivePage() {
   })
 
   // 날짜순으로 정렬 (최신순)
-  const editionsWithInsights = Array.from(editionsMap.values()).sort((a, b) => {
+  const allEditionsSorted = Array.from(editionsMap.values()).sort((a, b) => {
     const dateA = new Date(a.published_at || a.edition_id + 'T00:00:00Z').getTime()
     const dateB = new Date(b.published_at || b.edition_id + 'T00:00:00Z').getTime()
     return dateB - dateA // 최신순
   })
+
+  // 페이지네이션 계산
+  const totalItems = allEditionsSorted.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const editionsWithInsights = allEditionsSorted.slice(startIndex, endIndex)
 
   return (
     <div className={styles.container}>
@@ -169,6 +183,76 @@ export default async function NewsArchivePage() {
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <div className={styles.paginationContent}>
+            {/* 이전 페이지 버튼 */}
+            {currentPage > 1 ? (
+              <Link 
+                href={`/news?page=${currentPage - 1}`}
+                className={styles.paginationButton}
+              >
+                ← 이전
+              </Link>
+            ) : (
+              <span className={`${styles.paginationButton} ${styles.paginationButtonDisabled}`}>
+                ← 이전
+              </span>
+            )}
+
+            {/* 페이지 번호 버튼들 */}
+            <div className={styles.paginationNumbers}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                // 현재 페이지 주변과 처음/끝 페이지만 표시
+                const showPage = 
+                  pageNum === 1 ||
+                  pageNum === totalPages ||
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                
+                if (!showPage) {
+                  // 생략 표시
+                  if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                    return (
+                      <span key={pageNum} className={styles.paginationEllipsis}>
+                        ...
+                      </span>
+                    )
+                  }
+                  return null
+                }
+
+                return (
+                  <Link
+                    key={pageNum}
+                    href={`/news?page=${pageNum}`}
+                    className={`${styles.paginationNumber} ${
+                      pageNum === currentPage ? styles.paginationNumberActive : ''
+                    }`}
+                  >
+                    {pageNum}
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* 다음 페이지 버튼 */}
+            {currentPage < totalPages ? (
+              <Link 
+                href={`/news?page=${currentPage + 1}`}
+                className={styles.paginationButton}
+              >
+                다음 →
+              </Link>
+            ) : (
+              <span className={`${styles.paginationButton} ${styles.paginationButtonDisabled}`}>
+                다음 →
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>

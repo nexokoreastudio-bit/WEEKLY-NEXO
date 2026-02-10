@@ -55,7 +55,7 @@ export default async function HomePage() {
   const supabase = await createClient()
 
   // 최신 콘텐츠 데이터 가져오기
-  const [allInsights, latestReviews, latestFieldNews] = await Promise.all([
+  const [allInsights, latestReviews, latestFieldNews, latestPosts] = await Promise.all([
     getInsights(), // 모든 발행된 인사이트 가져오기
     getReviews('latest', 3, 0),
     supabase
@@ -64,7 +64,8 @@ export default async function HomePage() {
       .eq('is_published', true)
       .order('published_at', { ascending: false })
       .limit(3)
-      .then(({ data }) => data || [])
+      .then(({ data }) => data || []),
+    getPostsByBoardType(null, 6, 0) // 전체 게시판에서 최신 6개 가져오기
   ])
 
   // 발행호별 인사이트 개수 및 목록 계산
@@ -191,15 +192,12 @@ export default async function HomePage() {
       return dateB - dateA
     })
 
-  // 최신 인사이트 (일반 인사이트 또는 최신 발행호의 인사이트)
-  const latestInsights = allInsights
-    .sort((a, b) => {
-      // published_at 또는 created_at 기준 정렬
-      const dateA = a.published_at ? new Date(a.published_at).getTime() : new Date(a.created_at).getTime()
-      const dateB = b.published_at ? new Date(b.published_at).getTime() : new Date(b.created_at).getTime()
-      return dateB - dateA
-    })
-    .slice(0, 6)
+  // 게시판 타입 라벨 매핑
+  const boardTypeLabels: Record<string, string> = {
+    free: '자유게시판',
+    qna: 'Q&A',
+    tip: '팁 & 노하우',
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -293,7 +291,7 @@ export default async function HomePage() {
                   // 인사이트가 있고, relatedInsights가 배열인 발행호만 표시
                   return edition && edition.edition_id && edition.insightsCount > 0 && Array.isArray(edition.relatedInsights) && edition.relatedInsights.length > 0
                 })
-                .slice(0, 6)
+                .slice(0, 3)
                 .map((edition) => {
                 // 해당 발행호와 연관된 인사이트 (발행호별 고유 인사이트만)
                 const editionInsights = Array.isArray(edition.relatedInsights) ? edition.relatedInsights : []
@@ -398,41 +396,74 @@ export default async function HomePage() {
         <div className="grid lg:grid-cols-3 gap-20">
           {/* 좌측: 주요 콘텐츠 (2/3 너비) */}
           <div className="lg:col-span-2 space-y-24">
-            {/* 넥소 에디터 인사이트 섹션 */}
-            {latestInsights.length > 0 && (
+            {/* 커뮤니티 새 글 섹션 */}
+            {latestPosts.length > 0 && (
               <section>
-                <div className="mb-12">
-                  <h2 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">넥소 에디터 인사이트</h2>
-                  <p className="text-gray-600 text-lg">입시 전문가의 깊이 있는 분석과 조언</p>
+                <div className="mb-12 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">커뮤니티 새 글</h2>
+                    <p className="text-gray-600 text-lg">사용자들이 공유하는 최신 정보와 이야기</p>
+                  </div>
+                  <Link 
+                    href="/community" 
+                    className="text-sm text-gray-500 hover:text-nexo-navy transition-colors font-medium hidden md:block"
+                  >
+                    전체 보기 →
+                  </Link>
                 </div>
                 
-                <div className="space-y-8">
-                  {latestInsights.map((insight) => (
+                <div className="space-y-6">
+                  {latestPosts.map((post) => (
                     <Link 
-                      key={insight.id} 
-                      href={`/news${insight.edition_id ? `/${insight.edition_id}` : ''}#insight-${insight.id}`}
+                      key={post.id} 
+                      href={`/community/${post.id}`}
                       className="block group"
                     >
-                      <article className="border-l-4 border-nexo-cyan pl-8 py-6 hover:bg-gray-50/50 transition-colors">
+                      <article className="border-l-4 border-nexo-cyan pl-8 py-6 hover:bg-gray-50/50 transition-colors rounded-r-lg">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3 flex-wrap">
+                              {post.board_type && (
+                                <Badge variant="outline" className="text-xs border-gray-300 text-gray-600 font-normal rounded-none">
+                                  {boardTypeLabels[post.board_type] || post.board_type}
+                                </Badge>
+                              )}
+                              <span className="text-sm text-gray-500">
+                                {post.author?.nickname || '익명'}
+                              </span>
+                              <span className="text-sm text-gray-400">
+                                {format(new Date(post.created_at), 'yyyy.MM.dd', { locale: ko })}
+                              </span>
+                            </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-nexo-navy transition-colors line-clamp-2 leading-tight">
-                              {insight.title}
+                              {post.title}
                             </h3>
-                            {insight.summary && (
-                              <p className="text-gray-600 line-clamp-2 mb-4 leading-relaxed">
-                                {insight.summary}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                              <Calendar className="w-4 h-4" />
-                              <span>{format(new Date(insight.created_at), 'yyyy년 M월 d일', { locale: ko })}</span>
+                            <p className="text-gray-600 line-clamp-2 mb-4 leading-relaxed">
+                              {post.content.replace(/<[^>]*>/g, '').substring(0, 150)}
+                              {post.content.replace(/<[^>]*>/g, '').length > 150 ? '...' : ''}
+                            </p>
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                              <span>👍 {post.likes_count}</span>
+                              <span>💬 {post.comments_count}</span>
+                              {post.images && post.images.length > 0 && (
+                                <span>📷 {post.images.length}</span>
+                              )}
                             </div>
                           </div>
                         </div>
                       </article>
                     </Link>
                   ))}
+                </div>
+                
+                {/* 모바일 전체 보기 버튼 */}
+                <div className="mt-8 text-center md:hidden">
+                  <Link href="/community">
+                    <Button variant="outline" className="border-nexo-navy text-nexo-navy hover:bg-nexo-navy hover:text-white rounded-none">
+                      전체 보기
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </Button>
+                  </Link>
                 </div>
               </section>
             )}
