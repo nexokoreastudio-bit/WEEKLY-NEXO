@@ -35,11 +35,37 @@ export async function uploadImageToStorage(
       return { success: false, error: '관리자 권한이 필요합니다.' }
     }
 
-    // base64 데이터에서 데이터 URL 부분 제거
-    const base64String = base64Data.replace(/^data:image\/\w+;base64,/, '')
+    // base64 데이터에서 MIME 타입과 데이터 추출
+    const base64Match = base64Data.match(/^data:image\/(\w+);base64,(.+)$/)
+    if (!base64Match) {
+      return { success: false, error: '잘못된 이미지 형식입니다.' }
+    }
+    
+    const imageType = base64Match[1].toLowerCase() // jpeg, png, webp 등
+    const base64String = base64Match[2]
     
     // base64를 Buffer로 변환
-    const buffer = Buffer.from(base64String, 'base64')
+    let buffer: Buffer
+    try {
+      buffer = Buffer.from(base64String, 'base64')
+    } catch (error) {
+      return { success: false, error: '이미지 데이터 변환에 실패했습니다.' }
+    }
+    
+    // 빈 버퍼 체크
+    if (!buffer || buffer.length === 0) {
+      return { success: false, error: '이미지 데이터가 비어있습니다.' }
+    }
+    
+    // Content-Type 결정
+    const contentTypeMap: Record<string, string> = {
+      jpeg: 'image/jpeg',
+      jpg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
+      gif: 'image/gif',
+    }
+    const contentType = contentTypeMap[imageType] || 'image/jpeg'
     
     // 더 고유한 파일명 생성 (타임스탬프 + crypto 랜덤 + 추가 랜덤)
     const timestamp = Date.now()
@@ -57,12 +83,12 @@ export async function uploadImageToStorage(
     let finalFileName: string
     if (fileName) {
       // 파일명이 제공되면 확장자 추출 후 고유한 이름 생성
-      const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg'
+      const ext = fileName.split('.').pop()?.toLowerCase() || imageType || 'jpg'
       const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '')
       const sanitizedName = sanitizeFileName(nameWithoutExt)
       finalFileName = `field-news/${timestamp}-${cryptoRandom}-${randomStr}-${sanitizedName}.${ext}`
     } else {
-      finalFileName = `field-news/${timestamp}-${cryptoRandom}-${randomStr}.jpg`
+      finalFileName = `field-news/${timestamp}-${cryptoRandom}-${randomStr}.${imageType || 'jpg'}`
     }
     
     console.log('📤 업로드 시도 파일명:', finalFileName)
@@ -80,8 +106,9 @@ export async function uploadImageToStorage(
       const { data, error } = await adminSupabase.storage
         .from('field-news')
         .upload(finalFileName, buffer, {
-          contentType: 'image/jpeg',
+          contentType: contentType,
           upsert: false,
+          cacheControl: '3600',
         })
       
       uploadData = data
@@ -98,31 +125,44 @@ export async function uploadImageToStorage(
         const newCryptoRandom = randomBytes(8).toString('hex')
         const newRandomStr = Math.random().toString(36).substring(2, 10)
         if (fileName) {
-          const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg'
+          const ext = fileName.split('.').pop()?.toLowerCase() || imageType || 'jpg'
           const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '')
           const sanitizedName = sanitizeFileName(nameWithoutExt)
           finalFileName = `field-news/${timestamp}-${newCryptoRandom}-${newRandomStr}-${sanitizedName}.${ext}`
         } else {
-          finalFileName = `field-news/${timestamp}-${newCryptoRandom}-${newRandomStr}.jpg`
+          finalFileName = `field-news/${timestamp}-${newCryptoRandom}-${newRandomStr}.${imageType || 'jpg'}`
         }
         console.log(`🔄 재시도 ${retryCount}/${maxRetries}: ${finalFileName}`)
       }
     }
 
     if (uploadError) {
-      console.error('❌ 이미지 업로드 실패:', uploadError.message)
+      console.error('❌ 이미지 업로드 실패:', {
+        message: uploadError.message,
+        statusCode: uploadError.statusCode,
+        error: uploadError.error,
+        name: uploadError.name,
+      })
       
       // 버킷이 없는 경우 안내
-      if (uploadError.message?.includes('Bucket not found')) {
+      if (uploadError.message?.includes('Bucket not found') || uploadError.error === 'Bucket not found') {
         return {
           success: false,
           error: 'Storage 버킷이 없습니다. Supabase 대시보드에서 "field-news" 버킷을 생성해주세요.',
         }
       }
       
+      // Bad Request 오류의 경우 더 자세한 정보 제공
+      if (uploadError.statusCode === 400 || uploadError.message?.includes('Bad Request')) {
+        return {
+          success: false,
+          error: `이미지 업로드 실패: 잘못된 요청입니다. (파일 크기: ${(buffer.length / 1024).toFixed(2)}KB, 타입: ${contentType})`,
+        }
+      }
+      
       return {
         success: false,
-        error: uploadError.message,
+        error: uploadError.message || uploadError.error || '이미지 업로드에 실패했습니다.',
       }
     }
 
