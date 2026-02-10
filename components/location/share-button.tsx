@@ -8,7 +8,7 @@ export function ShareButton() {
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://daily-nexo.netlify.app/location'
 
-  const shareText = `🚗 검단 지식산업센터 제조동 527호 오시는 길 안내
+  const shareText = `🚗 검단 지식산업센터 제조동 527호 (주)넥소 오시는 길 안내
 
 주차장 입구가 제조동 / 기숙사동 두 곳입니다.
 
@@ -27,7 +27,7 @@ export function ShareButton() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: '검단 지식산업센터 제조동 527호 오시는 길',
+          title: '검단 지식산업센터 제조동 527호 (주)넥소 오시는 길',
           text: shareText,
           url: shareUrl,
         })

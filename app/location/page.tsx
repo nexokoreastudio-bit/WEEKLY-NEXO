@@ -6,11 +6,11 @@ import styles from './location.module.css'
 
 export const metadata: Metadata = {
   title: '오시는 길 | NEXO Daily',
-  description: '검단 지식산업센터 제조동 527호 오시는 길 안내. 차량으로 5층까지 올라오실 수 있습니다.',
+  description: '검단 지식산업센터 제조동 527호 (주)넥소 오시는 길 안내. 차량으로 5층까지 올라오실 수 있습니다.',
 }
 
 export default function LocationPage() {
-  const shareText = `🚗 검단 지식산업센터 제조동 527호 오시는 길 안내
+  const shareText = `🚗 검단 지식산업센터 제조동 527호 (주)넥소 오시는 길 안내
 
 주차장 입구가 제조동 / 기숙사동 두 곳입니다.
 
@@ -30,7 +30,7 @@ export default function LocationPage() {
       {/* 헤더 */}
       <header className={styles.header}>
         <h1 className={styles.title}>
-          검단 지식산업센터 제조동 527호 오시는 길
+          검단 지식산업센터 제조동 527호 (주)넥소 오시는 길
         </h1>
         <p className={styles.subtitle}>
           차량으로 5층까지 올라오실 수 있습니다
