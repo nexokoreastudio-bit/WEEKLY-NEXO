@@ -20,7 +20,7 @@ export default function LocationPage() {
 
 5층 도착 후 제조동 527호로 오시면 됩니다.
 
-📍 주소: 인천 서구 검단지식산업센터 제조동 527호
+📍 주소: 인천광역시 서구 보듬로158 블루텍 527호 (제조동)
 (사진 안내 참고)
 
 🔗 상세 안내: ${process.env.NEXT_PUBLIC_APP_URL || 'https://daily-nexo.netlify.app'}/location`
@@ -208,7 +208,7 @@ export default function LocationPage() {
         <h2 className={styles.addressTitle}>📍 주소 정보</h2>
         <div className={styles.addressBox}>
           <p className={styles.address}>
-            <strong>인천 서구 검단지식산업센터 제조동 527호</strong>
+            <strong>인천광역시 서구 보듬로158 블루텍 527호 (제조동)</strong>
           </p>
           <p className={styles.addressDetail}>
             (주)넥소 | Tel: 032-569-5771~2
