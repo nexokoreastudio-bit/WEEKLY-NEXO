@@ -108,7 +108,7 @@ export default function LocationPage() {
           />
           <div className={styles.overlay}>
             <div className={styles.rampArrow}>
-              <span className={styles.arrowText}>🚗 제조동 입구로 진입 후 램프를 따라 5층까지 올라오시면 됩니다</span>
+              <span className={styles.arrowText}>🚗 제조동 입구로 진입 후 램프를 따라 5층까지 올라오세요</span>
             </div>
           </div>
         </div>
