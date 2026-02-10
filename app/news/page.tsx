@@ -8,18 +8,35 @@ import styles from './archive.module.css'
 export const revalidate = 0 // 항상 최신 데이터 가져오기 (예약 발행 즉시 반영)
 
 // 날짜 포맷팅 함수
-function formatEditionDate(editionId: string): string {
+function formatEditionDate(editionId: string | null): string {
+  if (!editionId) return '최신호'
+  
   try {
-    const date = new Date(editionId + 'T00:00:00Z')
-    const year = date.getUTCFullYear()
-    const month = date.getUTCMonth() + 1
-    const day = date.getUTCDate()
+    // -insight-{id} 형식인 경우 날짜 부분만 추출
+    const datePart = editionId.replace(/-insight-\d+$/, '')
+    
+    // YYYY-MM-DD 형식인지 확인
+    const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!dateMatch) {
+      return editionId // 형식이 맞지 않으면 그대로 반환
+    }
+    
+    const year = parseInt(dateMatch[1], 10)
+    const month = parseInt(dateMatch[2], 10)
+    const day = parseInt(dateMatch[3], 10)
+    
+    // 유효한 날짜인지 확인
+    if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+      return editionId
+    }
+    
+    const date = new Date(Date.UTC(year, month - 1, day))
     const weekday = date.getUTCDay()
     
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토']
+    const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
     const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
     
-    return `${year}년 ${months[month - 1]} ${day}일 (${weekdays[weekday]})`
+    return `${year}년 ${months[month - 1]} ${day}일 ${weekdays[weekday]}`
   } catch {
     return editionId
   }
