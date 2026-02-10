@@ -6,6 +6,39 @@ import { Database } from '@/types/database'
 // v1 API 직접 호출로 변경 (SDK는 v1beta 사용으로 인한 모델 호환성 문제)
 
 /**
+ * HTML 엔티티 디코딩
+ */
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&#x([a-f\d]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+}
+
+/**
+ * HTML에서 텍스트 추출 (스크립트, 스타일 제거)
+ */
+function extractTextFromHtml(html: string): string {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
+    .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
+    .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
+    .replace(/<aside[^>]*>[\s\S]*?<\/aside>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
  * 뉴스 기사 URL을 분석하여 넥소 에디터의 관점으로 분석하는 API
  * 관리자 권한 필요
  */
@@ -66,9 +99,11 @@ export async function POST(request: NextRequest) {
     try {
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'ko-KR,ko;q=0.9',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Referer': 'https://www.google.com/',
         },
         signal: AbortSignal.timeout(20000),
       })
@@ -77,71 +112,93 @@ export async function POST(request: NextRequest) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const html = await response.text()
+      // 인코딩 처리 개선
+      let html = ''
+      const contentType = response.headers.get('content-type') || ''
+      const charsetMatch = contentType.match(/charset=([^;]+)/i)
+      const charset = charsetMatch ? charsetMatch[1].toLowerCase() : 'utf-8'
+      
+      if (charset.includes('euc-kr') || charset.includes('cp949')) {
+        // EUC-KR 인코딩 처리
+        const buffer = await response.arrayBuffer()
+        const decoder = new TextDecoder('euc-kr')
+        html = decoder.decode(buffer)
+      } else {
+        html = await response.text()
+      }
       
       // HTML sanitization (XSS 방지)
       const sanitizedHtml = sanitizeHtml(html)
       
       // 간단한 HTML 파싱으로 본문 추출
-      // meta description 또는 article 태그에서 추출 시도
+      // 1. meta description 또는 og:description에서 추출 시도
       const metaDescMatch = sanitizedHtml.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i)
       if (metaDescMatch) {
-        articleText = metaDescMatch[1]
+        articleText = decodeHtmlEntities(metaDescMatch[1])
       }
 
       const ogDescMatch = sanitizedHtml.match(/<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i)
-      if (ogDescMatch && ogDescMatch[1].length > articleText.length) {
-        articleText = ogDescMatch[1]
+      if (ogDescMatch) {
+        const ogDesc = decodeHtmlEntities(ogDescMatch[1])
+        if (ogDesc.length > articleText.length) {
+          articleText = ogDesc
+        }
       }
 
-      // article 태그에서 텍스트 추출
-      const articleMatch = sanitizedHtml.match(/<article[^>]*>([\s\S]{0,5000})<\/article>/i)
+      // 2. article 태그에서 텍스트 추출
+      const articleMatch = sanitizedHtml.match(/<article[^>]*>([\s\S]{0,10000})<\/article>/i)
       if (articleMatch) {
-        const articleContent = articleMatch[1]
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-        
+        const articleContent = extractTextFromHtml(articleMatch[1])
         if (articleContent.length > articleText.length) {
           articleText = articleContent.substring(0, 3000) // 최대 3000자
         }
       }
 
-      // 본문이 없으면 body에서 추출 시도
-      if (!articleText || articleText.length < 100) {
-        const bodyMatch = sanitizedHtml.match(/<body[^>]*>([\s\S]{0,8000})<\/body>/i)
-        if (bodyMatch) {
-          const bodyText = bodyMatch[1]
-            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-            .replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, '')
-            .replace(/<header[^>]*>[\s\S]*?<\/header>/gi, '')
-            .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '')
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-          
-          articleText = bodyText.substring(0, 3000)
+      // 3. div.content, div.article-content 등 일반적인 본문 클래스에서 추출
+      const contentDivMatch = sanitizedHtml.match(/<div[^>]*class=["'][^"']*(?:content|article|body|text|본문)[^"']*["'][^>]*>([\s\S]{0,10000})<\/div>/i)
+      if (contentDivMatch) {
+        const contentText = extractTextFromHtml(contentDivMatch[1])
+        if (contentText.length > articleText.length) {
+          articleText = contentText.substring(0, 3000)
         }
       }
 
-      if (!articleText || articleText.length < 50) {
+      // 4. 본문이 없으면 body에서 추출 시도 (더 많은 텍스트 추출)
+      if (!articleText || articleText.length < 100) {
+        const bodyMatch = sanitizedHtml.match(/<body[^>]*>([\s\S]{0,15000})<\/body>/i)
+        if (bodyMatch) {
+          const bodyText = extractTextFromHtml(bodyMatch[1])
+          if (bodyText.length > articleText.length) {
+            articleText = bodyText.substring(0, 3000)
+          }
+        }
+      }
+
+      // 5. 최소 길이 요구사항 완화 (한국어 사이트의 경우)
+      if (!articleText || articleText.length < 30) {
         throw new Error('기사 본문을 추출할 수 없습니다.')
       }
     } catch (error) {
-      // 프로덕션에서는 상세 에러 메시지 숨김
-      const errorMessage = process.env.NODE_ENV === 'development' 
-        ? `기사 스크래핑 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`
-        : '기사 본문을 가져올 수 없습니다.'
-      
+      // 개발 환경에서는 상세 에러 로깅
       if (process.env.NODE_ENV === 'development') {
         console.error('기사 스크래핑 실패:', error)
+        console.error('URL:', url)
+        console.error('추출된 텍스트 길이:', articleText.length)
+        if (articleText) {
+          console.error('추출된 텍스트 샘플:', articleText.substring(0, 200))
+        }
       }
       
+      // 에러 메시지 개선
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '알 수 없는 오류'
+      
       return NextResponse.json(
-        { error: '기사 본문을 가져올 수 없습니다. URL을 확인해주세요.' },
+        { 
+          error: '기사 본문을 가져올 수 없습니다. URL을 확인해주세요.',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        },
         { status: 400 }
       )
     }
