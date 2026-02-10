@@ -37,17 +37,18 @@ export default async function NewsArchivePage() {
   
   allInsights.forEach(insight => {
     // edition_id가 있으면 그대로 사용
-    // edition_id가 null이지만 published_at이 있으면 날짜 기반으로 edition_id 생성
+    // edition_id가 null이지만 published_at이 있으면 개별 가상 에디션 ID 생성
     let editionId = insight.edition_id
     
     if (!editionId && insight.published_at) {
-      // published_at에서 날짜 부분만 추출 (YYYY-MM-DD 형식)
+      // published_at에서 날짜 부분만 추출하고 인사이트 ID를 추가하여 고유한 에디션 ID 생성
       try {
         const publishedDate = new Date(insight.published_at)
         const year = publishedDate.getUTCFullYear()
         const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
         const day = String(publishedDate.getUTCDate()).padStart(2, '0')
-        editionId = `${year}-${month}-${day}`
+        // 각 인사이트마다 고유한 에디션 ID: YYYY-MM-DD-insight-{id}
+        editionId = `${year}-${month}-${day}-insight-${insight.id}`
       } catch (e) {
         // 날짜 파싱 실패 시 무시
         console.warn('인사이트 날짜 파싱 실패:', insight.published_at, e)
@@ -55,11 +56,9 @@ export default async function NewsArchivePage() {
     }
     
     if (editionId) {
-      insightsCountByEdition.set(editionId, (insightsCountByEdition.get(editionId) || 0) + 1)
-      if (!insightsByEdition.has(editionId)) {
-        insightsByEdition.set(editionId, [])
-      }
-      insightsByEdition.get(editionId)!.push(insight)
+      // 각 인사이트마다 개별 에디션으로 처리
+      insightsByEdition.set(editionId, [insight])
+      insightsCountByEdition.set(editionId, 1)
     }
   })
 
@@ -74,16 +73,18 @@ export default async function NewsArchivePage() {
     }
   })
   
-  // 인사이트만 있는 날짜에 대한 가상 에디션 생성
+  // 인사이트만 있는 날짜에 대한 가상 에디션 생성 (각 인사이트마다 개별 에디션)
   insightsByEdition.forEach((insights, editionId) => {
     if (!editionsMap.has(editionId) && insights.length > 0) {
       const firstInsight = insights[0]
+      // editionId에서 날짜 부분만 추출 (insight-{id} 제거)
+      const dateOnly = editionId.replace(/-insight-\d+$/, '')
       editionsMap.set(editionId, {
         edition_id: editionId,
-        title: `NEXO Daily ${editionId}`,
+        title: firstInsight.title || `NEXO Daily ${dateOnly}`,
         subtitle: firstInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
         thumbnail_url: firstInsight.thumbnail_url,
-        published_at: firstInsight.published_at || editionId + 'T00:00:00Z',
+        published_at: firstInsight.published_at || dateOnly + 'T00:00:00Z',
       })
     }
   })

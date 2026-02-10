@@ -68,22 +68,24 @@ export default async function HomePage() {
   ])
 
   // 발행호별 인사이트 개수 및 목록 계산
+  // 각 인사이트마다 개별 가상 에디션 ID 생성 (같은 날짜의 인사이트도 분리)
   const insightsByEdition = new Map<string, typeof allInsights>()
   const insightsCountByEdition = new Map<string, number>()
   
   allInsights.forEach(insight => {
     // edition_id가 있으면 그대로 사용
-    // edition_id가 null이지만 published_at이 있으면 날짜 기반으로 edition_id 생성
+    // edition_id가 null이지만 published_at이 있으면 개별 가상 에디션 ID 생성
     let editionId = insight.edition_id
     
     if (!editionId && insight.published_at) {
-      // published_at에서 날짜 부분만 추출 (YYYY-MM-DD 형식)
+      // published_at에서 날짜 부분만 추출하고 인사이트 ID를 추가하여 고유한 에디션 ID 생성
       try {
         const publishedDate = new Date(insight.published_at)
         const year = publishedDate.getUTCFullYear()
         const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
         const day = String(publishedDate.getUTCDate()).padStart(2, '0')
-        editionId = `${year}-${month}-${day}`
+        // 각 인사이트마다 고유한 에디션 ID: YYYY-MM-DD-insight-{id}
+        editionId = `${year}-${month}-${day}-insight-${insight.id}`
       } catch (e) {
         // 날짜 파싱 실패 시 무시
         console.warn('인사이트 날짜 파싱 실패:', insight.published_at, e)
@@ -91,11 +93,9 @@ export default async function HomePage() {
     }
     
     if (editionId) {
-      if (!insightsByEdition.has(editionId)) {
-        insightsByEdition.set(editionId, [])
-      }
-      insightsByEdition.get(editionId)!.push(insight)
-      insightsCountByEdition.set(editionId, (insightsCountByEdition.get(editionId) || 0) + 1)
+      // 각 인사이트마다 개별 에디션으로 처리
+      insightsByEdition.set(editionId, [insight])
+      insightsCountByEdition.set(editionId, 1)
     }
   })
 
@@ -122,7 +122,7 @@ export default async function HomePage() {
     allEditionIds.add(edition.edition_id)
   })
   
-  // 인사이트만 있는 발행호 추가 (edition_id가 null이지만 published_at이 있는 경우)
+  // 인사이트만 있는 발행호 추가 (각 인사이트마다 개별 에디션 ID 생성)
   allInsights.forEach(insight => {
     if (!insight.edition_id && insight.published_at) {
       try {
@@ -130,7 +130,8 @@ export default async function HomePage() {
         const year = publishedDate.getUTCFullYear()
         const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
         const day = String(publishedDate.getUTCDate()).padStart(2, '0')
-        const editionId = `${year}-${month}-${day}`
+        // 각 인사이트마다 고유한 에디션 ID: YYYY-MM-DD-insight-{id}
+        const editionId = `${year}-${month}-${day}-insight-${insight.id}`
         allEditionIds.add(editionId)
       } catch (e) {
         // 날짜 파싱 실패 시 무시
@@ -146,16 +147,18 @@ export default async function HomePage() {
     editionInfoMap.set(edition.edition_id, edition)
   })
   
-  // 인사이트만 있는 발행호를 위한 가상 발행호 생성
+  // 인사이트만 있는 발행호를 위한 가상 발행호 생성 (각 인사이트마다 개별 에디션)
   Array.from(allEditionIds).forEach(editionId => {
     if (!editionInfoMap.has(editionId)) {
-      // 해당 날짜의 첫 번째 인사이트를 기반으로 가상 발행호 생성
+      // 해당 인사이트를 기반으로 가상 발행호 생성
       const editionInsights = insightsByEdition.get(editionId) || []
       if (editionInsights.length > 0) {
         const firstInsight = editionInsights[0]
+        // editionId에서 날짜 부분만 추출 (insight-{id} 제거)
+        const dateOnly = editionId.replace(/-insight-\d+$/, '')
         editionInfoMap.set(editionId, {
           edition_id: editionId,
-          title: `NEXO Daily ${editionId}`,
+          title: firstInsight.title || `NEXO Daily ${dateOnly}`,
           subtitle: firstInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
           thumbnail_url: firstInsight.thumbnail_url || null,
           published_at: firstInsight.published_at || editionId + 'T00:00:00Z',

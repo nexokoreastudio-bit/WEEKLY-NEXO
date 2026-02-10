@@ -98,7 +98,7 @@ export default async function EditionPage({
     })(),
   ])
   
-  // 인사이트 기반 가상 에디션 ID 생성
+  // 인사이트 기반 가상 에디션 ID 생성 (각 인사이트마다 개별 에디션 ID)
   const virtualEditionIds = new Set<string>()
   allInsights.forEach(insight => {
     if (!insight.edition_id && insight.published_at) {
@@ -107,7 +107,8 @@ export default async function EditionPage({
         const year = publishedDate.getUTCFullYear()
         const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
         const day = String(publishedDate.getUTCDate()).padStart(2, '0')
-        const virtualEditionId = `${year}-${month}-${day}`
+        // 각 인사이트마다 고유한 에디션 ID: YYYY-MM-DD-insight-{id}
+        const virtualEditionId = `${year}-${month}-${day}-insight-${insight.id}`
         virtualEditionIds.add(virtualEditionId)
       } catch (e) {
         // 날짜 파싱 실패 시 무시
