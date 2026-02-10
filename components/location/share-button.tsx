@@ -26,26 +26,35 @@ export function ShareButton() {
   const handleShare = async () => {
     if (navigator.share) {
       try {
+        // 카톡에서 텍스트가 확실히 전달되도록 text 필드에 모든 내용 포함
+        // url 필드를 제거하면 카톡이 텍스트를 우선시함
         await navigator.share({
           title: '검단 지식산업센터 제조동 527호 (주)넥소 오시는 길',
-          text: shareText,
-          url: shareUrl,
+          text: shareText, // 약도 내용과 URL이 모두 포함된 텍스트
         })
       } catch (err) {
         // 사용자가 공유를 취소한 경우 무시
         if ((err as Error).name !== 'AbortError') {
           console.error('공유 실패:', err)
+          // 공유 실패 시 클립보드에 전체 텍스트 복사
+          try {
+            await navigator.clipboard.writeText(shareText)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          } catch (clipboardErr) {
+            console.error('복사 실패:', clipboardErr)
+          }
         }
       }
     } else {
-      // 공유 API가 없으면 클립보드에 URL만 복사
+      // 공유 API가 없으면 클립보드에 전체 텍스트 복사
       try {
-        await navigator.clipboard.writeText(shareUrl)
+        await navigator.clipboard.writeText(shareText)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       } catch (err) {
         console.error('복사 실패:', err)
-        alert('주소를 복사할 수 없습니다. 수동으로 복사해주세요.')
+        alert('안내 문구를 복사할 수 없습니다. 수동으로 복사해주세요.')
       }
     }
   }
