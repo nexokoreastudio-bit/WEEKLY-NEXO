@@ -132,7 +132,7 @@ export async function uploadImageToStorage(
         } else {
           finalFileName = `field-news/${timestamp}-${newCryptoRandom}-${newRandomStr}.${imageType || 'jpg'}`
         }
-        console.log(`🔄 재시도 ${retryCount}/${maxRetries}: ${finalFileName}`)
+        console.log(`🔄 재시도 ${retryCount}/${maxRetries}: ${finalFileName} (타입: ${contentType})`)
       }
     }
 
