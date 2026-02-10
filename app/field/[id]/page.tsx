@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Database } from '@/types/database'
@@ -7,6 +8,7 @@ import { sanitizeHtml } from '@/lib/utils/sanitize'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { incrementFieldNewsViews } from '@/app/actions/field-news'
+import { JsonLd } from '@/components/seo/json-ld'
 import styles from '../field.module.css'
 
 type FieldNewsRow = Database['public']['Tables']['field_news']['Row']
@@ -62,8 +64,52 @@ export default async function FieldNewsDetailPage({ params }: PageProps) {
     console.error('조회수 증가 실패:', err)
   })
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://daily-nexo.netlify.app'
+  const currentUrl = `${baseUrl}/field/${newsId}`
+  
+  // 첫 번째 이미지 URL 추출
+  const firstImageMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i)
+  const imageUrl = firstImageMatch 
+    ? (firstImageMatch[1].startsWith('http') ? firstImageMatch[1] : `${baseUrl}${firstImageMatch[1]}`)
+    : `${baseUrl}/assets/images/og-image.png`
+
+  // 구조화된 데이터 (NewsArticle 스키마)
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: news.title,
+    description: news.content.replace(/<[^>]*>/g, '').substring(0, 200),
+    image: imageUrl,
+    datePublished: news.published_at || news.created_at,
+    dateModified: news.updated_at || news.published_at || news.created_at,
+    author: {
+      '@type': 'Organization',
+      name: 'NEXO Korea',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'NEXO Korea',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${baseUrl}/assets/images/nexo_logo_black.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': currentUrl,
+    },
+    ...(news.location && {
+      contentLocation: {
+        '@type': 'Place',
+        name: news.location,
+      },
+    }),
+  }
+
   return (
-    <div className={styles.container}>
+    <>
+      <JsonLd data={jsonLdData} />
+      <div className={styles.container}>
       <div className={styles.detailHeader}>
         <Link href="/field">
           <Button variant="ghost" size="sm" className={styles.backButton}>
@@ -146,5 +192,87 @@ export default async function FieldNewsDetailPage({ params }: PageProps) {
         </Link>
       </div>
     </div>
+    </>
   )
+}
+
+// 메타데이터 생성
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const supabase = await createClient()
+  const newsId = parseInt(params.id)
+  
+  if (isNaN(newsId)) {
+    return {
+      title: '현장 소식을 찾을 수 없습니다',
+      description: '요청하신 현장 소식을 찾을 수 없습니다.',
+    }
+  }
+
+  const { data: fieldNewsData } = await supabase
+    .from('field_news')
+    .select('*')
+    .eq('id', newsId)
+    .eq('is_published', true)
+    .single()
+
+  if (!fieldNewsData) {
+    return {
+      title: '현장 소식을 찾을 수 없습니다',
+      description: '요청하신 현장 소식을 찾을 수 없습니다.',
+    }
+  }
+
+  const news = fieldNewsData as FieldNewsRow
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://daily-nexo.netlify.app'
+  const currentUrl = `${baseUrl}/field/${newsId}`
+  
+  // 첫 번째 이미지 URL 추출
+  const firstImageMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i)
+  const imageUrl = firstImageMatch 
+    ? (firstImageMatch[1].startsWith('http') ? firstImageMatch[1] : `${baseUrl}${firstImageMatch[1]}`)
+    : `${baseUrl}/assets/images/og-image.png`
+
+  const title = `${news.title}${news.location ? ` - ${news.location}` : ''} | 넥소 현장 소식 - NEXO Daily`
+  const description = news.content.replace(/<[^>]*>/g, '').substring(0, 160) || '넥소 전자칠판 설치 현장 소식'
+
+  return {
+    title,
+    description,
+    keywords: [
+      '넥소 현장 소식',
+      '전자칠판 설치',
+      news.location || '',
+      '전자칠판 후기',
+      '학원 전자칠판',
+    ].filter(Boolean),
+    openGraph: {
+      title,
+      description,
+      url: currentUrl,
+      siteName: 'NEXO Daily',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: news.title,
+        },
+      ],
+      type: 'article',
+      publishedTime: news.published_at || news.created_at,
+      modifiedTime: news.updated_at,
+      ...(news.location && {
+        section: news.location,
+      }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: {
+      canonical: currentUrl,
+    },
+  }
 }

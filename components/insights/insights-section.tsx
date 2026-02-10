@@ -85,7 +85,7 @@ export async function InsightsSection({ editionId, previewMode = false }: Insigh
 
 function InsightCard({ insight }: { insight: InsightRow }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+    <div id={`insight-${insight.id}`} className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow scroll-mt-20">
       <div className="flex items-start gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">

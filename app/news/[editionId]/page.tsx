@@ -43,7 +43,7 @@ interface PageProps {
 }
 
 // 정적 생성 및 재검증 설정 (성능 최적화)
-export const revalidate = 60 // 1분마다 재검증 (발행호 업데이트 즉시 반영)
+export const revalidate = 0 // 항상 최신 데이터 가져오기 (예약 발행 즉시 반영)
 
 export default async function EditionPage({ 
   params,
@@ -74,19 +74,67 @@ export default async function EditionPage({
   }
 
   // 병렬로 데이터 가져오기 (성능 최적화)
-  const [mainArticle, allArticles, allEditions] = await Promise.all([
+  const [mainArticle, allArticles, allEditionsBase, allInsights] = await Promise.all([
     getArticleByEditionId(editionId),
     getArticlesByEditionId(editionId),
     getAllEditions(),
+    (async () => {
+      const { getInsights } = await import('@/lib/actions/insights')
+      return await getInsights(undefined, false) // 모든 발행된 인사이트 가져오기
+    })(),
   ])
   
-  // 미리보기 모드가 아니고 발행호가 없으면 404
-  if (!mainArticle && !isPreview) {
+  // 인사이트 기반 가상 에디션 ID 생성
+  const virtualEditionIds = new Set<string>()
+  allInsights.forEach(insight => {
+    if (!insight.edition_id && insight.published_at) {
+      try {
+        const publishedDate = new Date(insight.published_at)
+        const year = publishedDate.getUTCFullYear()
+        const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(publishedDate.getUTCDate()).padStart(2, '0')
+        const virtualEditionId = `${year}-${month}-${day}`
+        virtualEditionIds.add(virtualEditionId)
+      } catch (e) {
+        // 날짜 파싱 실패 시 무시
+      }
+    }
+  })
+  
+  // 실제 에디션과 가상 에디션 합치기
+  const allEditionsSet = new Set([...allEditionsBase, ...Array.from(virtualEditionIds)])
+  const allEditions = Array.from(allEditionsSet).sort((a, b) => {
+    // 날짜순 정렬 (최신순)
+    return b.localeCompare(a)
+  })
+  
+  // 해당 발행호에 인사이트가 있는지 확인 (인사이트만 있는 발행호도 표시하기 위해)
+  const editionInsights = await (async () => {
+    const { getInsights } = await import('@/lib/actions/insights')
+    return await getInsights(editionId, false)
+  })()
+  const hasInsights = editionInsights && editionInsights.length > 0
+  
+  // 미리보기 모드가 아니고 발행호도 없고 인사이트도 없으면 404
+  if (!mainArticle && !hasInsights && !isPreview) {
     notFound()
   }
 
   // 미리보기 모드이고 발행호가 없을 때 기본 정보 생성
-  const displayArticle = mainArticle || {
+  // 인사이트가 있으면 인사이트 정보를 기반으로 가상 article 생성
+  const displayArticle = mainArticle || (hasInsights && editionInsights.length > 0 ? {
+    title: `NEXO Daily ${editionId}`,
+    subtitle: editionInsights[0].summary || `${editionId} 교육 뉴스`,
+    content: null,
+    thumbnail_url: editionInsights[0].thumbnail_url,
+    edition_id: editionId,
+    published_at: editionInsights[0].published_at || editionId + 'T00:00:00Z',
+    updated_at: editionInsights[0].updated_at || editionInsights[0].created_at,
+    category: 'news' as const,
+    is_published: true,
+    views: 0,
+    created_at: editionInsights[0].created_at,
+  } : {
     title: `NEXO Daily ${editionId}`,
     subtitle: `${editionId} 교육 뉴스`,
     content: null,
@@ -96,7 +144,9 @@ export default async function EditionPage({
     updated_at: new Date().toISOString(),
     category: 'news' as const,
     is_published: false,
-  }
+    views: 0,
+    created_at: new Date().toISOString(),
+  })
 
   // 메인 article과 하위 articles 분리
   const subArticles = mainArticle ? allArticles.filter(a => a.id !== mainArticle.id) : []
@@ -146,8 +196,8 @@ export default async function EditionPage({
             </div>
           </div>
         </div>
-      ) : isPreview ? (
-        // 미리보기 모드이고 썸네일이 없을 때 기본 헤더 표시
+      ) : (hasInsights || isPreview || mainArticle) ? (
+        // 인사이트가 있거나 미리보기 모드이거나 메인 아티클이 있을 때 기본 헤더 표시
         <div className={styles.heroBanner} style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className={styles.heroBannerContent}>
             <div className={styles.heroBannerMeta}>
@@ -158,11 +208,13 @@ export default async function EditionPage({
             {displayArticle.subtitle && (
               <p className={styles.heroBannerSubtitle}>{displayArticle.subtitle}</p>
             )}
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800 font-medium">
-                👁️ 관리자 미리보기 모드: 발행호가 아직 생성되지 않았습니다.
-              </p>
-            </div>
+            {isPreview && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 font-medium">
+                  👁️ 관리자 미리보기 모드: 발행호가 아직 생성되지 않았습니다.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       ) : null}

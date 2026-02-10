@@ -4,6 +4,9 @@ import { getInsights } from '@/lib/actions/insights'
 import { SafeImage } from '@/components/safe-image'
 import styles from './archive.module.css'
 
+// 정적 생성 및 재검증 설정 (성능 최적화)
+export const revalidate = 0 // 항상 최신 데이터 가져오기 (예약 발행 즉시 반영)
+
 // 날짜 포맷팅 함수
 function formatEditionDate(editionId: string): string {
   try {
@@ -28,19 +31,69 @@ export default async function NewsArchivePage() {
     getInsights() // 모든 발행된 인사이트 가져오기
   ])
 
-  // 발행호별 인사이트 개수 계산
+  // 발행호별 인사이트 개수 및 정보 계산
   const insightsCountByEdition = new Map<string, number>()
+  const insightsByEdition = new Map<string, typeof allInsights>()
   
   allInsights.forEach(insight => {
-    if (insight.edition_id) {
-      insightsCountByEdition.set(insight.edition_id, (insightsCountByEdition.get(insight.edition_id) || 0) + 1)
+    // edition_id가 있으면 그대로 사용
+    // edition_id가 null이지만 published_at이 있으면 날짜 기반으로 edition_id 생성
+    let editionId = insight.edition_id
+    
+    if (!editionId && insight.published_at) {
+      // published_at에서 날짜 부분만 추출 (YYYY-MM-DD 형식)
+      try {
+        const publishedDate = new Date(insight.published_at)
+        const year = publishedDate.getUTCFullYear()
+        const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(publishedDate.getUTCDate()).padStart(2, '0')
+        editionId = `${year}-${month}-${day}`
+      } catch (e) {
+        // 날짜 파싱 실패 시 무시
+        console.warn('인사이트 날짜 파싱 실패:', insight.published_at, e)
+      }
+    }
+    
+    if (editionId) {
+      insightsCountByEdition.set(editionId, (insightsCountByEdition.get(editionId) || 0) + 1)
+      if (!insightsByEdition.has(editionId)) {
+        insightsByEdition.set(editionId, [])
+      }
+      insightsByEdition.get(editionId)!.push(insight)
     }
   })
 
-  // 인사이트가 있는 발행호만 필터링
-  const editionsWithInsights = allEditions.filter(edition => {
+  // 실제 에디션과 가상 에디션을 합치기
+  const editionsMap = new Map<string, typeof allEditions[0] & { thumbnail_url?: string | null }>()
+  
+  // 실제 에디션 추가
+  allEditions.forEach(edition => {
     const insightsCount = insightsCountByEdition.get(edition.edition_id) || 0
-    return insightsCount > 0
+    if (insightsCount > 0) {
+      editionsMap.set(edition.edition_id, edition)
+    }
+  })
+  
+  // 인사이트만 있는 날짜에 대한 가상 에디션 생성
+  insightsByEdition.forEach((insights, editionId) => {
+    if (!editionsMap.has(editionId) && insights.length > 0) {
+      const firstInsight = insights[0]
+      editionsMap.set(editionId, {
+        edition_id: editionId,
+        title: `NEXO Daily ${editionId}`,
+        subtitle: firstInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
+        thumbnail_url: firstInsight.thumbnail_url,
+        published_at: firstInsight.published_at || editionId + 'T00:00:00Z',
+        updated_at: firstInsight.updated_at || firstInsight.created_at,
+      })
+    }
+  })
+
+  // 날짜순으로 정렬 (최신순)
+  const editionsWithInsights = Array.from(editionsMap.values()).sort((a, b) => {
+    const dateA = new Date(a.published_at || a.edition_id + 'T00:00:00Z').getTime()
+    const dateB = new Date(b.published_at || b.edition_id + 'T00:00:00Z').getTime()
+    return dateB - dateA // 최신순
   })
 
   return (

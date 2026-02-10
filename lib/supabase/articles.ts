@@ -23,11 +23,46 @@ export interface EditionInfo {
 /**
  * 최신 발행호 가져오기
  * 성능 최적화: 필요한 컬럼만 선택
+ * 예약 발행된 article 자동 발행 처리 포함
  */
 export async function getLatestArticle(): Promise<EditionArticle | null> {
   const supabase = await createClient()
+  const now = new Date().toISOString()
 
-  const { data, error } = await supabase
+  // 예약 발행된 article 자동 발행 처리
+  const { data: scheduledArticles, error: checkError } = await (supabase
+    .from('articles') as any)
+    .select('id, edition_id, title, published_at')
+    .eq('is_published', false)
+    .lte('published_at', now)
+    .not('published_at', 'is', null)
+    .not('edition_id', 'is', null)
+
+  if (checkError) {
+    console.error('예약 발행 article 조회 실패:', checkError)
+  } else if (scheduledArticles && scheduledArticles.length > 0) {
+    console.log(`🔄 [getLatestArticle] 예약 발행된 article ${scheduledArticles.length}개 발견, 자동 발행 처리 중...`)
+    scheduledArticles.forEach((article: any) => {
+      console.log(`  - ${article.edition_id}: ${article.title} (${article.published_at})`)
+    })
+
+    const { error: autoPublishError } = await (supabase
+      .from('articles') as any)
+      .update({ is_published: true })
+      .eq('is_published', false)
+      .lte('published_at', now)
+      .not('published_at', 'is', null)
+      .not('edition_id', 'is', null)
+
+    if (autoPublishError) {
+      console.error('❌ 자동 발행 처리 실패:', autoPublishError)
+    } else {
+      console.log(`✅ [getLatestArticle] ${scheduledArticles.length}개 article 자동 발행 완료`)
+    }
+  }
+
+  // article과 insight를 모두 확인하여 가장 최신 것을 찾기
+  const { data: articleData, error } = await supabase
     .from('articles')
     .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
     .not('edition_id', 'is', null)
@@ -40,18 +75,105 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
     if (process.env.NODE_ENV === 'development') {
       console.error('최신 발행호 조회 실패:', error)
     }
-    return null
   }
 
-  return data as EditionArticle | null
+  // 인사이트도 확인하여 가장 최신 것 찾기
+  let latestInsight: any = null
+  try {
+    const { getInsights } = await import('@/lib/actions/insights')
+    const allInsights = await getInsights(undefined, false)
+    
+    if (allInsights && allInsights.length > 0) {
+      // published_at이 있는 인사이트 중 가장 최신 것 찾기
+      const insightsWithDate = allInsights
+        .filter(insight => insight.published_at)
+        .sort((a, b) => {
+          const dateA = new Date(a.published_at!).getTime()
+          const dateB = new Date(b.published_at!).getTime()
+          return dateB - dateA
+        })
+      
+      if (insightsWithDate.length > 0) {
+        latestInsight = insightsWithDate[0]
+      }
+    }
+  } catch (e) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('인사이트 조회 실패:', e)
+    }
+  }
+
+  // article과 insight 중 더 최신 것 선택
+  let latestArticle = articleData
+  let latestDate = articleData?.published_at ? new Date(articleData.published_at).getTime() : 0
+  
+  if (latestInsight && latestInsight.published_at) {
+    const insightDate = new Date(latestInsight.published_at).getTime()
+    if (insightDate > latestDate) {
+      // 인사이트가 더 최신이면 가상 article 생성
+      const publishedDate = new Date(latestInsight.published_at)
+      const year = publishedDate.getUTCFullYear()
+      const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
+      const day = String(publishedDate.getUTCDate()).padStart(2, '0')
+      const editionId = `${year}-${month}-${day}`
+      
+      // 해당 날짜의 article이 있는지 다시 확인
+      const { data: articleForDate } = await supabase
+        .from('articles')
+        .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
+        .eq('edition_id', editionId)
+        .eq('is_published', true)
+        .limit(1)
+        .maybeSingle()
+      
+      if (articleForDate) {
+        latestArticle = articleForDate
+      } else {
+        // article이 없으면 인사이트 정보로 가상 article 생성
+        latestArticle = {
+          id: 0, // 가상 ID
+          title: `NEXO Daily ${editionId}`,
+          subtitle: latestInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
+          content: null,
+          thumbnail_url: latestInsight.thumbnail_url,
+          edition_id: editionId,
+          published_at: latestInsight.published_at,
+          updated_at: latestInsight.updated_at || latestInsight.created_at,
+          category: 'news' as const,
+          is_published: true,
+          views: 0,
+          created_at: latestInsight.created_at,
+        } as EditionArticle
+      }
+    }
+  }
+
+  return latestArticle as EditionArticle | null
 }
 
 /**
  * 특정 발행호의 메인 article 가져오기
  * 성능 최적화: 필요한 컬럼만 선택
+ * 예약 발행된 article 자동 발행 처리 포함
  */
 export async function getArticleByEditionId(editionId: string): Promise<EditionArticle | null> {
   const supabase = await createClient()
+  const now = new Date().toISOString()
+
+  // 예약 발행된 article 자동 발행 처리 (해당 edition_id만)
+  const { error: autoPublishError } = await (supabase
+    .from('articles') as any)
+    .update({ is_published: true })
+    .eq('edition_id', editionId)
+    .eq('is_published', false)
+    .lte('published_at', now)
+    .not('published_at', 'is', null)
+
+  if (autoPublishError) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('자동 발행 처리 실패:', autoPublishError)
+    }
+  }
 
   const { data, error } = await supabase
     .from('articles')
@@ -99,9 +221,34 @@ export async function getArticlesByEditionId(editionId: string): Promise<Edition
 /**
  * 모든 발행호 목록 가져오기 (edition_id 기준)
  * 성능 최적화: DISTINCT 사용 및 인덱스 활용
+ * 예약 발행된 article 자동 발행 처리 포함
  */
 export async function getAllEditions(): Promise<string[]> {
   const supabase = await createClient()
+  const now = new Date().toISOString()
+
+  // 예약 발행된 article 자동 발행 처리
+  const { data: scheduledArticles } = await (supabase
+    .from('articles') as any)
+    .select('id, edition_id, title, published_at')
+    .eq('is_published', false)
+    .lte('published_at', now)
+    .not('published_at', 'is', null)
+    .not('edition_id', 'is', null)
+
+  if (scheduledArticles && scheduledArticles.length > 0) {
+    const { error: autoPublishError } = await (supabase
+      .from('articles') as any)
+      .update({ is_published: true })
+      .eq('is_published', false)
+      .lte('published_at', now)
+      .not('published_at', 'is', null)
+      .not('edition_id', 'is', null)
+
+    if (autoPublishError) {
+      console.error('자동 발행 처리 실패:', autoPublishError)
+    }
+  }
 
   // DISTINCT ON을 사용하여 중복 제거 (더 효율적)
   const { data, error } = await supabase
@@ -126,9 +273,34 @@ export async function getAllEditions(): Promise<string[]> {
 
 /**
  * 모든 발행호 정보 가져오기 (제목, 썸네일 등 포함)
+ * 예약 발행된 article 자동 발행 처리 포함
  */
 export async function getAllEditionsWithInfo(): Promise<EditionInfo[]> {
   const supabase = await createClient()
+  const now = new Date().toISOString()
+
+  // 예약 발행된 article 자동 발행 처리
+  const { data: scheduledArticles } = await (supabase
+    .from('articles') as any)
+    .select('id, edition_id, title, published_at')
+    .eq('is_published', false)
+    .lte('published_at', now)
+    .not('published_at', 'is', null)
+    .not('edition_id', 'is', null)
+
+  if (scheduledArticles && scheduledArticles.length > 0) {
+    const { error: autoPublishError } = await (supabase
+      .from('articles') as any)
+      .update({ is_published: true })
+      .eq('is_published', false)
+      .lte('published_at', now)
+      .not('published_at', 'is', null)
+      .not('edition_id', 'is', null)
+
+    if (autoPublishError) {
+      console.error('자동 발행 처리 실패:', autoPublishError)
+    }
+  }
 
   const { data, error } = await supabase
     .from('articles')

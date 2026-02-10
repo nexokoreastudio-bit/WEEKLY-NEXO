@@ -94,11 +94,9 @@ export default function RootLayout({
 
   return (
     <html lang="ko" className={`${notoSans.variable} ${notoSerif.variable}`}>
-      <head>
+      <body className="font-sans antialiased">
         <OrganizationJsonLd />
         <WebSiteJsonLd />
-      </head>
-      <body className="font-sans antialiased">
         <HeaderClient />
         {children}
         {/* 카카오 SDK 로드 (JavaScript 키가 설정된 경우에만) */}

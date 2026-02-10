@@ -19,7 +19,10 @@
     "reset:publications": "node scripts/reset-all-publications.js",
     "add:edition": "node scripts/add-new-edition.js",
     "seed:vol1": "node scripts/seed-vol1.js",
-    "seed:daily": "node scripts/seed-daily-editions.js"
+    "seed:daily": "node scripts/seed-daily-editions.js",
+    "generate:insight-images": "node scripts/auto-generate-insight-images.js",
+    "generate:insight-images:all": "node scripts/auto-generate-insight-images.js --all",
+    "generate:insight-images:unsplash": "node scripts/auto-generate-insight-images.js --unsplash-only"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

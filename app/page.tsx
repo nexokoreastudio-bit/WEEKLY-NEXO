@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getLatestArticle, getAllEditionsWithInfo } from '@/lib/supabase/articles'
+import { getLatestArticle, getAllEditionsWithInfo, type EditionInfo } from '@/lib/supabase/articles'
 import { getInsights } from '@/lib/actions/insights'
 import { getPostsByBoardType } from '@/lib/supabase/posts'
 import { getReviews } from '@/lib/supabase/reviews'
@@ -32,7 +32,7 @@ function formatEditionDate(editionId: string | null): string {
 }
 
 // 정적 생성 및 재검증 설정
-export const revalidate = 60 // 1분마다 재검증 (발행호 업데이트 즉시 반영)
+export const revalidate = 0 // 항상 최신 데이터 가져오기 (예약 발행 즉시 반영)
 
 export default async function HomePage() {
   const latestArticle = await getLatestArticle()
@@ -57,12 +57,30 @@ export default async function HomePage() {
   const insightsCountByEdition = new Map<string, number>()
   
   allInsights.forEach(insight => {
-    if (insight.edition_id) {
-      if (!insightsByEdition.has(insight.edition_id)) {
-        insightsByEdition.set(insight.edition_id, [])
+    // edition_id가 있으면 그대로 사용
+    // edition_id가 null이지만 published_at이 있으면 날짜 기반으로 edition_id 생성
+    let editionId = insight.edition_id
+    
+    if (!editionId && insight.published_at) {
+      // published_at에서 날짜 부분만 추출 (YYYY-MM-DD 형식)
+      try {
+        const publishedDate = new Date(insight.published_at)
+        const year = publishedDate.getUTCFullYear()
+        const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(publishedDate.getUTCDate()).padStart(2, '0')
+        editionId = `${year}-${month}-${day}`
+      } catch (e) {
+        // 날짜 파싱 실패 시 무시
+        console.warn('인사이트 날짜 파싱 실패:', insight.published_at, e)
       }
-      insightsByEdition.get(insight.edition_id)!.push(insight)
-      insightsCountByEdition.set(insight.edition_id, (insightsCountByEdition.get(insight.edition_id) || 0) + 1)
+    }
+    
+    if (editionId) {
+      if (!insightsByEdition.has(editionId)) {
+        insightsByEdition.set(editionId, [])
+      }
+      insightsByEdition.get(editionId)!.push(insight)
+      insightsCountByEdition.set(editionId, (insightsCountByEdition.get(editionId) || 0) + 1)
     }
   })
 
@@ -81,8 +99,58 @@ export default async function HomePage() {
     relatedInsights: typeof allInsights
   }
   
-  const editionsWithInsights: EditionWithInsights[] = allEditions.map(edition => {
-    // 각 발행호별 고유 인사이트만 표시 (일반 인사이트 제외)
+  // 모든 발행호 (기존 발행호 + 인사이트만 있는 발행호)
+  const allEditionIds = new Set<string>()
+  
+  // 기존 발행호 추가
+  allEditions.forEach(edition => {
+    allEditionIds.add(edition.edition_id)
+  })
+  
+  // 인사이트만 있는 발행호 추가 (edition_id가 null이지만 published_at이 있는 경우)
+  allInsights.forEach(insight => {
+    if (!insight.edition_id && insight.published_at) {
+      try {
+        const publishedDate = new Date(insight.published_at)
+        const year = publishedDate.getUTCFullYear()
+        const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(publishedDate.getUTCDate()).padStart(2, '0')
+        const editionId = `${year}-${month}-${day}`
+        allEditionIds.add(editionId)
+      } catch (e) {
+        // 날짜 파싱 실패 시 무시
+      }
+    }
+  })
+  
+  // 발행호 정보 맵 생성 (기존 발행호 + 가상 발행호)
+  const editionInfoMap = new Map<string, EditionInfo>()
+  
+  // 기존 발행호 정보 추가
+  allEditions.forEach(edition => {
+    editionInfoMap.set(edition.edition_id, edition)
+  })
+  
+  // 인사이트만 있는 발행호를 위한 가상 발행호 생성
+  Array.from(allEditionIds).forEach(editionId => {
+    if (!editionInfoMap.has(editionId)) {
+      // 해당 날짜의 첫 번째 인사이트를 기반으로 가상 발행호 생성
+      const editionInsights = insightsByEdition.get(editionId) || []
+      if (editionInsights.length > 0) {
+        const firstInsight = editionInsights[0]
+        editionInfoMap.set(editionId, {
+          edition_id: editionId,
+          title: `NEXO Daily ${editionId}`,
+          subtitle: firstInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
+          thumbnail_url: firstInsight.thumbnail_url || null,
+          published_at: firstInsight.published_at || editionId + 'T00:00:00Z',
+        })
+      }
+    }
+  })
+  
+  const editionsWithInsights: EditionWithInsights[] = Array.from(editionInfoMap.values()).map(edition => {
+    // 각 발행호별 고유 인사이트만 표시
     const editionSpecificInsights = insightsByEdition.get(edition.edition_id) || []
     
     return {

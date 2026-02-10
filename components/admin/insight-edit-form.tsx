@@ -38,6 +38,7 @@ export function InsightEditForm({ insight, editions, onCancel, onSuccess }: Insi
     }
     return ''
   })
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>(insight.thumbnail_url || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -67,6 +68,7 @@ export function InsightEditForm({ insight, editions, onCancel, onSuccess }: Insi
         category,
         published_at: publishedAt,
         edition_id: finalEditionId,
+        thumbnail_url: thumbnailUrl.trim() || null,
       })
       
       if (result.error) {
@@ -175,6 +177,78 @@ export function InsightEditForm({ insight, editions, onCancel, onSuccess }: Insi
           <br />
           "일반 인사이트"를 선택하면 모든 발행호에 표시됩니다.
         </p>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <Label htmlFor="thumbnail-url">썸네일 이미지 URL</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (!title.trim()) {
+                setMessage({ type: 'error', text: '제목을 먼저 입력해주세요.' })
+                return
+              }
+              
+              setLoading(true)
+              setMessage(null)
+              
+              try {
+                const result = await updateInsight(insight.id, {
+                  title: title.trim(),
+                  summary: summary.trim() || null,
+                  category,
+                  published_at: publishDate ? new Date(publishDate + 'T00:00:00Z').toISOString() : null,
+                  edition_id: editionId === 'none' ? null : editionId,
+                  autoGenerateImage: true, // 이미지 자동 생성 요청
+                })
+                
+                if (result.error) {
+                  setMessage({ type: 'error', text: result.error })
+                } else if (result.data?.thumbnail_url) {
+                  setThumbnailUrl(result.data.thumbnail_url)
+                  setMessage({ type: 'success', text: '이미지가 자동으로 생성되었습니다!' })
+                } else {
+                  setMessage({ type: 'error', text: '이미지 생성에 실패했습니다.' })
+                }
+              } catch (error) {
+                setMessage({ type: 'error', text: '이미지 생성 중 오류가 발생했습니다.' })
+              } finally {
+                setLoading(false)
+              }
+            }}
+            disabled={loading || !title.trim()}
+            className="text-xs"
+          >
+            ✨ 이미지 자동 생성
+          </Button>
+        </div>
+        <Input
+          id="thumbnail-url"
+          type="url"
+          value={thumbnailUrl}
+          onChange={(e) => setThumbnailUrl(e.target.value)}
+          placeholder="https://example.com/image.jpg"
+          disabled={loading}
+          className="mt-1"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          카드에 표시될 이미지 URL을 입력하세요. "이미지 자동 생성" 버튼을 클릭하면 제목과 요약을 기반으로 관련 이미지를 자동으로 생성합니다.
+        </p>
+        {thumbnailUrl && (
+          <div className="mt-2">
+            <img 
+              src={thumbnailUrl} 
+              alt="미리보기" 
+              className="w-full max-w-md h-48 object-cover rounded-lg border border-gray-200"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {message && (

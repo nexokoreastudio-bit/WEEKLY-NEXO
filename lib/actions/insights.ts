@@ -4,23 +4,86 @@ import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
 
 /**
- * Unsplash API를 사용하여 인사이트와 관련된 이미지 검색 및 다운로드
+ * Gemini API를 사용하여 이미지 검색 키워드 생성 후
+ * Unsplash API로 이미지 검색 및 다운로드
  */
 async function generateInsightImage(title: string, summary: string): Promise<string | null> {
+  const geminiApiKey = process.env.GEMINI_API_KEY
   const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY
   
   if (!unsplashAccessKey) {
     console.warn('⚠️ UNSPLASH_ACCESS_KEY가 설정되지 않았습니다. 이미지 생성을 건너뜁니다.')
-    console.warn('💡 .env.local 파일에 UNSPLASH_ACCESS_KEY를 추가해주세요.')
     return null
   }
 
   try {
-    // 검색 키워드 생성 (제목에서 주요 키워드 추출)
-    const keywords = extractKeywords(title, summary)
-    const query = keywords.join(' ') || 'education learning'
-    
-    console.log(`🔍 Unsplash 이미지 검색 중: "${query}"`)
+    let keywords: string[] = []
+    let query = 'education learning'
+
+    // Gemini API로 키워드 생성 시도
+    if (geminiApiKey) {
+      try {
+        const prompt = `다음 교육 뉴스 기사의 제목과 요약을 읽고, 관련 이미지를 검색하기 위한 영어 키워드 3-5개를 추천해주세요.
+
+제목: ${title}
+요약: ${summary || '없음'}
+
+요구사항:
+1. 교육, 학습, 입시, 학원 관련 이미지를 찾을 수 있는 키워드여야 합니다
+2. 영어로 작성해주세요
+3. 구체적이고 검색하기 좋은 키워드여야 합니다
+4. 키워드는 쉼표로 구분하여 나열해주세요
+5. 예시: "university admission, college entrance exam, student studying, education consultation, academic success"
+
+응답 형식:
+키워드만 쉼표로 구분하여 나열해주세요. 다른 설명은 필요 없습니다.`
+
+        const geminiResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: prompt
+                }]
+              }]
+            }),
+            signal: AbortSignal.timeout(10000),
+          }
+        )
+
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json()
+          
+          if (geminiData.candidates && geminiData.candidates[0] && geminiData.candidates[0].content) {
+            const keywordsText = geminiData.candidates[0].content.parts[0].text.trim()
+            keywords = keywordsText
+              .split(',')
+              .map(k => k.trim())
+              .filter(k => k.length > 0)
+              .slice(0, 5)
+            
+            if (keywords.length > 0) {
+              query = keywords.join(' ')
+              console.log(`🤖 Gemini로 생성된 키워드: ${keywords.join(', ')}`)
+            }
+          }
+        }
+      } catch (geminiError) {
+        console.warn('⚠️ Gemini 키워드 생성 실패, 기본 키워드 사용:', geminiError)
+      }
+    }
+
+    // Gemini 실패 시 기본 키워드 추출 함수 사용
+    if (keywords.length === 0) {
+      keywords = extractKeywords(title, summary)
+      query = keywords.join(' ') || 'education learning'
+      console.log(`🔍 기본 키워드 사용: ${query}`)
+    }
     
     // Unsplash API로 이미지 검색
     const searchResponse = await fetch(
@@ -61,7 +124,7 @@ async function generateInsightImage(title: string, summary: string): Promise<str
     
     // Supabase Storage에 업로드
     const supabase = await createClient()
-    const fileName = `insights/${imageId}-${Date.now()}.jpg`
+    const fileName = `insights/gemini-${imageId}-${Date.now()}.jpg`
     
     // Node.js 환경에서는 Buffer를 사용
     const buffer = Buffer.from(imageBuffer)
@@ -724,9 +787,10 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
           // 미리보기 모드: 해당 edition_id에 연결된 인사이트 + 일반 인사이트(edition_id = null) 모두 표시
           query = query.or(`edition_id.eq.${editionId},edition_id.is.null`)
         } else {
-          // 일반 모드: 해당 edition_id에만 연결된 인사이트만 조회
-          // 일반 인사이트(edition_id = null)는 제외하여 다른 발행호에 표시되지 않도록 함
-          query = query.eq('edition_id', editionId)
+          // 일반 모드: 해당 edition_id에 연결된 인사이트 + published_at 날짜가 일치하는 인사이트(edition_id = null)
+          // Supabase 쿼리에서는 edition_id가 일치하거나 null인 모든 인사이트를 가져온 후
+          // 클라이언트 측에서 published_at 날짜로 필터링
+          query = query.or(`edition_id.eq.${editionId},edition_id.is.null`)
         }
       } else {
         // editionId가 명시적으로 null로 전달된 경우: 일반 인사이트만
@@ -735,20 +799,61 @@ export async function getInsights(editionId?: string | null, previewMode: boolea
     }
     // editionId가 undefined인 경우: 모든 발행된 인사이트 조회 (edition_id 필터 없음)
 
-    const { data, error } = await query
+    let { data, error } = await query
 
     // 타입 캐스팅
-    const typedData = data as InsightRow[] | null
+    let typedData = data as InsightRow[] | null
+    
+    // editionId가 주어지고 일반 모드인 경우, published_at 날짜 기반으로 추가 필터링
+    // (edition_id가 null이지만 published_at 날짜가 일치하는 인사이트 포함)
+    if (editionId && !previewMode && typedData) {
+      try {
+        const editionDate = new Date(editionId + 'T00:00:00Z')
+        const editionYear = editionDate.getUTCFullYear()
+        const editionMonth = editionDate.getUTCMonth() + 1
+        const editionDay = editionDate.getUTCDate()
+        
+        typedData = typedData.filter(insight => {
+          // edition_id가 일치하는 경우
+          if (insight.edition_id === editionId) {
+            return true
+          }
+          
+          // edition_id가 null이지만 published_at 날짜가 일치하는 경우
+          if (!insight.edition_id && insight.published_at) {
+            const publishedDate = new Date(insight.published_at)
+            const publishedYear = publishedDate.getUTCFullYear()
+            const publishedMonth = publishedDate.getUTCMonth() + 1
+            const publishedDay = publishedDate.getUTCDate()
+            
+            return publishedYear === editionYear && 
+                   publishedMonth === editionMonth && 
+                   publishedDay === editionDay
+          }
+          
+          return false
+        })
+      } catch (e) {
+        // 날짜 파싱 실패 시 기존 데이터 사용
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('인사이트 날짜 필터링 실패:', e)
+        }
+      }
+    }
 
     // 디버깅: 개발 환경에서 상세 로그 출력
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[getInsights] editionId: ${editionId || 'null'}`)
-      console.log(`[getInsights] 쿼리 결과:`, { 
-        count: typedData?.length || 0, 
-        error: error?.message,
-        insights: typedData?.map((i: InsightRow) => ({ id: i.id, title: i.title, edition_id: i.edition_id, is_published: i.is_published }))
-      })
-    }
+    console.log(`[getInsights] editionId: ${editionId || 'null'}, previewMode: ${previewMode}`)
+    console.log(`[getInsights] 쿼리 결과:`, { 
+      count: typedData?.length || 0, 
+      error: error?.message,
+      insights: typedData?.map((i: InsightRow) => ({ 
+        id: i.id, 
+        title: i.title, 
+        edition_id: i.edition_id, 
+        is_published: i.is_published,
+        published_at: i.published_at
+      }))
+    })
 
     if (error) {
       // 테이블이 없거나 권한 문제인 경우 빈 배열 반환
@@ -785,6 +890,8 @@ export async function updateInsight(
     category?: '입시' | '정책' | '학습법' | '상담팁' | '기타'
     published_at?: string | null // 발행 날짜 (ISO 문자열)
     edition_id?: string | null // 발행호 ID
+    thumbnail_url?: string | null // 썸네일 이미지 URL
+    autoGenerateImage?: boolean // 이미지 자동 생성 여부
   }
 ) {
   const supabase = await createClient()
@@ -805,11 +912,55 @@ export async function updateInsight(
     return { error: '관리자 권한이 필요합니다.' }
   }
 
+  // 기존 인사이트 정보 가져오기
+  const { data: existingInsight, error: fetchError } = await supabase
+    .from('insights')
+    .select('title, summary, thumbnail_url')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    console.error('인사이트 조회 실패:', fetchError)
+    return { error: '인사이트를 찾을 수 없습니다.' }
+  }
+
+  // 이미지 자동 생성 로직
+  let finalThumbnailUrl = updates.thumbnail_url
+  
+  // thumbnail_url이 명시적으로 null로 설정되지 않았고, 자동 생성이 요청되었거나 이미지가 없는 경우
+  if (updates.thumbnail_url === undefined || updates.autoGenerateImage) {
+    const title = updates.title || existingInsight.title
+    const summary = updates.summary !== undefined ? updates.summary : existingInsight.summary
+    
+    // 이미지가 없거나 Unsplash URL인 경우 자동 생성
+    const currentImage = updates.thumbnail_url !== undefined ? updates.thumbnail_url : existingInsight.thumbnail_url
+    const needsImageGeneration = !currentImage || 
+                                  currentImage.includes('unsplash.com') ||
+                                  updates.autoGenerateImage
+    
+    if (needsImageGeneration && title && summary) {
+      try {
+        const generatedImage = await generateInsightImage(title, summary || '')
+        if (generatedImage) {
+          finalThumbnailUrl = generatedImage
+          console.log(`✅ 인사이트 #${id} 이미지 자동 생성 완료: ${generatedImage}`)
+        }
+      } catch (error) {
+        console.warn(`⚠️ 인사이트 #${id} 이미지 생성 실패 (계속 진행):`, error)
+        // 이미지 생성 실패해도 계속 진행
+      }
+    }
+  }
+
   // 발행 날짜 업데이트 시 is_published 상태도 자동 조정
   let updateData: InsightUpdate = {
     ...updates,
+    thumbnail_url: finalThumbnailUrl,
     updated_at: new Date().toISOString(),
   }
+  
+  // autoGenerateImage는 DB에 저장하지 않으므로 제거
+  delete (updateData as any).autoGenerateImage
 
   // published_at이 업데이트되는 경우
   if (updates.published_at !== undefined) {

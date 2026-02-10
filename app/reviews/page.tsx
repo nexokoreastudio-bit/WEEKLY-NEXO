@@ -7,11 +7,25 @@ import { Button } from '@/components/ui/button'
 import { Star, Award, CheckCircle2, TrendingUp, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import type { Metadata } from 'next'
+import { JsonLd } from '@/components/seo/json-ld'
 import styles from './reviews.module.css'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: '고객 후기 | NEXO Daily',
-  description: '넥소 전자칠판을 사용하시는 고객님들의 생생한 후기를 확인하세요.',
+  description: '넥소 전자칠판을 사용하시는 고객님들의 생생한 후기를 확인하세요. 실제 사용자들의 솔직한 후기와 평점을 확인할 수 있습니다.',
+  keywords: [
+    '넥소 후기',
+    '전자칠판 후기',
+    '전자칠판 사용 후기',
+    '학원 전자칠판 후기',
+    '스마트보드 후기',
+  ],
+  openGraph: {
+    title: '고객 후기 | NEXO Daily',
+    description: '넥소 전자칠판을 사용하시는 고객님들의 생생한 후기를 확인하세요.',
+    type: 'website',
+  },
 }
 
 interface PageProps {
@@ -31,9 +45,41 @@ export default async function ReviewsPage({ searchParams }: PageProps) {
   const ratingStats = await getRatingStats()
 
   const totalReviews = Object.values(ratingStats).reduce((sum, count) => sum + count, 0)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://daily-nexo.netlify.app'
+  
+  // 구조화된 데이터 (AggregateRating 및 Review 스키마)
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: '넥소 전자칠판',
+    description: '넥소 전자칠판 사용자들의 후기',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: averageRating > 0 ? averageRating.toFixed(1) : '0',
+      reviewCount: totalReviews,
+      bestRating: '5',
+      worstRating: '1',
+    },
+    review: reviews.slice(0, 10).filter(review => review.rating).map((review) => ({
+      '@type': 'Review',
+      author: {
+        '@type': 'Person',
+        name: review.author?.nickname || '익명',
+      },
+      datePublished: review.created_at,
+      reviewBody: review.content?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: review.rating?.toString() || '0',
+        bestRating: '5',
+        worstRating: '1',
+      },
+    })),
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <JsonLd data={jsonLdData} />
       <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
         <div className="text-center mb-12">
