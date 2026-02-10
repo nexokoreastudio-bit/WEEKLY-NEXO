@@ -123,6 +123,7 @@ export default async function EditionPage({
   })
   
   // 해당 발행호에 인사이트가 있는지 확인 (인사이트만 있는 발행호도 표시하기 위해)
+  // isInsightSpecific와 targetInsightId는 이미 위에서 정의됨
   const editionInsights = await (async () => {
     const { getInsights } = await import('@/lib/actions/insights')
     // 개별 인사이트인 경우 editionId를 undefined로 전달하고 클라이언트에서 필터링

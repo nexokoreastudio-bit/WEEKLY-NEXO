@@ -156,14 +156,14 @@ export async function POST(request: NextRequest) {
 
       // 3. div.content, div.article-content 등 일반적인 본문 클래스에서 추출 (패턴 확대)
       const contentPatterns = [
-        /<div[^>]*class=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/div>/i,
-        /<div[^>]*id=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/div>/i,
-        /<section[^>]*class=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/section>/i,
-        /<main[^>]*>([\s\S]{0,50000})<\/main>/i,
+        /<div[^>]*class=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/div>/gi,
+        /<div[^>]*id=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/div>/gi,
+        /<section[^>]*class=["'][^"']*(?:content|article|body|text|본문|view|story|news|post)[^"']*["'][^>]*>([\s\S]{0,50000})<\/section>/gi,
+        /<main[^>]*>([\s\S]{0,50000})<\/main>/gi,
       ]
       
       for (const pattern of contentPatterns) {
-        const matches = sanitizedHtml.matchAll(new RegExp(pattern.source, pattern.flags))
+        const matches = sanitizedHtml.matchAll(pattern)
         for (const match of matches) {
           if (match[1]) {
             const contentText = extractTextFromHtml(match[1])
