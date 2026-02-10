@@ -121,6 +121,12 @@ export async function Header() {
             >
               견적 요청
             </Link>
+            <Link
+              href="/location"
+              className="text-sm font-medium text-gray-700 transition-colors hover:text-nexo-navy whitespace-nowrap"
+            >
+              오시는 길
+            </Link>
             {isAdmin && (
               <div className="relative whitespace-nowrap">
                 <AdminMenu />

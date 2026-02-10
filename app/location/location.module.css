@@ -1,0 +1,474 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: #faf8f3;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 3px solid #001f3f;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #001f3f;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.shareSection {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.shareButton,
+.copyButton {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.shareButton:hover,
+.copyButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.shareButton:active,
+.copyButton:active {
+  transform: translateY(0);
+}
+
+.step {
+  margin-bottom: 4rem;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.comparisonItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.turnLeftText {
+  color: #2563eb;
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.stepNumber {
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.stepTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #001f3f;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.correctArrow {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(37, 99, 235, 0.95);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.wrongMark {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(220, 38, 38, 0.95);
+  color: white !important;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.wrongMark,
+.wrongMark *,
+.wrongMark .wrongText {
+  color: white !important;
+}
+
+.highlightBox {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 193, 7, 0.95);
+  color: #001f3f;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.highlightBoxBottom {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 193, 7, 0.95);
+  color: #001f3f;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  text-align: center;
+}
+
+.rampArrow {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 193, 7, 0.95);
+  color: #001f3f;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  text-align: center;
+}
+
+.directionMark {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(37, 99, 235, 0.95);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.finalMark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(220, 38, 38, 0.95);
+  color: white;
+  padding: 1.5rem 2.5rem;
+  border-radius: 16px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  text-align: center;
+}
+
+.arrowText,
+.wrongText,
+.highlightText,
+.directionText,
+.finalText {
+  display: block;
+}
+
+.description {
+  text-align: center;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.correctText {
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.wrongText {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.manufacturingText {
+  color: #2563eb;
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+}
+
+.roomNumber {
+  color: #2563eb;
+  font-size: 1.5rem;
+  font-weight: 900;
+  background: rgba(37, 99, 235, 0.15);
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+}
+
+.finalDescription {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #001f3f;
+}
+
+.finalRoomNumber {
+  color: #dc2626;
+  font-size: 1.5rem;
+  background: rgba(220, 38, 38, 0.15);
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+}
+
+.finalInfo {
+  margin: 4rem 0;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.finalInfoTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #001f3f;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.finalInfoBox {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.finalInfoText {
+  white-space: pre-line;
+  line-height: 1.8;
+  color: #333;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.finalInfoBox .copyButton {
+  width: 100%;
+  background: #001f3f;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.finalInfoBox .copyButton:hover {
+  background: #003366;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.addressSection {
+  margin: 3rem 0;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.addressTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #001f3f;
+  margin-bottom: 1rem;
+}
+
+.addressBox {
+  padding: 1rem;
+}
+
+.address {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #001f3f;
+  margin-bottom: 0.5rem;
+}
+
+.addressDetail {
+  font-size: 1rem;
+  color: #666;
+}
+
+.backLink {
+  text-align: center;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e5e7eb;
+}
+
+.backButton {
+  display: inline-block;
+  color: #2563eb;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.8rem 1.5rem;
+  border: 2px solid #2563eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.backButton:hover {
+  background: #2563eb;
+  color: white;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .step {
+    padding: 1.5rem 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .comparisonGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .stepNumber {
+    font-size: 2.5rem;
+  }
+
+  .stepTitle {
+    font-size: 1.2rem;
+  }
+
+  .correctArrow,
+  .wrongMark,
+  .highlightBox,
+  .rampArrow,
+  .directionMark,
+  .finalMark {
+    font-size: 1rem;
+    padding: 0.8rem 1.2rem;
+  }
+
+  .correctArrow {
+    top: 10px;
+    left: 10px;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .wrongMark {
+    top: 10px;
+    right: 10px;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .finalMark {
+    font-size: 1.2rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .shareButton {
+    font-size: 1rem;
+    padding: 0.8rem 1.5rem;
+  }
+}

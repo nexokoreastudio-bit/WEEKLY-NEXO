@@ -83,6 +83,12 @@ export function HeaderClient() {
               >
                 현장 소식
               </Link>
+              <Link
+                href="/location"
+                className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+              >
+                오시는 길
+              </Link>
               {!loading && isAdmin && (
                 <div className="relative">
                   <AdminMenu />
@@ -137,6 +143,12 @@ export function HeaderClient() {
               className="px-3 py-2 text-xs font-medium text-gray-700 whitespace-nowrap"
             >
               상담 신청
+            </Link>
+            <Link
+              href="/location"
+              className="px-3 py-2 text-xs font-medium text-gray-700 whitespace-nowrap"
+            >
+              오시는 길
             </Link>
             {!loading && isAdmin && (
               <div className="relative whitespace-nowrap">
