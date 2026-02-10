@@ -53,7 +53,15 @@ export default async function EditFieldNewsPage({ params }: PageProps) {
     notFound()
   }
 
-  const news = fieldNews as FieldNewsRow
+  const news = fieldNews as FieldNewsRow & {
+    store_name?: string | null
+    model?: string | null
+    additional_cables?: string | null
+    stand?: string | null
+    wall_mount?: string | null
+    payment?: string | null
+    notes?: string | null
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -73,13 +81,13 @@ export default async function EditFieldNewsPage({ params }: PageProps) {
           location: news.location || undefined,
           installation_date: news.installation_date || undefined,
           images: news.images || undefined,
-          store_name: news.store_name || undefined,
-          model: news.model || undefined,
-          additional_cables: news.additional_cables || undefined,
-          stand: news.stand || undefined,
-          wall_mount: news.wall_mount || undefined,
-          payment: news.payment || undefined,
-          notes: news.notes || undefined,
+          store_name: (news as any).store_name || undefined,
+          model: (news as any).model || undefined,
+          additional_cables: (news as any).additional_cables || undefined,
+          stand: (news as any).stand || undefined,
+          wall_mount: (news as any).wall_mount || undefined,
+          payment: (news as any).payment || undefined,
+          notes: (news as any).notes || undefined,
         }}
       />
     </div>

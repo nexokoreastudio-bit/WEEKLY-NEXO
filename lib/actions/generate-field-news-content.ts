@@ -159,7 +159,7 @@ HTML 형식으로 작성해주세요.`
     const usedImageIndices = new Set<number>()
     
     // [이미지1], [이미지2] 형식으로 명시적으로 지정된 이미지 처리
-    generatedContent = generatedContent.replace(/\[이미지(\d+)\]/gi, (match, num) => {
+    generatedContent = generatedContent.replace(/\[이미지(\d+)\]/gi, (match: string, num: string) => {
       const idx = parseInt(num, 10) - 1
       if (idx >= 0 && idx < images.length && !usedImageIndices.has(idx)) {
         usedImageIndices.add(idx)
@@ -199,7 +199,7 @@ HTML 형식으로 작성해주세요.`
       const imagesPerParagraph = Math.ceil(unusedImages.length / Math.max(paragraphs.length - 1, 1))
       
       let unusedIndex = 0
-      const newParagraphs = paragraphs.map((para, idx) => {
+      const newParagraphs = paragraphs.map((para: string, idx: number) => {
         if (idx === paragraphs.length - 1) return para // 마지막은 그대로
         
         let result = para
@@ -224,7 +224,7 @@ HTML 형식으로 작성해주세요.`
     }
 
     // 모든 텍스트를 가운데 정렬로 변경
-    generatedContent = generatedContent.replace(/<p([^>]*)>/gi, (match, attrs) => {
+    generatedContent = generatedContent.replace(/<p([^>]*)>/gi, (match: string, attrs: string) => {
       if (!attrs.includes('text-align')) {
         return `<p${attrs} style="text-align: center;">`
       }

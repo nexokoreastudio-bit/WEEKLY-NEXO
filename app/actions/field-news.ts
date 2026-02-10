@@ -166,14 +166,14 @@ export async function updateFieldNews(
       installation_date: data.installation_date,
       images: data.images,
       updated_at: new Date().toISOString(),
-      store_name: data.store_name,
-      model: data.model,
-      additional_cables: data.additional_cables,
-      stand: data.stand,
-      wall_mount: data.wall_mount,
-      payment: data.payment,
-      notes: data.notes,
-    }
+      ...(data.store_name !== undefined && { store_name: data.store_name } as any),
+      ...(data.model !== undefined && { model: data.model } as any),
+      ...(data.additional_cables !== undefined && { additional_cables: data.additional_cables } as any),
+      ...(data.stand !== undefined && { stand: data.stand } as any),
+      ...(data.wall_mount !== undefined && { wall_mount: data.wall_mount } as any),
+      ...(data.payment !== undefined && { payment: data.payment } as any),
+      ...(data.notes !== undefined && { notes: data.notes } as any),
+    } as any
     
     const { error } = await (adminSupabase
       .from('field_news') as any)
