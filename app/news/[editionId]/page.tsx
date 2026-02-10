@@ -73,10 +73,24 @@ export default async function EditionPage({
     }
   }
 
+  // editionId 파싱: insight-{id} 형식인지 확인 (먼저 파싱)
+  const isInsightSpecific = editionId.includes('-insight-')
+  let targetInsightId: number | null = null
+  let dateOnlyEditionId = editionId
+  
+  if (isInsightSpecific) {
+    const match = editionId.match(/-insight-(\d+)$/)
+    if (match) {
+      targetInsightId = parseInt(match[1], 10)
+      dateOnlyEditionId = editionId.replace(/-insight-\d+$/, '')
+    }
+  }
+  
   // 병렬로 데이터 가져오기 (성능 최적화)
+  // 개별 인사이트인 경우 날짜만 사용하여 article 조회
   const [mainArticle, allArticles, allEditionsBase, allInsights] = await Promise.all([
-    getArticleByEditionId(editionId),
-    getArticlesByEditionId(editionId),
+    getArticleByEditionId(dateOnlyEditionId), // 날짜만 사용
+    getArticlesByEditionId(dateOnlyEditionId), // 날짜만 사용
     getAllEditions(),
     (async () => {
       const { getInsights } = await import('@/lib/actions/insights')
@@ -111,7 +125,15 @@ export default async function EditionPage({
   // 해당 발행호에 인사이트가 있는지 확인 (인사이트만 있는 발행호도 표시하기 위해)
   const editionInsights = await (async () => {
     const { getInsights } = await import('@/lib/actions/insights')
-    return await getInsights(editionId, false)
+    // 개별 인사이트인 경우 editionId를 undefined로 전달하고 클라이언트에서 필터링
+    if (isInsightSpecific && targetInsightId) {
+      // 모든 인사이트를 가져온 후 특정 ID로 필터링
+      const allInsights = await getInsights(undefined, false)
+      return allInsights.filter(insight => insight.id === targetInsightId)
+    } else {
+      // 일반 에디션인 경우 기존 로직 사용
+      return await getInsights(editionId, false)
+    }
   })()
   const hasInsights = editionInsights && editionInsights.length > 0
   
@@ -123,24 +145,26 @@ export default async function EditionPage({
   // 미리보기 모드이고 발행호가 없을 때 기본 정보 생성
   // 인사이트가 있으면 인사이트 정보를 기반으로 가상 article 생성
   const displayArticle = mainArticle || (hasInsights && editionInsights.length > 0 ? {
-    title: `NEXO Daily ${editionId}`,
-    subtitle: editionInsights[0].summary || `${editionId} 교육 뉴스`,
+    title: isInsightSpecific && editionInsights[0].title 
+      ? editionInsights[0].title 
+      : `NEXO Daily ${editionId.replace(/-insight-\d+$/, '')}`,
+    subtitle: editionInsights[0].summary || `${editionId.replace(/-insight-\d+$/, '')} 교육 뉴스`,
     content: null,
     thumbnail_url: editionInsights[0].thumbnail_url,
     edition_id: editionId,
-    published_at: editionInsights[0].published_at || editionId + 'T00:00:00Z',
+    published_at: editionInsights[0].published_at || editionId.replace(/-insight-\d+$/, '') + 'T00:00:00Z',
     updated_at: editionInsights[0].updated_at || editionInsights[0].created_at,
     category: 'news' as const,
     is_published: true,
     views: 0,
     created_at: editionInsights[0].created_at,
   } : {
-    title: `NEXO Daily ${editionId}`,
-    subtitle: `${editionId} 교육 뉴스`,
+    title: `NEXO Daily ${editionId.replace(/-insight-\d+$/, '')}`,
+    subtitle: `${editionId.replace(/-insight-\d+$/, '')} 교육 뉴스`,
     content: null,
     thumbnail_url: null,
     edition_id: editionId,
-    published_at: editionId + 'T00:00:00Z',
+    published_at: editionId.replace(/-insight-\d+$/, '') + 'T00:00:00Z',
     updated_at: new Date().toISOString(),
     category: 'news' as const,
     is_published: false,
@@ -281,7 +305,12 @@ export default async function EditionPage({
 
           {/* 학부모님 상담용 인사이트 섹션 */}
           {/* 에러 발생 시에도 페이지가 정상 로드되도록 try-catch는 InsightsSection 내부에서 처리 */}
-          <InsightsSection editionId={editionId} previewMode={isPreview} />
+          {/* 개별 인사이트인 경우 editionId를 undefined로 전달하고 specificInsightId 사용 */}
+          <InsightsSection 
+            editionId={isInsightSpecific ? undefined : editionId} 
+            previewMode={isPreview}
+            specificInsightId={isInsightSpecific ? (targetInsightId ?? undefined) : undefined}
+          />
 
           {/* 매거진 섹션 (하위 articles) */}
           {subArticles.length > 0 && (

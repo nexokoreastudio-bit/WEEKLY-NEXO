@@ -8,11 +8,17 @@ type InsightRow = Database['public']['Tables']['insights']['Row']
 interface InsightsSectionProps {
   editionId?: string
   previewMode?: boolean // 관리자 미리보기 모드
+  specificInsightId?: number // 특정 인사이트 ID만 표시 (개별 인사이트 페이지용)
 }
 
-export async function InsightsSection({ editionId, previewMode = false }: InsightsSectionProps) {
+export async function InsightsSection({ editionId, previewMode = false, specificInsightId }: InsightsSectionProps) {
   try {
-    const insights = await getInsights(editionId, previewMode)
+    let insights = await getInsights(editionId, previewMode)
+    
+    // 특정 인사이트 ID가 지정된 경우 필터링
+    if (specificInsightId !== undefined) {
+      insights = insights.filter(insight => insight.id === specificInsightId)
+    }
 
     // 디버깅: 인사이트 조회 결과 확인 (프로덕션에서도 로그 출력)
     console.log(`[InsightsSection] editionId: ${editionId}, previewMode: ${previewMode}, 조회된 인사이트 수: ${insights?.length || 0}`)
