@@ -50,7 +50,7 @@ export async function toggleLike(
       if (postData) {
         await supabase
           .from('posts')
-          .update({ likes_count: Math.max((postData.likes_count || 0) - 1, 0) })
+          .update({ likes_count: Math.max((postData.likes_count || 0) - 1, 0) } as any)
           .eq('id', postId)
       }
 
@@ -82,7 +82,7 @@ export async function toggleLike(
       if (postData) {
         await supabase
           .from('posts')
-          .update({ likes_count: (postData.likes_count || 0) + 1 })
+          .update({ likes_count: (postData.likes_count || 0) + 1 } as any)
           .eq('id', postId)
       }
 

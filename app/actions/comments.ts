@@ -87,7 +87,7 @@ export async function createComment(
     if (postData) {
       await supabase
         .from('posts')
-        .update({ comments_count: (postData.comments_count || 0) + 1 })
+        .update({ comments_count: (postData.comments_count || 0) + 1 } as any)
         .eq('id', postId)
     }
 
@@ -165,7 +165,7 @@ export async function deleteComment(
     if (postData) {
       await supabase
         .from('posts')
-        .update({ comments_count: Math.max((postData.comments_count || 0) - 1, 0) })
+        .update({ comments_count: Math.max((postData.comments_count || 0) - 1, 0) } as any)
         .eq('id', postId)
     }
 
