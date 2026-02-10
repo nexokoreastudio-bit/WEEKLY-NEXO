@@ -101,6 +101,9 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .imageWrapper {
@@ -139,6 +142,7 @@
   font-size: 1.2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 10;
+  white-space: nowrap;
 }
 
 .wrongMark {
@@ -153,6 +157,7 @@
   font-size: 1.2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 10;
+  white-space: nowrap;
 }
 
 .wrongMark,
@@ -174,6 +179,7 @@
   font-size: 1.3rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 10;
+  white-space: nowrap;
 }
 
 .highlightBoxBottom {
@@ -190,6 +196,8 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 10;
   text-align: center;
+  white-space: nowrap;
+  max-width: 95%;
 }
 
 .rampArrow {
@@ -207,6 +215,7 @@
   z-index: 10;
   text-align: center;
   white-space: nowrap;
+  max-width: 95%;
 }
 
 .directionMark {
@@ -222,6 +231,8 @@
   font-size: 1.2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 10;
+  white-space: nowrap;
+  max-width: 95%;
 }
 
 .finalMark {
@@ -238,6 +249,8 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   z-index: 10;
   text-align: center;
+  white-space: nowrap;
+  max-width: 95%;
 }
 
 .arrowText,
@@ -246,12 +259,19 @@
 .directionText,
 .finalText {
   display: block;
+  white-space: nowrap;
 }
 
 .description {
   text-align: center;
   font-size: 1.1rem;
   line-height: 1.8;
+}
+
+.description p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .correctText {
@@ -432,40 +452,91 @@
   }
 
   .stepTitle {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.5rem;
+  }
+
+  .imageWrapper {
+    margin-bottom: 1rem;
+  }
+
+  .image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
   }
 
   .correctArrow,
   .wrongMark,
   .highlightBox,
+  .highlightBoxBottom,
   .rampArrow,
   .directionMark,
   .finalMark {
-    font-size: 1rem;
-    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    padding: 0.7rem 1rem;
+    white-space: nowrap;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .rampArrow {
+    font-size: 0.8rem;
+    padding: 0.6rem 0.9rem;
+  }
+  
+  .rampArrow .arrowText {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .correctArrow {
     top: 10px;
     left: 10px;
-    font-size: 0.9rem;
-    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    max-width: calc(100% - 20px);
   }
 
   .wrongMark {
     top: 10px;
     right: 10px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    max-width: calc(100% - 20px);
+  }
+
+  .directionMark {
+    top: 10px;
+    font-size: 0.8rem;
     padding: 0.6rem 1rem;
   }
 
+  .highlightBoxBottom {
+    bottom: 15px;
+    font-size: 0.85rem;
+    padding: 0.7rem 1rem;
+  }
+
   .finalMark {
-    font-size: 1.2rem;
-    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    padding: 0.8rem 1.2rem;
   }
 
   .description {
-    font-size: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .description p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.5rem;
   }
 
   .shareButton {
