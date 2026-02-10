@@ -68,7 +68,7 @@ export async function createComment(
 
     const { data: commentResult, error } = await supabase
       .from('comments')
-      .insert(commentData)
+      .insert(commentData as any)
       .select()
       .single()
 

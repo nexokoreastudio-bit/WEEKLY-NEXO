@@ -65,7 +65,7 @@ export async function toggleLike(
         .insert({
           post_id: postId,
           user_id: userId,
-        })
+        } as any)
 
       if (error) {
         console.error('좋아요 추가 실패:', error)
