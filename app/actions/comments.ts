@@ -94,7 +94,7 @@ export async function createComment(
     revalidatePath(`/community/${postId}`)
     revalidatePath('/community')
 
-    return { success: true, commentId: commentResult.id }
+    return { success: true, commentId: (commentResult as any).id }
   } catch (error: any) {
     console.error('댓글 작성 오류:', error)
     return { success: false, error: error.message || '알 수 없는 오류' }
@@ -128,6 +128,8 @@ export async function deleteComment(
       return { success: false, error: '댓글을 찾을 수 없습니다.' }
     }
 
+    const comment = commentData as any
+
     // 관리자 권한 확인
     const { data: profile } = await supabase
       .from('users')
@@ -137,7 +139,7 @@ export async function deleteComment(
 
     const profileData = profile as { role: string | null } | null
     const isAdmin = profileData?.role === 'admin'
-    const isAuthor = commentData.author_id === user.id
+    const isAuthor = comment.author_id === user.id
 
     // 작성자 본인 또는 관리자만 삭제 가능
     if (!isAuthor && !isAdmin) {

@@ -74,14 +74,14 @@ export async function createFieldNews(
       author_id: data.author_id,
       is_published: false, // 기본값은 임시저장
       views: 0,
-      store_name: data.store_name || null,
-      model: data.model || null,
-      additional_cables: data.additional_cables || null,
-      stand: data.stand || null,
-      wall_mount: data.wall_mount || null,
-      payment: data.payment || null,
-      notes: data.notes || null,
-    }
+      ...(data.store_name && { store_name: data.store_name } as any),
+      ...(data.model && { model: data.model } as any),
+      ...(data.additional_cables && { additional_cables: data.additional_cables } as any),
+      ...(data.stand && { stand: data.stand } as any),
+      ...(data.wall_mount && { wall_mount: data.wall_mount } as any),
+      ...(data.payment && { payment: data.payment } as any),
+      ...(data.notes && { notes: data.notes } as any),
+    } as any
     
     if (process.env.NODE_ENV === 'development') {
       console.log('📝 현장 소식 작성 시도:', {
