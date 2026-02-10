@@ -18,10 +18,25 @@ import styles from '../../page.module.css'
 // 날짜 포맷팅 유틸리티 함수 (서버와 클라이언트에서 동일한 결과 보장)
 function formatEditionDate(editionId: string): string {
   try {
-    const date = new Date(editionId + 'T00:00:00Z') // UTC로 명시적으로 설정
-    const year = date.getUTCFullYear()
-    const month = date.getUTCMonth() + 1
-    const day = date.getUTCDate()
+    // -insight-{id} 형식인 경우 날짜 부분만 추출
+    const datePart = editionId.replace(/-insight-\d+$/, '')
+    
+    // YYYY-MM-DD 형식인지 확인
+    const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!dateMatch) {
+      return editionId // 형식이 맞지 않으면 그대로 반환
+    }
+    
+    const year = parseInt(dateMatch[1], 10)
+    const month = parseInt(dateMatch[2], 10)
+    const day = parseInt(dateMatch[3], 10)
+    
+    // 유효한 날짜인지 확인
+    if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+      return editionId
+    }
+    
+    const date = new Date(Date.UTC(year, month - 1, day))
     const weekday = date.getUTCDay()
     
     const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
@@ -212,7 +227,7 @@ export default async function EditionPage({
           <div className={styles.heroBannerOverlay}>
             <div className={styles.heroBannerContent}>
               <div className={styles.heroBannerMeta}>
-                <span>VOL. {editionId}</span>
+                <span>VOL. {editionId.replace(/-insight-\d+$/, '')}</span>
                 <span>{formatEditionDate(editionId)}</span>
               </div>
               <h1 className={styles.heroBannerTitle}>{displayArticle.title}</h1>
@@ -227,7 +242,7 @@ export default async function EditionPage({
         <div className={styles.heroBanner} style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #0891b2 100%)', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className={styles.heroBannerContent}>
             <div className={styles.heroBannerMeta}>
-              <span>VOL. {editionId}</span>
+              <span>VOL. {editionId.replace(/-insight-\d+$/, '')}</span>
               <span>{formatEditionDate(editionId)}</span>
             </div>
             <h1 className={styles.heroBannerTitle}>{displayArticle.title}</h1>
