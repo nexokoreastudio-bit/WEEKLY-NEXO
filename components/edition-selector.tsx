@@ -14,12 +14,26 @@ interface EditionSelectorProps {
 // 날짜 포맷팅 함수
 function formatEditionDate(editionId: string): string {
   try {
-    const date = new Date(editionId + 'T00:00:00Z')
-    const month = date.getUTCMonth() + 1
-    const day = date.getUTCDate()
+    // -insight-{id} 형식인 경우 날짜 부분만 추출
+    const datePart = editionId.replace(/-insight-\d+$/, '')
+    
+    // YYYY-MM-DD 형식인지 확인
+    const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!dateMatch) {
+      return '' // 형식이 맞지 않으면 빈 문자열 반환
+    }
+    
+    const month = parseInt(dateMatch[2], 10)
+    const day = parseInt(dateMatch[3], 10)
+    
+    // 유효한 날짜인지 확인
+    if (isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+      return ''
+    }
+    
     return `${month}/${day}`
   } catch {
-    return editionId
+    return ''
   }
 }
 
@@ -42,11 +56,16 @@ export function EditionSelector({ editions, currentEditionId }: EditionSelectorP
         defaultValue={currentEditionId || ''}
       >
         <option value="">최신호 보기</option>
-        {editions.map((editionId) => (
-          <option key={editionId} value={editionId}>
-            {editionId} ({formatEditionDate(editionId)})
-          </option>
-        ))}
+        {editions.map((editionId) => {
+          // -insight-{id} 형식인 경우 날짜 부분만 표시
+          const displayId = editionId.replace(/-insight-\d+$/, '')
+          const dateStr = formatEditionDate(editionId)
+          return (
+            <option key={editionId} value={editionId}>
+              {displayId}{dateStr ? ` (${dateStr})` : ''}
+            </option>
+          )
+        })}
       </select>
       <Link href="/news" className={selectorStyles.archiveLink}>
         <Calendar className={selectorStyles.icon} />
