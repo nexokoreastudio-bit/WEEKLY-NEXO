@@ -142,10 +142,10 @@ export default async function HomePage() {
   // 발행호 정보 맵 생성 (기존 발행호 + 가상 발행호)
   const editionInfoMap = new Map<string, EditionInfo>()
   
-  // 기존 발행호 정보 추가
-  allEditions.forEach(edition => {
-    editionInfoMap.set(edition.edition_id, edition)
-  })
+  // 기존 발행호 정보 추가 (실제 에디션은 articles 테이블에 있으므로 별도 처리)
+  // 실제 에디션은 인사이트가 연결되어 있지 않아도 표시 가능하지만,
+  // "최신 교육 뉴스" 섹션에서는 인사이트만 있는 가상 에디션만 표시
+  // 실제 에디션은 히어로 섹션에서 표시됨
   
   // 인사이트만 있는 발행호를 위한 가상 발행호 생성 (각 인사이트마다 개별 에디션)
   Array.from(allEditionIds).forEach(editionId => {
@@ -168,13 +168,13 @@ export default async function HomePage() {
   })
   
   const editionsWithInsights: EditionWithInsights[] = Array.from(editionInfoMap.values()).map(edition => {
-    // 각 발행호별 고유 인사이트만 표시
+    // 각 발행호별 고유 인사이트만 표시 (가상 에디션은 각각 1개의 인사이트만 가짐)
     const editionSpecificInsights = insightsByEdition.get(edition.edition_id) || []
     
     return {
       ...edition,
-      insightsCount: insightsCountByEdition.get(edition.edition_id) || 0,
-      relatedInsights: editionSpecificInsights.slice(0, 3) // 최대 3개만 표시
+      insightsCount: editionSpecificInsights.length, // 가상 에디션은 항상 1개
+      relatedInsights: editionSpecificInsights // 가상 에디션은 해당 인사이트만
     }
   }).sort((a, b) => {
     // published_at 기준으로 정렬 (최신순)
