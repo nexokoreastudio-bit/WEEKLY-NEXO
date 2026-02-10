@@ -1,10 +1,9 @@
 import Link from 'next/link'
-import { Search } from 'lucide-react'
 import { UserButton } from '@/components/auth/user-button'
 import { AdminMenu } from '@/components/admin/admin-menu'
 import { createClient } from '@/lib/supabase/server'
 import { Database } from '@/types/database'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from './search-input'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 
@@ -59,16 +58,7 @@ export async function Header() {
           </Link>
           
           {/* 검색 바 */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="찾으시는 콘텐츠를 검색해보세요."
-                className="pl-10 pr-4 h-10 border-gray-300 rounded-none focus:border-nexo-navy focus:ring-nexo-navy"
-              />
-            </div>
-          </div>
+          <SearchInput />
         </div>
         <UserButton />
       </div>

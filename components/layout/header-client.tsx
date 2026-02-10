@@ -5,12 +5,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { UserButton } from '@/components/auth/user-button'
 import { AdminMenu } from '@/components/admin/admin-menu'
-import { Search } from 'lucide-react'
+import { SearchInput } from './search-input'
 
 export function HeaderClient() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     async function checkAdmin() {
@@ -48,19 +47,8 @@ export function HeaderClient() {
             </span>
           </Link>
 
-          {/* 검색바 (데스크톱) */}
-          <div className="hidden md:flex flex-1 max-w-lg mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="찾으시는 콘텐츠를 검색해보세요."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-nexo-cyan focus:border-transparent text-sm"
-              />
-            </div>
-          </div>
+          {/* 검색바 */}
+          <SearchInput />
 
           {/* 우측 메뉴 */}
           <div className="flex items-center gap-4">
