@@ -78,24 +78,17 @@ export async function createComment(
     }
 
     // posts 테이블의 comments_count 업데이트
-    const { error: updateError } = await supabase.rpc('increment_comments_count', {
-      post_id_param: postId
-    })
+    const { data: postData } = await supabase
+      .from('posts')
+      .select('comments_count')
+      .eq('id', postId)
+      .single()
 
-    if (updateError) {
-      // RPC 함수가 없으면 직접 업데이트
-      const { data: postData } = await supabase
+    if (postData) {
+      await supabase
         .from('posts')
-        .select('comments_count')
+        .update({ comments_count: (postData.comments_count || 0) + 1 })
         .eq('id', postId)
-        .single()
-
-      if (postData) {
-        await supabase
-          .from('posts')
-          .update({ comments_count: (postData.comments_count || 0) + 1 })
-          .eq('id', postId)
-      }
     }
 
     revalidatePath(`/community/${postId}`)
