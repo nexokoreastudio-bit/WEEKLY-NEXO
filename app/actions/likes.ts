@@ -48,8 +48,9 @@ export async function toggleLike(
         .single()
 
       if (postData) {
+        const currentCount = (postData as any)?.likes_count || 0
         await (supabase.from('posts') as any)
-          .update({ likes_count: Math.max((postData.likes_count || 0) - 1, 0) })
+          .update({ likes_count: Math.max(currentCount - 1, 0) })
           .eq('id', postId)
       }
 
@@ -79,8 +80,9 @@ export async function toggleLike(
         .single()
 
       if (postData) {
+        const currentCount = (postData as any)?.likes_count || 0
         await (supabase.from('posts') as any)
-          .update({ likes_count: (postData.likes_count || 0) + 1 })
+          .update({ likes_count: currentCount + 1 })
           .eq('id', postId)
       }
 
