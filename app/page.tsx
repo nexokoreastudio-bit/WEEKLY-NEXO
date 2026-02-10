@@ -167,21 +167,29 @@ export default async function HomePage() {
     }
   })
   
-  const editionsWithInsights: EditionWithInsights[] = Array.from(editionInfoMap.values()).map(edition => {
-    // 각 발행호별 고유 인사이트만 표시 (가상 에디션은 각각 1개의 인사이트만 가짐)
-    const editionSpecificInsights = insightsByEdition.get(edition.edition_id) || []
-    
-    return {
-      ...edition,
-      insightsCount: editionSpecificInsights.length, // 가상 에디션은 항상 1개
-      relatedInsights: editionSpecificInsights // 가상 에디션은 해당 인사이트만
-    }
-  }).sort((a, b) => {
-    // published_at 기준으로 정렬 (최신순)
-    const dateA = a.published_at ? new Date(a.published_at).getTime() : 0
-    const dateB = b.published_at ? new Date(b.published_at).getTime() : 0
-    return dateB - dateA
-  })
+  const editionsWithInsights: EditionWithInsights[] = Array.from(editionInfoMap.values())
+    .map(edition => {
+      // 각 발행호별 고유 인사이트만 표시 (가상 에디션은 각각 1개의 인사이트만 가짐)
+      const editionSpecificInsights = insightsByEdition.get(edition.edition_id) || []
+      
+      // 인사이트가 있는 에디션만 반환
+      if (!Array.isArray(editionSpecificInsights) || editionSpecificInsights.length === 0) {
+        return null
+      }
+      
+      return {
+        ...edition,
+        insightsCount: editionSpecificInsights.length, // 가상 에디션은 항상 1개
+        relatedInsights: editionSpecificInsights // 가상 에디션은 해당 인사이트만
+      }
+    })
+    .filter((edition): edition is EditionWithInsights => edition !== null)
+    .sort((a, b) => {
+      // published_at 기준으로 정렬 (최신순)
+      const dateA = a.published_at ? new Date(a.published_at).getTime() : 0
+      const dateB = b.published_at ? new Date(b.published_at).getTime() : 0
+      return dateB - dateA
+    })
 
   // 최신 인사이트 (일반 인사이트 또는 최신 발행호의 인사이트)
   const latestInsights = allInsights
@@ -281,11 +289,14 @@ export default async function HomePage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
               {editionsWithInsights
-                .filter(edition => edition.insightsCount > 0) // 인사이트가 있는 발행호만 표시
+                .filter(edition => {
+                  // 인사이트가 있고, relatedInsights가 배열인 발행호만 표시
+                  return edition.insightsCount > 0 && Array.isArray(edition.relatedInsights) && edition.relatedInsights.length > 0
+                })
                 .slice(0, 6)
                 .map((edition) => {
                 // 해당 발행호와 연관된 인사이트 (발행호별 고유 인사이트만)
-                const editionInsights = edition.relatedInsights || []
+                const editionInsights = Array.isArray(edition.relatedInsights) ? edition.relatedInsights : []
 
                 return (
                   <Link 
@@ -298,7 +309,7 @@ export default async function HomePage() {
                         <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
                           <Image
                             src={edition.thumbnail_url}
-                            alt={edition.title}
+                            alt={edition.title || '인사이트'}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -307,7 +318,7 @@ export default async function HomePage() {
                         <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-nexo-navy/10 to-gray-100">
                           <Image
                             src="/assets/images/nexo_logo_black.png"
-                            alt={edition.title}
+                            alt={edition.title || '인사이트'}
                             fill
                             className="object-contain p-8 opacity-60"
                           />
@@ -325,7 +336,7 @@ export default async function HomePage() {
                           )}
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-nexo-navy transition-colors line-clamp-2 leading-tight">
-                          {edition.title}
+                          {edition.title || '인사이트'}
                         </h3>
                         {edition.subtitle && (
                           <p className="text-gray-600 text-sm line-clamp-2 mb-4 flex-1 leading-relaxed">
@@ -340,7 +351,7 @@ export default async function HomePage() {
                             <div className="space-y-2">
                               {editionInsights.map((insight) => (
                                 <div key={insight.id} className="text-xs text-gray-600 line-clamp-1">
-                                  • {insight.title}
+                                  • {insight.title || '제목 없음'}
                                 </div>
                               ))}
                               {edition.insightsCount > editionInsights.length && (
