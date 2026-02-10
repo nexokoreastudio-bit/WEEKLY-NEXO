@@ -154,15 +154,30 @@ export function InsightEditForm({ insight, editions, onCancel, onSuccess }: Insi
         <Label htmlFor="edition">발행 에디션</Label>
         <Select value={editionId} onValueChange={(value) => setEditionId(value)}>
           <SelectTrigger className="mt-1">
-            <SelectValue placeholder="에디션을 선택하세요" />
+            <SelectValue placeholder="에디션을 선택하세요">
+              {editionId && editionId !== 'none' ? (() => {
+                const selectedEdition = editions.find(e => e.edition_id === editionId)
+                if (selectedEdition) {
+                  // -insight-{id} 형식인 경우 날짜 부분만 표시
+                  const datePart = editionId.replace(/-insight-\d+$/, '')
+                  return `${datePart}${selectedEdition.title ? ` - ${selectedEdition.title}` : ''}`
+                }
+                // 찾지 못한 경우 editionId만 표시
+                return editionId.replace(/-insight-\d+$/, '')
+              })() : undefined}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">일반 인사이트 (에디션 없음)</SelectItem>
-            {editions.map((edition) => (
-              <SelectItem key={edition.edition_id} value={edition.edition_id}>
-                {edition.edition_id} - {edition.title}
-              </SelectItem>
-            ))}
+            {editions.map((edition) => {
+              // -insight-{id} 형식인 경우 날짜 부분만 표시
+              const displayId = edition.edition_id.replace(/-insight-\d+$/, '')
+              return (
+                <SelectItem key={edition.edition_id} value={edition.edition_id}>
+                  {displayId} - {edition.title || '제목 없음'}
+                </SelectItem>
+              )
+            })}
           </SelectContent>
         </Select>
         <p className="text-xs text-gray-500 mt-1">
