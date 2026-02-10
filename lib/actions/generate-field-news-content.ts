@@ -46,6 +46,7 @@ ${fields.installationDate ? `- 설치일: ${fields.installationDate}` : ''}
 6. 문단을 적절히 나누고, 제목, 본문, 마무리 등 블로그 글의 구조를 갖추세요.
 7. 전문적이면서도 친근한 톤으로 작성하세요.
 8. 각 문단은 <p style="text-align: center;"> 태그로 감싸서 가운데 정렬하세요.
+9. 절대로 "[블로그 이름]"이나 "[블로그명]" 같은 플레이스홀더를 사용하지 마세요. 인사말은 "안녕하세요!" 또는 "여러분 안녕하세요!"로 시작하세요.
 
 **작성 형식:**
 - 헤더: 상점명과 지역 정보를 자연스럽게 소개 (이미지 1-2개 삽입)
@@ -58,6 +59,7 @@ ${fields.installationDate ? `- 설치일: ${fields.installationDate}` : ''}
 - 총 ${images.length}개의 이미지가 있으므로, 반드시 [이미지1]부터 [이미지${images.length}]까지 모두 사용하세요.
 - 이미지가 없는 섹션은 만들지 마세요.
 - 텍스트와 이미지가 자연스럽게 조화를 이루도록 배치하세요.
+- "[블로그 이름]", "[블로그명]", "[회사명]" 같은 플레이스홀더를 절대 사용하지 마세요.
 
 HTML 형식으로 작성해주세요.`
 
@@ -227,6 +229,17 @@ HTML 형식으로 작성해주세요.`
     generatedContent = generatedContent.replace(/<p([^>]*)>/gi, (match: string, attrs: string) => {
       if (!attrs.includes('text-align')) {
         return `<p${attrs} style="text-align: center;">`
+      }
+      return match
+    })
+
+    // 플레이스홀더 제거: [블로그 이름], [블로그명] 등을 제거
+    generatedContent = generatedContent.replace(/\[블로그\s*(이름|명|이름\)|명\))\]/gi, '')
+    generatedContent = generatedContent.replace(/\[회사명\]/gi, '')
+    generatedContent = generatedContent.replace(/\[.*?\]/g, (match: string) => {
+      // [이미지1] 같은 이미지 플레이스홀더는 이미 처리되었으므로 남은 것만 제거
+      if (!match.includes('이미지')) {
+        return ''
       }
       return match
     })
