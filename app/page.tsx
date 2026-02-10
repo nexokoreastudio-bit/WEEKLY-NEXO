@@ -291,12 +291,17 @@ export default async function HomePage() {
               {editionsWithInsights
                 .filter(edition => {
                   // 인사이트가 있고, relatedInsights가 배열인 발행호만 표시
-                  return edition.insightsCount > 0 && Array.isArray(edition.relatedInsights) && edition.relatedInsights.length > 0
+                  return edition && edition.edition_id && edition.insightsCount > 0 && Array.isArray(edition.relatedInsights) && edition.relatedInsights.length > 0
                 })
                 .slice(0, 6)
                 .map((edition) => {
                 // 해당 발행호와 연관된 인사이트 (발행호별 고유 인사이트만)
                 const editionInsights = Array.isArray(edition.relatedInsights) ? edition.relatedInsights : []
+                
+                // edition_id가 유효한지 확인
+                if (!edition.edition_id) {
+                  return null
+                }
 
                 return (
                   <Link 
@@ -370,7 +375,9 @@ export default async function HomePage() {
                     </article>
                   </Link>
                 )
-              })}
+              })
+              .filter(Boolean) // null 제거
+              }
             </div>
           )}
 
