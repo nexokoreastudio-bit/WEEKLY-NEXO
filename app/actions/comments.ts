@@ -85,9 +85,8 @@ export async function createComment(
       .single()
 
     if (postData) {
-      await supabase
-        .from('posts')
-        .update({ comments_count: (postData.comments_count || 0) + 1 } as any)
+      await (supabase.from('posts') as any)
+        .update({ comments_count: (postData.comments_count || 0) + 1 })
         .eq('id', postId)
     }
 
@@ -163,9 +162,8 @@ export async function deleteComment(
       .single()
 
     if (postData) {
-      await supabase
-        .from('posts')
-        .update({ comments_count: Math.max((postData.comments_count || 0) - 1, 0) } as any)
+      await (supabase.from('posts') as any)
+        .update({ comments_count: Math.max((postData.comments_count || 0) - 1, 0) })
         .eq('id', postId)
     }
 
