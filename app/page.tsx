@@ -65,7 +65,7 @@ export default async function HomePage() {
       .order('published_at', { ascending: false })
       .limit(3)
       .then(({ data }) => data || []),
-    getPostsByBoardType(null, 6, 0) // 전체 게시판에서 최신 6개 가져오기
+    getPostsByBoardType(null, 3, 0) // 전체 게시판에서 최신 3개 가져오기
   ])
 
   // 발행호별 인사이트 개수 및 목록 계산
