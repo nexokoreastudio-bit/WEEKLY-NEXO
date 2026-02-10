@@ -6,6 +6,8 @@ import styles from '@/app/location/location.module.css'
 export function ShareButton() {
   const [copied, setCopied] = useState(false)
 
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : 'https://daily-nexo.netlify.app/location'
+
   const shareText = `🚗 검단 지식산업센터 제조동 527호 오시는 길 안내
 
 주차장 입구가 제조동 / 기숙사동 두 곳입니다.
@@ -19,7 +21,7 @@ export function ShareButton() {
 📍 주소: 인천 서구 검단지식산업센터 제조동 527호
 (사진 안내 참고)
 
-🔗 상세 안내: ${typeof window !== 'undefined' ? window.location.href : 'https://daily-nexo.netlify.app/location'}`
+🔗 상세 안내: ${shareUrl}`
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -27,7 +29,7 @@ export function ShareButton() {
         await navigator.share({
           title: '검단 지식산업센터 제조동 527호 오시는 길',
           text: shareText,
-          url: typeof window !== 'undefined' ? window.location.href : 'https://daily-nexo.netlify.app/location',
+          url: shareUrl,
         })
       } catch (err) {
         // 사용자가 공유를 취소한 경우 무시
@@ -36,14 +38,14 @@ export function ShareButton() {
         }
       }
     } else {
-      // 공유 API가 없으면 클립보드에 복사
+      // 공유 API가 없으면 클립보드에 URL만 복사
       try {
-        await navigator.clipboard.writeText(shareText)
+        await navigator.clipboard.writeText(shareUrl)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       } catch (err) {
         console.error('복사 실패:', err)
-        alert('안내 문구를 복사할 수 없습니다. 수동으로 복사해주세요.')
+        alert('주소를 복사할 수 없습니다. 수동으로 복사해주세요.')
       }
     }
   }
