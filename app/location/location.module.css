@@ -218,6 +218,29 @@
   max-width: 95%;
 }
 
+.yellowOverlayBox {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffc107;
+  color: #001f3f;
+  padding: 1.2rem 2.5rem;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  text-align: center;
+  white-space: nowrap;
+  max-width: 90%;
+}
+
+.yellowOverlayText {
+  display: inline-block;
+  color: #001f3f;
+}
+
 .directionMark {
   position: absolute;
   top: 30px;
@@ -385,6 +408,11 @@
 
 .addressBox {
   padding: 1rem;
+  border: 2px solid #dc2626;
+  border-radius: 12px;
+  background: #fff5f5;
+  margin-top: 1.5rem;
+  text-align: center;
 }
 
 .address {
@@ -392,6 +420,12 @@
   font-weight: 700;
   color: #001f3f;
   margin-bottom: 0.5rem;
+}
+
+.highlightBuilding {
+  color: #dc2626;
+  font-weight: 900;
+  font-size: 1.4rem;
 }
 
 .addressDetail {
@@ -475,13 +509,24 @@
   .highlightBoxBottom,
   .rampArrow,
   .directionMark,
-  .finalMark {
+  .finalMark,
+  .yellowOverlayBox {
     font-size: 0.85rem;
     padding: 0.7rem 1rem;
     white-space: nowrap;
     max-width: 90%;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .yellowOverlayBox {
+    font-size: 0.9rem;
+    padding: 0.8rem 1.2rem;
+    bottom: 20px;
+  }
+
+  .yellowOverlayText {
+    font-size: 0.9rem;
   }
   
   .rampArrow {
@@ -542,5 +587,18 @@
   .shareButton {
     font-size: 1rem;
     padding: 0.8rem 1.5rem;
+  }
+
+  .addressBox {
+    padding: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .address {
+    font-size: 1rem;
+  }
+
+  .highlightBuilding {
+    font-size: 1.1rem;
   }
 }

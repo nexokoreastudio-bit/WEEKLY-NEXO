@@ -92,6 +92,11 @@ export default function LocationPage() {
             </div>
           </div>
         </div>
+        <div className={styles.addressBox}>
+          <p className={styles.address}>
+            <strong>주소:</strong> 인천시 서구 보듬로158 검단지식산업센터 블루텍 <span className={styles.highlightBuilding}>제조동</span> 527호
+          </p>
+        </div>
       </section>
 
       {/* STEP 2 */}
@@ -108,7 +113,7 @@ export default function LocationPage() {
           />
           <div className={styles.overlay}>
             <div className={styles.rampArrow}>
-              <span className={styles.arrowText}>🚗 제조동 입구로 진입 후 램프를 따라 5층까지 올라오세요</span>
+              <span className={styles.arrowText}>🚗 제조동 입구로 진입하세요</span>
             </div>
           </div>
         </div>
@@ -122,7 +127,32 @@ export default function LocationPage() {
       {/* STEP 3 */}
       <section className={styles.step}>
         <div className={styles.stepNumber}>3️⃣</div>
-        <h2 className={styles.stepTitle}>STEP 3: 5층 글씨가 보이면 직진</h2>
+        <h2 className={styles.stepTitle}>STEP 3: 좌측 램프를 따라 5층까지 올라가기</h2>
+        <div className={styles.imageWrapper}>
+          <Image
+            src="/assets/images/location/step3-height-restriction.png"
+            alt="높이 제한 3.6M 표지판"
+            width={1200}
+            height={800}
+            className={styles.image}
+          />
+          <div className={styles.overlay}>
+            <div className={styles.yellowOverlayBox}>
+              <span className={styles.yellowOverlayText}>🚗 제조동 입구 진입 후 좌측 램프를 따라 5층까지 올라오세요</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.description}>
+          <p>
+            제조동 입구 진입 후 <strong>좌측 램프</strong>를 따라 <strong>5층까지</strong> 올라오세요.
+          </p>
+        </div>
+      </section>
+
+      {/* STEP 4 */}
+      <section className={styles.step}>
+        <div className={styles.stepNumber}>4️⃣</div>
+        <h2 className={styles.stepTitle}>STEP 4: 5층 글씨가 보이면 직진</h2>
         <div className={styles.imageWrapper}>
           <Image
             src="/assets/images/location/step3-5f-straight.png"
@@ -144,10 +174,10 @@ export default function LocationPage() {
         </div>
       </section>
 
-      {/* STEP 4 */}
+      {/* STEP 5 */}
       <section className={styles.step}>
-        <div className={styles.stepNumber}>4️⃣</div>
-        <h2 className={styles.stepTitle}>STEP 4: 태성정밀 간판이 보이는 곳까지 와서 좌회전</h2>
+        <div className={styles.stepNumber}>5️⃣</div>
+        <h2 className={styles.stepTitle}>STEP 5: 태성정밀 간판이 보이는 곳까지 와서 좌회전</h2>
         <div className={styles.imageWrapper}>
           <Image
             src="/assets/images/location/step4-turn-left.png"
@@ -169,10 +199,10 @@ export default function LocationPage() {
         </div>
       </section>
 
-      {/* STEP 5 */}
+      {/* STEP 6 */}
       <section className={styles.step}>
-        <div className={styles.stepNumber}>5️⃣</div>
-        <h2 className={styles.stepTitle}>STEP 5: 좌회전 하자 마자 우측에 527호 넥소가 있음</h2>
+        <div className={styles.stepNumber}>6️⃣</div>
+        <h2 className={styles.stepTitle}>STEP 6: 좌회전 하자 마자 우측에 527호 넥소가 있음</h2>
         <div className={styles.imageWrapper}>
           <Image
             src="/assets/images/location/step5-room527.png"
@@ -208,7 +238,7 @@ export default function LocationPage() {
         <h2 className={styles.addressTitle}>📍 주소 정보</h2>
         <div className={styles.addressBox}>
           <p className={styles.address}>
-            <strong>인천광역시 서구 보듬로158 블루텍 527호 (제조동)</strong>
+            <strong>인천광역시 서구 보듬로158 블루텍 527호 <span className={styles.highlightBuilding}>(제조동)</span></strong>
           </p>
           <p className={styles.addressDetail}>
             (주)넥소 | Tel: 032-569-5771~2
