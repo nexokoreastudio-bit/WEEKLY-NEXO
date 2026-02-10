@@ -63,8 +63,8 @@ async function generateInsightImage(title: string, summary: string): Promise<str
             const keywordsText = geminiData.candidates[0].content.parts[0].text.trim()
             keywords = keywordsText
               .split(',')
-              .map(k => k.trim())
-              .filter(k => k.length > 0)
+              .map((k: string) => k.trim())
+              .filter((k: string) => k.length > 0)
               .slice(0, 5)
             
             if (keywords.length > 0) {
@@ -913,15 +913,22 @@ export async function updateInsight(
   }
 
   // 기존 인사이트 정보 가져오기
-  const { data: existingInsight, error: fetchError } = await supabase
+  const { data: existingInsightData, error: fetchError } = await supabase
     .from('insights')
     .select('title, summary, thumbnail_url')
     .eq('id', id)
     .single()
 
-  if (fetchError) {
+  if (fetchError || !existingInsightData) {
     console.error('인사이트 조회 실패:', fetchError)
     return { error: '인사이트를 찾을 수 없습니다.' }
+  }
+
+  // 타입 단언으로 타입 안정성 확보
+  const existingInsight = existingInsightData as {
+    title: string | null
+    summary: string | null
+    thumbnail_url: string | null
   }
 
   // 이미지 자동 생성 로직
@@ -929,11 +936,11 @@ export async function updateInsight(
   
   // thumbnail_url이 명시적으로 null로 설정되지 않았고, 자동 생성이 요청되었거나 이미지가 없는 경우
   if (updates.thumbnail_url === undefined || updates.autoGenerateImage) {
-    const title = updates.title || existingInsight.title
-    const summary = updates.summary !== undefined ? updates.summary : existingInsight.summary
+    const title = updates.title || existingInsight.title || ''
+    const summary = updates.summary !== undefined ? updates.summary : (existingInsight.summary || '')
     
     // 이미지가 없거나 Unsplash URL인 경우 자동 생성
-    const currentImage = updates.thumbnail_url !== undefined ? updates.thumbnail_url : existingInsight.thumbnail_url
+    const currentImage = updates.thumbnail_url !== undefined ? updates.thumbnail_url : (existingInsight.thumbnail_url || null)
     const needsImageGeneration = !currentImage || 
                                   currentImage.includes('unsplash.com') ||
                                   updates.autoGenerateImage

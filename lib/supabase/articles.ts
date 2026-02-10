@@ -62,7 +62,7 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
   }
 
   // article과 insight를 모두 확인하여 가장 최신 것을 찾기
-  const { data: articleData, error } = await supabase
+  const { data: articleDataRaw, error } = await supabase
     .from('articles')
     .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
     .not('edition_id', 'is', null)
@@ -71,6 +71,8 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
     .limit(1)
     .maybeSingle()
 
+  const articleData = articleDataRaw as EditionArticle | null
+
   if (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('최신 발행호 조회 실패:', error)
@@ -78,23 +80,60 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
   }
 
   // 인사이트도 확인하여 가장 최신 것 찾기
-  let latestInsight: any = null
+  type LatestInsightType = {
+    id: number
+    title: string | null
+    summary: string | null
+    thumbnail_url: string | null
+    published_at: string | null
+    created_at: string
+    updated_at?: string | null
+  }
+  let latestInsight: LatestInsightType | null = null as LatestInsightType | null
   try {
     const { getInsights } = await import('@/lib/actions/insights')
     const allInsights = await getInsights(undefined, false)
     
     if (allInsights && allInsights.length > 0) {
       // published_at이 있는 인사이트 중 가장 최신 것 찾기
-      const insightsWithDate = allInsights
-        .filter(insight => insight.published_at)
-        .sort((a, b) => {
-          const dateA = new Date(a.published_at!).getTime()
-          const dateB = new Date(b.published_at!).getTime()
-          return dateB - dateA
-        })
+      const insightsWithDate = allInsights.filter(insight => {
+        return insight.published_at !== null && 
+               insight.published_at !== undefined && 
+               insight.created_at !== null && 
+               insight.created_at !== undefined
+      }) as Array<{
+        id: number
+        title: string | null
+        summary: string | null
+        thumbnail_url: string | null
+        published_at: string
+        created_at: string
+        updated_at?: string | null
+      }>
       
       if (insightsWithDate.length > 0) {
-        latestInsight = insightsWithDate[0]
+        // published_at 기준으로 정렬하되, 같은 날짜면 created_at 기준
+        insightsWithDate.sort((a, b) => {
+          const dateA = new Date(a.published_at).getTime()
+          const dateB = new Date(b.published_at).getTime()
+          if (dateA !== dateB) {
+            return dateB - dateA
+          }
+          // 같은 날짜면 created_at 기준 (더 최근에 생성된 것이 더 최신)
+          const createdA = new Date(a.created_at).getTime()
+          const createdB = new Date(b.created_at).getTime()
+          return createdB - createdA
+        })
+        
+        latestInsight = {
+          id: insightsWithDate[0].id,
+          title: insightsWithDate[0].title,
+          summary: insightsWithDate[0].summary,
+          thumbnail_url: insightsWithDate[0].thumbnail_url,
+          published_at: insightsWithDate[0].published_at,
+          created_at: insightsWithDate[0].created_at,
+          updated_at: insightsWithDate[0].updated_at || null,
+        }
       }
     }
   } catch (e) {
@@ -104,51 +143,64 @@ export async function getLatestArticle(): Promise<EditionArticle | null> {
   }
 
   // article과 insight 중 더 최신 것 선택
-  let latestArticle = articleData
+  let latestArticle: EditionArticle | null = articleData
   let latestDate = articleData?.published_at ? new Date(articleData.published_at).getTime() : 0
   
-  if (latestInsight && latestInsight.published_at) {
-    const insightDate = new Date(latestInsight.published_at).getTime()
-    if (insightDate > latestDate) {
-      // 인사이트가 더 최신이면 가상 article 생성
-      const publishedDate = new Date(latestInsight.published_at)
-      const year = publishedDate.getUTCFullYear()
-      const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
-      const day = String(publishedDate.getUTCDate()).padStart(2, '0')
-      const editionId = `${year}-${month}-${day}`
+  if (latestInsight !== null) {
+    const insight: LatestInsightType = latestInsight
+    const insightPublishedAt = insight.published_at
+    const insightCreatedAt = insight.created_at
+    
+    if (insightPublishedAt !== null && insightCreatedAt) {
+      const insightDate = new Date(insightPublishedAt).getTime()
+      // 인사이트가 더 최신이거나, 같은 날짜지만 더 최근에 생성된 경우
+      const insightCreatedDate = new Date(insightCreatedAt).getTime()
+      const articleCreatedDate = articleData?.created_at ? new Date(articleData.created_at).getTime() : 0
       
-      // 해당 날짜의 article이 있는지 다시 확인
-      const { data: articleForDate } = await supabase
-        .from('articles')
-        .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
-        .eq('edition_id', editionId)
-        .eq('is_published', true)
-        .limit(1)
-        .maybeSingle()
-      
-      if (articleForDate) {
-        latestArticle = articleForDate
-      } else {
-        // article이 없으면 인사이트 정보로 가상 article 생성
-        latestArticle = {
-          id: 0, // 가상 ID
-          title: `NEXO Daily ${editionId}`,
-          subtitle: latestInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
-          content: null,
-          thumbnail_url: latestInsight.thumbnail_url,
-          edition_id: editionId,
-          published_at: latestInsight.published_at,
-          updated_at: latestInsight.updated_at || latestInsight.created_at,
-          category: 'news' as const,
-          is_published: true,
-          views: 0,
-          created_at: latestInsight.created_at,
-        } as EditionArticle
+      if (insightDate > latestDate || (insightDate === latestDate && insightCreatedDate > articleCreatedDate)) {
+        // 인사이트가 더 최신이면 가상 article 생성
+        const publishedDate = new Date(insightPublishedAt)
+        const year = publishedDate.getUTCFullYear()
+        const month = String(publishedDate.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(publishedDate.getUTCDate()).padStart(2, '0')
+        // 개별 인사이트를 고려하여 insight-{id} 형식의 editionId 사용
+        const editionId = `${year}-${month}-${day}-insight-${insight.id}`
+        
+        // 해당 날짜의 article이 있는지 다시 확인 (일반 날짜 형식으로)
+        const dateOnlyEditionId = `${year}-${month}-${day}`
+        const { data: articleForDate } = await supabase
+          .from('articles')
+          .select('id, title, subtitle, content, thumbnail_url, edition_id, published_at, updated_at, category, is_published')
+          .eq('edition_id', dateOnlyEditionId)
+          .eq('is_published', true)
+          .limit(1)
+          .maybeSingle()
+        
+        if (articleForDate) {
+          // article이 있으면 article 사용 (더 우선순위)
+          latestArticle = articleForDate
+        } else {
+          // article이 없으면 인사이트 정보로 가상 article 생성 (개별 인사이트 editionId 사용)
+          latestArticle = {
+            id: 0, // 가상 ID
+            title: insight.title || `NEXO Daily ${dateOnlyEditionId}`,
+            subtitle: insight.summary || '학부모님 상담에 도움이 되는 교육 정보',
+            content: null,
+            thumbnail_url: insight.thumbnail_url,
+            edition_id: editionId, // 개별 인사이트 editionId 사용
+            published_at: insightPublishedAt,
+            updated_at: insight.updated_at || insightCreatedAt,
+            category: 'news' as const,
+            is_published: true,
+            views: 0,
+            created_at: insightCreatedAt,
+          } as EditionArticle
+        }
       }
     }
   }
 
-  return latestArticle as EditionArticle | null
+  return latestArticle
 }
 
 /**

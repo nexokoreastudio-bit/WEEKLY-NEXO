@@ -84,7 +84,6 @@ export default async function NewsArchivePage() {
         subtitle: firstInsight.summary || '학부모님 상담에 도움이 되는 교육 정보',
         thumbnail_url: firstInsight.thumbnail_url,
         published_at: firstInsight.published_at || editionId + 'T00:00:00Z',
-        updated_at: firstInsight.updated_at || firstInsight.created_at,
       })
     }
   })
