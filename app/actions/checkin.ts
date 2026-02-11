@@ -41,12 +41,18 @@ export async function dailyCheckin(): Promise<{ success: boolean; error?: string
     const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD 형식
 
     // 오늘 이미 출석했는지 확인
-    const { data: existingCheckin } = await supabase
+    const { data: existingCheckin, error: checkError } = await supabase
       .from('daily_checkins')
       .select('id')
       .eq('user_id', user.id)
       .eq('checkin_date', today)
-      .single()
+      .maybeSingle()
+
+    // 에러가 있고 PGRST116이 아닌 경우 (레코드 없음은 정상)
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('출석 기록 확인 오류:', checkError)
+      return { success: false, error: '출석 상태 확인 중 오류가 발생했습니다.' }
+    }
 
     if (existingCheckin) {
       return { success: false, error: '오늘은 이미 출석하셨습니다. 내일 다시 시도해주세요!' }
@@ -95,12 +101,18 @@ export async function getTodayCheckinStatus(): Promise<{ checkedIn: boolean; err
     const today = new Date().toISOString().split('T')[0]
 
     // 오늘 출석 기록 확인
-    const { data: checkin } = await supabase
+    const { data: checkin, error: checkinError } = await supabase
       .from('daily_checkins')
       .select('id')
       .eq('user_id', user.id)
       .eq('checkin_date', today)
-      .single()
+      .maybeSingle()
+
+    // 에러가 있고 PGRST116이 아닌 경우 (레코드 없음은 정상)
+    if (checkinError && checkinError.code !== 'PGRST116') {
+      console.error('출석 기록 조회 오류:', checkinError)
+      return { checkedIn: false, error: '출석 상태 확인 중 오류가 발생했습니다.' }
+    }
 
     return { checkedIn: !!checkin }
   } catch (error: any) {
@@ -123,15 +135,23 @@ export async function getCheckinStreak(): Promise<{ streak: number; error?: stri
     }
 
     // 최근 출석 기록 가져오기 (최신순)
-    const { data: checkinsData } = await supabase
+    const { data: checkinsData, error: checkinsError } = await supabase
       .from('daily_checkins')
       .select('checkin_date')
       .eq('user_id', user.id)
       .order('checkin_date', { ascending: false })
       .limit(30) // 최근 30일만 확인
 
+    if (checkinsError) {
+      console.error('출석 기록 조회 오류:', checkinsError)
+      return { streak: 0, error: '출석 기록 조회 중 오류가 발생했습니다.' }
+    }
+
     // 타입 명시적으로 지정
-    const checkins: Pick<DailyCheckinRow, 'checkin_date'>[] = (checkinsData || []) as any
+    const typedCheckinsData = (checkinsData || []) as { checkin_date: string }[]
+    const checkins = typedCheckinsData.map(item => ({
+      checkin_date: String(item.checkin_date || '')
+    }))
 
     if (!checkins || checkins.length === 0) {
       return { streak: 0 }
@@ -143,7 +163,12 @@ export async function getCheckinStreak(): Promise<{ streak: number; error?: stri
     today.setHours(0, 0, 0, 0)
 
     for (let i = 0; i < checkins.length; i++) {
-      const checkinDate = new Date(checkins[i].checkin_date)
+      const checkinDateStr = String(checkins[i].checkin_date)
+      if (!checkinDateStr) continue
+      
+      const checkinDate = new Date(checkinDateStr)
+      if (isNaN(checkinDate.getTime())) continue
+      
       checkinDate.setHours(0, 0, 0, 0)
 
       const expectedDate = new Date(today)
