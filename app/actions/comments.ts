@@ -92,7 +92,7 @@ export async function createComment(
     const updateData: PostUpdate = { comments_count: actualCommentCount || 0 }
     const { error: updateError } = await supabase
       .from('posts')
-      .update(updateData as any)
+      .update(updateData as any as never)
       .eq('id', postId)
 
     if (updateError) {
@@ -208,7 +208,7 @@ export async function deleteComment(
     const updateData: PostUpdate = { comments_count: actualCommentCount || 0 }
     const { error: updateError } = await updateClient
       .from('posts')
-      .update(updateData as any)
+      .update(updateData as any as never)
       .eq('id', postId)
 
     if (updateError) {
