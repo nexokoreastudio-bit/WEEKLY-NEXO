@@ -90,7 +90,7 @@ export async function createComment(
     // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
     const { error: updateError } = await supabase
       .from('posts')
-      .update({ comments_count: actualCommentCount || 0 })
+      .update({ comments_count: actualCommentCount || 0 } as any)
       .eq('id', postId)
 
     if (updateError) {
@@ -205,7 +205,7 @@ export async function deleteComment(
     const updateClient = isAdmin ? deleteClient : supabase
     const { error: updateError } = await updateClient
       .from('posts')
-      .update({ comments_count: actualCommentCount || 0 })
+      .update({ comments_count: actualCommentCount || 0 } as any)
       .eq('id', postId)
 
     if (updateError) {
