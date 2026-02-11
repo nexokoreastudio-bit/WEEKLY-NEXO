@@ -250,10 +250,11 @@ export async function deletePost(
     }
 
     // 관리자인 경우 Service Role Key를 사용하여 RLS 우회
-    let deleteClient = supabase
+    const { createAdminClient } = await import('./server')
+    const deleteClient = isAdmin
+      ? await createAdminClient()
+      : supabase
     if (isAdmin) {
-      const { createAdminClient } = await import('./server')
-      deleteClient = await createAdminClient()
       console.log('관리자 삭제 모드: Service Role Key 사용')
     }
 

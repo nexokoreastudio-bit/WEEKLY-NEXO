@@ -63,13 +63,18 @@ export async function getResourcesForAdmin(): Promise<{
     }
 
     // Supabase 결과를 plain object 배열로 명시적 변환
+    const allowedLevels = ['bronze', 'silver', 'gold'] as const
+    type AccessLevel = typeof allowedLevels[number]
+    
     const plainData = (data || []).map((item: any) => ({
       id: Number(item.id),
       title: String(item.title || ''),
       description: item.description ? String(item.description) : null,
       file_url: String(item.file_url || ''),
       file_type: item.file_type || null,
-      access_level: String(item.access_level || 'bronze'),
+      access_level: (allowedLevels.includes(item.access_level as AccessLevel)
+        ? item.access_level
+        : 'bronze') as AccessLevel,
       download_cost: Number(item.download_cost) || 0,
       downloads_count: Number(item.downloads_count) || 0,
       thumbnail_url: item.thumbnail_url ? String(item.thumbnail_url) : null,
@@ -288,8 +293,16 @@ export async function createResource(
     }
 
     // Supabase 결과를 plain object로 명시적 변환
-    const plainResult = {
-      id: Number(resourceResult.id),
+    const typedResourceResult = resourceResult as { id: number } | null
+    const plainResult = typedResourceResult ? {
+      id: Number(typedResourceResult.id),
+    } : null
+    
+    if (!plainResult) {
+      return { 
+        success: false, 
+        error: String('자료 등록 결과를 가져올 수 없습니다.') 
+      }
     }
 
     revalidatePath('/admin/resources')
@@ -379,7 +392,7 @@ export async function updateResource(
 
     const { error } = await adminSupabase
       .from('resources')
-      .update(updateData as any)
+      .update(updateData as any as never)
       .eq('id', resourceId)
 
     if (error) {
@@ -453,8 +466,9 @@ export async function deleteResource(resourceId: number): Promise<{ success: boo
       .single()
 
     // Supabase resourceData를 plain object로 변환
-    const plainResourceData = resourceData ? {
-      file_url: String(resourceData.file_url || ''),
+    const typedResourceData = resourceData as { file_url: string } | null
+    const plainResourceData = typedResourceData ? {
+      file_url: String(typedResourceData.file_url || ''),
     } : null
 
     // 자료 삭제
@@ -532,9 +546,10 @@ export async function downloadResource(
       .single()
 
     // Supabase 결과를 plain object로 명시적 변환
-    const plainUserData = userData ? {
-      point: Number(userData.point) || 0,
-      level: String(userData.level || 'bronze') as 'bronze' | 'silver' | 'gold',
+    const typedUserData = userData as { point: number; level: 'bronze' | 'silver' | 'gold' } | null
+    const plainUserData = typedUserData ? {
+      point: Number(typedUserData.point) || 0,
+      level: typedUserData.level || 'bronze',
     } : { point: 0, level: 'bronze' as const }
 
     const userPoint = plainUserData.point
@@ -555,16 +570,35 @@ export async function downloadResource(
     }
 
     // plain object로 변환
+    const typedResourceData = resourceData as {
+      id: number
+      title: string
+      description: string | null
+      file_url: string
+      file_type: 'pdf' | 'xlsx' | 'hwp' | 'docx' | 'pptx' | null
+      access_level: 'bronze' | 'silver' | 'gold'
+      download_cost: number
+      downloads_count: number
+      thumbnail_url: string | null
+    } | null
+    
+    if (!typedResourceData) {
+      return { 
+        success: false, 
+        error: String('자료를 찾을 수 없습니다.') 
+      }
+    }
+    
     const resource = {
-      id: Number(resourceData.id),
-      title: String(resourceData.title || ''),
-      description: resourceData.description ? String(resourceData.description) : null,
-      file_url: String(resourceData.file_url || ''),
-      file_type: resourceData.file_type || null,
-      access_level: String(resourceData.access_level || 'bronze') as 'bronze' | 'silver' | 'gold',
-      download_cost: Number(resourceData.download_cost) || 0,
-      downloads_count: Number(resourceData.downloads_count) || 0,
-      thumbnail_url: resourceData.thumbnail_url ? String(resourceData.thumbnail_url) : null,
+      id: Number(typedResourceData.id),
+      title: String(typedResourceData.title || ''),
+      description: typedResourceData.description ? String(typedResourceData.description) : null,
+      file_url: String(typedResourceData.file_url || ''),
+      file_type: typedResourceData.file_type || null,
+      access_level: typedResourceData.access_level || 'bronze',
+      download_cost: Number(typedResourceData.download_cost) || 0,
+      downloads_count: Number(typedResourceData.downloads_count) || 0,
+      thumbnail_url: typedResourceData.thumbnail_url ? String(typedResourceData.thumbnail_url) : null,
     }
 
     // 접근 레벨 확인
@@ -614,7 +648,7 @@ export async function downloadResource(
       }
       const { error: pointError } = await supabase
         .from('users')
-        .update(updatePointData as any)
+        .update(updatePointData as any as never)
         .eq('id', plainUser.id)
 
       if (pointError) {
@@ -647,7 +681,7 @@ export async function downloadResource(
     }
     await supabase
       .from('resources')
-      .update(updateCountData as any)
+      .update(updateCountData as any as never)
       .eq('id', resourceId)
 
     revalidatePath('/resources')
