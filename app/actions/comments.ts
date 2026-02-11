@@ -88,7 +88,6 @@ export async function createComment(
     }
 
     // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
-    // @ts-expect-error - Supabase 타입 추론 문제로 인한 임시 해결책
     const { error: updateError } = await supabase
       .from('posts')
       .update({ comments_count: actualCommentCount || 0 })
@@ -204,7 +203,6 @@ export async function deleteComment(
 
     // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
     const updateClient = isAdmin ? deleteClient : supabase
-    // @ts-expect-error - Supabase 타입 추론 문제로 인한 임시 해결책
     const { error: updateError } = await updateClient
       .from('posts')
       .update({ comments_count: actualCommentCount || 0 })
