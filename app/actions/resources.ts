@@ -39,8 +39,9 @@ export async function getResourcesForAdmin(): Promise<{
       .single()
 
     // Supabase profileData를 plain object로 변환
-    const plainProfile = profileData ? {
-      role: String(profileData.role || 'user'),
+    const typedProfileData = profileData as { role: string | null } | null
+    const plainProfile = typedProfileData ? {
+      role: String(typedProfileData.role || 'user'),
     } : null
 
     if (plainProfile?.role !== 'admin') {
@@ -125,8 +126,9 @@ export async function uploadFileToStorage(
       .single()
 
     // Supabase profileData를 plain object로 변환
-    const plainProfile = profileData ? {
-      role: String(profileData.role || 'user'),
+    const typedProfileData = profileData as { role: string | null } | null
+    const plainProfile = typedProfileData ? {
+      role: String(typedProfileData.role || 'user'),
     } : null
 
     if (plainProfile?.role !== 'admin') {
@@ -246,8 +248,9 @@ export async function createResource(
       .single()
 
     // Supabase profileData를 plain object로 변환
-    const plainProfile = profileData ? {
-      role: String(profileData.role || 'user'),
+    const typedProfileData = profileData as { role: string | null } | null
+    const plainProfile = typedProfileData ? {
+      role: String(typedProfileData.role || 'user'),
     } : null
 
     if (plainProfile?.role !== 'admin') {
@@ -343,8 +346,9 @@ export async function updateResource(
       .single()
 
     // Supabase profileData를 plain object로 변환
-    const plainProfile = profileData ? {
-      role: String(profileData.role || 'user'),
+    const typedProfileData = profileData as { role: string | null } | null
+    const plainProfile = typedProfileData ? {
+      role: String(typedProfileData.role || 'user'),
     } : null
 
     if (plainProfile?.role !== 'admin') {
@@ -429,8 +433,9 @@ export async function deleteResource(resourceId: number): Promise<{ success: boo
       .single()
 
     // Supabase profileData를 plain object로 변환
-    const plainProfile = profileData ? {
-      role: String(profileData.role || 'user'),
+    const typedProfileData = profileData as { role: string | null } | null
+    const plainProfile = typedProfileData ? {
+      role: String(typedProfileData.role || 'user'),
     } : null
 
     if (plainProfile?.role !== 'admin') {
