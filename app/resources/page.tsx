@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Download, Lock, FileText, FileSpreadsheet, File, FileImage } from 'lucide-react'
 import { DownloadResourceButton } from '@/components/resources/download-button'
+import { ImageDownloadButton } from '@/components/resources/image-download-button'
 import { SafeImage } from '@/components/safe-image'
 import styles from './resources.module.css'
 
@@ -143,12 +144,20 @@ export default async function ResourcesPage() {
                   </div>
 
                   {resource.canAccess ? (
-                    <DownloadResourceButton
-                      resourceId={resource.id}
-                      downloadCost={resource.download_cost}
-                      hasDownloaded={resource.hasDownloaded}
-                      userPoint={userPoint}
-                    />
+                    <div className="space-y-2">
+                      <DownloadResourceButton
+                        resourceId={resource.id}
+                        downloadCost={resource.download_cost}
+                        hasDownloaded={resource.hasDownloaded}
+                        userPoint={userPoint}
+                      />
+                      {thumbnailUrl && (
+                        <ImageDownloadButton
+                          imageUrl={thumbnailUrl}
+                          fileName={resource.title}
+                        />
+                      )}
+                    </div>
                   ) : (
                     <div className={styles.lockedButton}>
                       <Lock className={styles.lockIcon} />
