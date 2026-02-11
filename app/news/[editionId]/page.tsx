@@ -392,24 +392,53 @@ export default async function EditionPage({
 // 메타데이터 생성
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { editionId } = params
-  const article = await getArticleByEditionId(editionId)
+  
+  // -insight- 형식인 경우 날짜 부분만 추출하여 article 조회
+  const isInsightSpecific = editionId.includes('-insight-')
+  const dateOnlyEditionId = isInsightSpecific 
+    ? editionId.replace(/-insight-\d+$/, '')
+    : editionId
+  
+  const article = await getArticleByEditionId(dateOnlyEditionId)
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://daily-nexo.netlify.app'
 
-  if (!article) {
+  // article이 없어도 인사이트가 있을 수 있으므로 체크
+  let insightData: { title: string; summary?: string; thumbnail_url?: string | null; published_at?: string } | null = null
+  if (isInsightSpecific) {
+    const { getInsights } = await import('@/lib/actions/insights')
+    const match = editionId.match(/-insight-(\d+)$/)
+    if (match) {
+      const targetInsightId = parseInt(match[1], 10)
+      const allInsights = await getInsights(undefined, false)
+      const foundInsight = allInsights.find(insight => insight.id === targetInsightId)
+      if (foundInsight) {
+        insightData = {
+          title: foundInsight.title,
+          summary: foundInsight.summary || undefined,
+          thumbnail_url: foundInsight.thumbnail_url || undefined,
+          published_at: foundInsight.published_at || undefined,
+        }
+      }
+    }
+  }
+
+  if (!article && !insightData) {
     return {
       title: '발행호를 찾을 수 없습니다',
       description: '요청하신 발행호를 찾을 수 없습니다.',
     }
   }
 
-  const title = article.title || 'NEXO Daily'
-  const description = article.subtitle || article.title || '넥소 전자칠판 교육 정보'
-  const imageUrl = article.thumbnail_url 
-    ? (article.thumbnail_url.startsWith('http') 
-        ? article.thumbnail_url 
-        : `${baseUrl}${article.thumbnail_url}`)
+  // article이 있으면 article 정보 사용, 없으면 insight 정보 사용
+  const title = article?.title || insightData?.title || 'NEXO Daily'
+  const description = article?.subtitle || article?.title || insightData?.summary || insightData?.title || '넥소 전자칠판 교육 정보'
+  const imageUrl = (article?.thumbnail_url || insightData?.thumbnail_url)
+    ? ((article?.thumbnail_url || insightData?.thumbnail_url)?.startsWith('http') 
+        ? (article?.thumbnail_url || insightData?.thumbnail_url)
+        : `${baseUrl}${article?.thumbnail_url || insightData?.thumbnail_url}`)
     : `${baseUrl}/assets/images/og-image.png`
   const currentUrl = `${baseUrl}/news/${editionId}`
+  const publishedTime = article?.published_at || insightData?.published_at || undefined
 
   return {
     title,
@@ -420,7 +449,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       '입시 자료',
       '학원 운영',
       'NEXO Daily',
-      editionId,
+      dateOnlyEditionId,
     ],
     openGraph: {
       title,
@@ -436,7 +465,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         },
       ],
       type: 'article',
-      publishedTime: article.published_at || undefined,
+      publishedTime,
     },
     twitter: {
       card: 'summary_large_image',

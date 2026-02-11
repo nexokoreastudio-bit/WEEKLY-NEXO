@@ -23,9 +23,24 @@ export function EditionNavigation({
 }: EditionNavigationProps) {
   const formatDate = (editionId: string): string => {
     try {
-      const date = new Date(editionId + 'T00:00:00Z')
-      const month = date.getUTCMonth() + 1
-      const day = date.getUTCDate()
+      // -insight-{id} 형식인 경우 날짜 부분만 추출
+      const datePart = editionId.replace(/-insight-\d+$/, '')
+      
+      // YYYY-MM-DD 형식인지 확인
+      const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+      if (!dateMatch) {
+        return editionId // 형식이 맞지 않으면 그대로 반환
+      }
+      
+      const year = parseInt(dateMatch[1], 10)
+      const month = parseInt(dateMatch[2], 10)
+      const day = parseInt(dateMatch[3], 10)
+      
+      // 유효한 날짜인지 확인
+      if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+        return editionId
+      }
+      
       return `${month}/${day}`
     } catch {
       return editionId
