@@ -48,10 +48,17 @@ export async function dailyCheckin(): Promise<{ success: boolean; error?: string
       .eq('checkin_date', today)
       .maybeSingle()
 
-    // 에러가 있고 PGRST116이 아닌 경우 (레코드 없음은 정상)
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('출석 기록 확인 오류:', checkError)
-      return { success: false, error: '출석 상태 확인 중 오류가 발생했습니다.' }
+    // 에러 처리
+    if (checkError) {
+      if (checkError.code === 'PGRST116') {
+        // 레코드 없음은 정상
+      } else if (checkError.code === 'PGRST205') {
+        console.error('daily_checkins 테이블이 존재하지 않습니다. SQL 스크립트를 실행해주세요:', checkError)
+        return { success: false, error: '출석 기능이 아직 설정되지 않았습니다. 관리자에게 문의해주세요.' }
+      } else {
+        console.error('출석 기록 확인 오류:', checkError)
+        return { success: false, error: '출석 상태 확인 중 오류가 발생했습니다.' }
+      }
     }
 
     if (existingCheckin) {
@@ -69,6 +76,10 @@ export async function dailyCheckin(): Promise<{ success: boolean; error?: string
       .insert(checkinData as any)
 
     if (insertError) {
+      if (insertError.code === 'PGRST205') {
+        console.error('daily_checkins 테이블이 존재하지 않습니다. SQL 스크립트를 실행해주세요:', insertError)
+        return { success: false, error: '출석 기능이 아직 설정되지 않았습니다. 관리자에게 문의해주세요.' }
+      }
       console.error('출석 기록 실패:', insertError)
       return { success: false, error: '출석 처리 중 오류가 발생했습니다.' }
     }
@@ -108,10 +119,19 @@ export async function getTodayCheckinStatus(): Promise<{ checkedIn: boolean; err
       .eq('checkin_date', today)
       .maybeSingle()
 
-    // 에러가 있고 PGRST116이 아닌 경우 (레코드 없음은 정상)
-    if (checkinError && checkinError.code !== 'PGRST116') {
-      console.error('출석 기록 조회 오류:', checkinError)
-      return { checkedIn: false, error: '출석 상태 확인 중 오류가 발생했습니다.' }
+    // 에러 처리
+    if (checkinError) {
+      // PGRST116: 레코드 없음 (정상)
+      // PGRST205: 테이블이 스키마 캐시에 없음 (테이블 미생성 또는 캐시 문제)
+      if (checkinError.code === 'PGRST116') {
+        // 레코드 없음은 정상
+      } else if (checkinError.code === 'PGRST205') {
+        console.error('daily_checkins 테이블이 존재하지 않습니다. SQL 스크립트를 실행해주세요:', checkinError)
+        return { checkedIn: false, error: '출석 기능이 아직 설정되지 않았습니다. 관리자에게 문의해주세요.' }
+      } else {
+        console.error('출석 기록 조회 오류:', checkinError)
+        return { checkedIn: false, error: '출석 상태 확인 중 오류가 발생했습니다.' }
+      }
     }
 
     return { checkedIn: !!checkin }
@@ -143,6 +163,10 @@ export async function getCheckinStreak(): Promise<{ streak: number; error?: stri
       .limit(30) // 최근 30일만 확인
 
     if (checkinsError) {
+      if (checkinsError.code === 'PGRST205') {
+        console.error('daily_checkins 테이블이 존재하지 않습니다. SQL 스크립트를 실행해주세요:', checkinsError)
+        return { streak: 0, error: '출석 기능이 아직 설정되지 않았습니다.' }
+      }
       console.error('출석 기록 조회 오류:', checkinsError)
       return { streak: 0, error: '출석 기록 조회 중 오류가 발생했습니다.' }
     }

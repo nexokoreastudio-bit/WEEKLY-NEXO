@@ -124,3 +124,181 @@ export async function getSubscriberStatus(userId: string) {
   }
 }
 
+/**
+ * 관리자용: 사용자 구독자 상태 설정
+ */
+export async function setSubscriberStatus(
+  targetUserId: string,
+  verified: boolean,
+  serialNumber?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    // 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { success: false, error: '인증되지 않은 사용자입니다.' }
+    }
+
+    // 관리자 권한 확인
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const typedProfileData = profileData as { role: string | null } | null
+    if (typedProfileData?.role !== 'admin') {
+      return { success: false, error: '관리자 권한이 필요합니다.' }
+    }
+
+    // 구독자 상태 업데이트
+    const updateData: UserUpdate = {
+      subscriber_verified: verified,
+      verified_at: verified ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (serialNumber) {
+      updateData.purchase_serial_number = serialNumber
+    }
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update(updateData as any as never)
+      .eq('id', targetUserId)
+
+    if (updateError) {
+      console.error('구독자 상태 업데이트 실패:', updateError)
+      return { success: false, error: '구독자 상태 업데이트 중 오류가 발생했습니다.' }
+    }
+
+    // 캐시 무효화
+    revalidatePath('/admin/users')
+    revalidatePath('/mypage')
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('구독자 상태 설정 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
+  }
+}
+
+/**
+ * 관리자용: 사용자 목록 조회
+ */
+export async function getUsersList(searchQuery?: string) {
+  try {
+    const supabase = await createClient()
+
+    // 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { success: false, error: '인증되지 않은 사용자입니다.', data: [] }
+    }
+
+    // 관리자 권한 확인
+    const { data: profileData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const typedProfileData = profileData as { role: string | null } | null
+    if (typedProfileData?.role !== 'admin') {
+      return { success: false, error: '관리자 권한이 필요합니다.', data: [] }
+    }
+
+    // 사용자 목록 조회
+    // 관리자는 Service Role Key를 사용하여 RLS 우회
+    const { createAdminClient } = await import('@/lib/supabase/server')
+    const adminSupabase = await createAdminClient()
+    
+    let query = adminSupabase
+      .from('users')
+      .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    // 검색 쿼리가 있으면 필터링
+    if (searchQuery && searchQuery.trim()) {
+      const searchTerm = `%${searchQuery.trim()}%`
+      // Supabase의 or() 메서드에서 ilike 사용
+      // 와일드카드는 별표(*)로 표시하거나, 각 조건을 별도로 처리
+      // 더 안정적인 방법: 각 필드에 대해 별도로 필터링 후 결과 합치기
+      const emailQuery = adminSupabase
+        .from('users')
+        .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, created_at')
+        .ilike('email', searchTerm)
+        .order('created_at', { ascending: false })
+        .limit(100)
+      
+      const nicknameQuery = adminSupabase
+        .from('users')
+        .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, created_at')
+        .ilike('nickname', searchTerm)
+        .order('created_at', { ascending: false })
+        .limit(100)
+      
+      const [emailResult, nicknameResult] = await Promise.all([
+        emailQuery,
+        nicknameQuery
+      ])
+      
+      // 결과 합치기 (중복 제거)
+      const emailUsers = (emailResult.data || []) as any[]
+      const nicknameUsers = (nicknameResult.data || []) as any[]
+      const allUsers = [...emailUsers, ...nicknameUsers]
+      
+      // 중복 제거 (id 기준)
+      const uniqueUsers = Array.from(
+        new Map(allUsers.map(user => [user.id, user])).values()
+      )
+      
+      // 정렬 (최신순)
+      uniqueUsers.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime()
+        const dateB = new Date(b.created_at || 0).getTime()
+        return dateB - dateA
+      })
+      
+      // 타입 변환
+      const users = uniqueUsers.slice(0, 100).map((user: any) => ({
+        id: String(user.id || ''),
+        email: user.email ? String(user.email) : null,
+        nickname: user.nickname ? String(user.nickname) : null,
+        subscriber_verified: Boolean(user.subscriber_verified),
+        purchase_serial_number: user.purchase_serial_number ? String(user.purchase_serial_number) : null,
+        verified_at: user.verified_at ? String(user.verified_at) : null,
+        created_at: String(user.created_at || ''),
+      }))
+
+      return { success: true, data: users }
+    }
+
+    const { data: usersData, error } = await query
+
+    if (error) {
+      console.error('사용자 목록 조회 실패:', error)
+      return { success: false, error: error.message, data: [] }
+    }
+
+    // 타입 변환
+    const users = (usersData || []).map((user: any) => ({
+      id: String(user.id || ''),
+      email: user.email ? String(user.email) : null,
+      nickname: user.nickname ? String(user.nickname) : null,
+      subscriber_verified: Boolean(user.subscriber_verified),
+      purchase_serial_number: user.purchase_serial_number ? String(user.purchase_serial_number) : null,
+      verified_at: user.verified_at ? String(user.verified_at) : null,
+      created_at: String(user.created_at || ''),
+    }))
+
+    return { success: true, data: users }
+  } catch (error: any) {
+    console.error('사용자 목록 조회 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.', data: [] }
+  }
+}
+

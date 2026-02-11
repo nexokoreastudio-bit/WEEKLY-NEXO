@@ -59,6 +59,13 @@ export function AdminMenu() {
             >
               자료실 관리
             </Link>
+            <Link
+              href="/admin/users"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-nexo-navy transition-colors"
+            >
+              사용자 관리
+            </Link>
           </div>
         </>
       )}
