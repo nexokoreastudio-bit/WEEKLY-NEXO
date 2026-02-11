@@ -432,10 +432,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // article이 있으면 article 정보 사용, 없으면 insight 정보 사용
   const title = article?.title || insightData?.title || 'NEXO Daily'
   const description = article?.subtitle || article?.title || insightData?.summary || insightData?.title || '넥소 전자칠판 교육 정보'
-  const imageUrl = (article?.thumbnail_url || insightData?.thumbnail_url)
-    ? ((article?.thumbnail_url || insightData?.thumbnail_url)?.startsWith('http') 
-        ? (article?.thumbnail_url || insightData?.thumbnail_url)
-        : `${baseUrl}${article?.thumbnail_url || insightData?.thumbnail_url}`)
+  const rawImageUrl = article?.thumbnail_url || insightData?.thumbnail_url
+  const imageUrl = rawImageUrl
+    ? (rawImageUrl.startsWith('http') 
+        ? rawImageUrl
+        : `${baseUrl}${rawImageUrl}`)
     : `${baseUrl}/assets/images/og-image.png`
   const currentUrl = `${baseUrl}/news/${editionId}`
   const publishedTime = article?.published_at || insightData?.published_at || undefined

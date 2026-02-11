@@ -66,15 +66,21 @@ export async function getResourcesForAdmin(): Promise<{
     const allowedLevels = ['bronze', 'silver', 'gold'] as const
     type AccessLevel = typeof allowedLevels[number]
     
-    const plainData = (data || []).map((item: any) => ({
+    const normalizeAccessLevel = (value: string | null | undefined): AccessLevel => {
+      const normalized = String(value || 'bronze').toLowerCase()
+      if (normalized === 'bronze' || normalized === 'silver' || normalized === 'gold') {
+        return normalized as AccessLevel
+      }
+      return 'bronze'
+    }
+    
+    const plainData: Database['public']['Tables']['resources']['Row'][] = (data || []).map((item: any) => ({
       id: Number(item.id),
       title: String(item.title || ''),
       description: item.description ? String(item.description) : null,
       file_url: String(item.file_url || ''),
       file_type: item.file_type || null,
-      access_level: (allowedLevels.includes(item.access_level as AccessLevel)
-        ? item.access_level
-        : 'bronze') as AccessLevel,
+      access_level: normalizeAccessLevel(item.access_level),
       download_cost: Number(item.download_cost) || 0,
       downloads_count: Number(item.downloads_count) || 0,
       thumbnail_url: item.thumbnail_url ? String(item.thumbnail_url) : null,
