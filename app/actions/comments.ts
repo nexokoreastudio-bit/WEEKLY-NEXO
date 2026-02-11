@@ -6,6 +6,7 @@ import { Database } from '@/types/database'
 
 type CommentRow = Database['public']['Tables']['comments']['Row']
 type CommentInsert = Database['public']['Tables']['comments']['Insert']
+type PostUpdate = Database['public']['Tables']['posts']['Update']
 
 export interface CommentWithAuthor extends CommentRow {
   author: {
@@ -88,9 +89,10 @@ export async function createComment(
     }
 
     // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
+    const updateData: PostUpdate = { comments_count: actualCommentCount || 0 }
     const { error: updateError } = await supabase
       .from('posts')
-      .update({ comments_count: actualCommentCount || 0 } as any)
+      .update(updateData as any)
       .eq('id', postId)
 
     if (updateError) {
@@ -203,9 +205,10 @@ export async function deleteComment(
 
     // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
     const updateClient = isAdmin ? deleteClient : supabase
+    const updateData: PostUpdate = { comments_count: actualCommentCount || 0 }
     const { error: updateError } = await updateClient
       .from('posts')
-      .update({ comments_count: actualCommentCount || 0 } as any)
+      .update(updateData as any)
       .eq('id', postId)
 
     if (updateError) {
