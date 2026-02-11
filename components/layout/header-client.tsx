@@ -12,9 +12,15 @@ export function HeaderClient() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+    let mounted = true
+    
     async function checkAdmin() {
-      const supabase = createClient()
+      if (!mounted) return
+      
       const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!mounted) return
       
       if (user) {
         // 사용자 권한 확인 (클라이언트 사이드에서 한 번만 실행)
@@ -24,15 +30,42 @@ export function HeaderClient() {
           .eq('id', user.id)
           .maybeSingle()
         
+        if (!mounted) return
+        
         const profile = profileData as { role: string | null } | null
         if (profile && profile.role === 'admin') {
           setIsAdmin(true)
+        } else {
+          setIsAdmin(false)
         }
+      } else {
+        setIsAdmin(false)
       }
       setLoading(false)
     }
 
     checkAdmin()
+
+    // 인증 상태 변경 감지
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      
+      if (session?.user) {
+        // 사용자가 로그인한 경우 권한 확인
+        checkAdmin()
+      } else {
+        // 사용자가 로그아웃한 경우
+        setIsAdmin(false)
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   return (

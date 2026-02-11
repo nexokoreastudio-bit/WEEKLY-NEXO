@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -16,6 +16,30 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    
+    // 이미 로그인된 사용자는 홈으로 리다이렉트
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          // 리다이렉트는 window.location을 사용하여 컴포넌트 언마운트 보장
+          if (typeof window !== 'undefined') {
+            window.location.href = '/'
+          }
+        }
+      } catch (err) {
+        // 에러 무시 (로그인 페이지에 머무름)
+      }
+    }
+    
+    checkAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,6 +47,14 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      // 환경 변수 확인
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.error('Supabase 환경 변수가 설정되지 않았습니다.')
+        setError('시스템 설정 오류가 발생했습니다. 관리자에게 문의해주세요.')
+        setLoading(false)
+        return
+      }
+
       const supabase = createClient()
       
       // 이메일 형식 확인
@@ -52,19 +84,42 @@ export default function LoginPage() {
         return
       }
 
-      if (data.user) {
+      if (data?.user) {
         // 로그인 성공
-        if (remember) {
+        if (remember && typeof window !== 'undefined') {
           localStorage.setItem('nexo-login-remember', 'true')
         }
         
-        router.push('/')
+        // 페이지 새로고침 후 홈으로 이동
         router.refresh()
+        setTimeout(() => {
+          if (typeof window !== 'undefined') {
+            window.location.href = '/'
+          } else {
+            router.push('/')
+          }
+        }, 100)
+      } else {
+        setError('로그인에 실패했습니다. 다시 시도해주세요.')
+        setLoading(false)
       }
-    } catch (err) {
-      setError('로그인 중 오류가 발생했습니다.')
+    } catch (err: any) {
+      console.error('로그인 오류:', err)
+      setError(err?.message || '로그인 중 오류가 발생했습니다.')
       setLoading(false)
     }
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <p className="text-center text-muted-foreground">로딩 중...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

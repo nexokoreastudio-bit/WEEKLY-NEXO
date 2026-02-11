@@ -14,25 +14,58 @@ export function UserButton() {
 
   useEffect(() => {
     const supabase = createClient()
+    let mounted = true
 
     // 현재 사용자 확인
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
-      setLoading(false)
+      if (mounted) {
+        setUser(user)
+        setLoading(false)
+      }
     })
 
     // 인증 상태 변경 감지
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+      if (mounted) {
+        setUser(session?.user ?? null)
+        if (!session?.user) {
+          setLoading(false)
+        }
+      }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const handleSignOut = async () => {
-    await signOut()
+    try {
+      const supabase = createClient()
+      // 클라이언트 측에서도 로그아웃 처리
+      await supabase.auth.signOut()
+      // 서버 액션 호출
+      await signOut()
+      // 상태 즉시 업데이트
+      setUser(null)
+      // 페이지 새로고침하여 모든 상태 동기화
+      router.refresh()
+      // window.location을 사용하여 완전한 페이지 리로드
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      } else {
+        router.push('/')
+      }
+    } catch (error) {
+      console.error('로그아웃 오류:', error)
+      // 에러가 발생해도 리다이렉트는 시도
+      if (typeof window !== 'undefined') {
+        window.location.href = '/'
+      }
+    }
   }
 
   if (loading) {

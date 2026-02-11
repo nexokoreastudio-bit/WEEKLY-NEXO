@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { setSubscriberStatus, getUsersList } from '@/app/actions/subscriber'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Search, CheckCircle2, XCircle, Loader2, Clock, AlertCircle } from 'lucide-react'
 
 interface User {
   id: string
@@ -14,6 +14,8 @@ interface User {
   subscriber_verified: boolean
   purchase_serial_number: string | null
   verified_at: string | null
+  subscriber_verification_request: boolean
+  verification_requested_at: string | null
   created_at: string
 }
 
@@ -66,23 +68,37 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
     try {
       const result = await setSubscriberStatus(userId, !currentStatus)
       if (result.success) {
-        // 로컬 상태 업데이트
-        setUsers(users.map(user => 
-          user.id === userId 
-            ? { ...user, subscriber_verified: !currentStatus, verified_at: !currentStatus ? null : new Date().toISOString() }
-            : user
-        ))
+        // 서버에서 최신 데이터 다시 불러오기
+        const refreshResult = await getUsersList(search)
+        if (refreshResult.success && refreshResult.data) {
+          setUsers(refreshResult.data)
+        } else {
+          // 새로고침 실패 시 로컬 상태만 업데이트
+          setUsers(users.map(user => 
+            user.id === userId 
+              ? { 
+                  ...user, 
+                  subscriber_verified: !currentStatus, 
+                  verified_at: !currentStatus ? new Date().toISOString() : null,
+                  subscriber_verification_request: !currentStatus ? false : user.subscriber_verification_request
+                }
+              : user
+          ))
+        }
         setMessage({ 
           type: 'success', 
           text: !currentStatus 
             ? '구독자로 설정되었습니다.' 
             : '구독자 인증이 해제되었습니다.' 
         })
+        // 페이지 새로고침하여 모든 상태 동기화
+        router.refresh()
       } else {
         setMessage({ type: 'error', text: result.error || '상태 변경에 실패했습니다.' })
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: '오류가 발생했습니다.' })
+    } catch (error: any) {
+      console.error('구독자 상태 변경 오류:', error)
+      setMessage({ type: 'error', text: error?.message || '오류가 발생했습니다.' })
     } finally {
       setUpdating(null)
     }
@@ -167,6 +183,9 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
                 구독자 상태
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                인증 요청
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 시리얼 번호
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -180,13 +199,20 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                   {search ? '검색 결과가 없습니다.' : '사용자가 없습니다.'}
                 </td>
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr 
+                  key={user.id} 
+                  className={`hover:bg-gray-50 ${
+                    user.subscriber_verification_request && !user.subscriber_verified 
+                      ? 'bg-orange-50' 
+                      : ''
+                  }`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {user.email || '-'}
                   </td>
@@ -206,6 +232,16 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
                       </span>
                     )}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {user.subscriber_verification_request && !user.subscriber_verified ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                        <Clock className="w-3 h-3" />
+                        요청 대기
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.purchase_serial_number || '-'}
                   </td>
@@ -213,27 +249,48 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
                     {formatDate(user.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <Button
-                      onClick={() => handleToggleSubscriber(user.id, user.subscriber_verified)}
-                      disabled={updating === user.id}
-                      size="sm"
-                      className={
-                        user.subscriber_verified
-                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200'
-                      }
-                    >
-                      {updating === user.id ? (
-                        <>
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                          처리 중...
-                        </>
-                      ) : user.subscriber_verified ? (
-                        '인증 해제'
-                      ) : (
-                        '구독자 설정'
-                      )}
-                    </Button>
+                    {user.subscriber_verification_request && !user.subscriber_verified ? (
+                      <Button
+                        onClick={() => handleToggleSubscriber(user.id, user.subscriber_verified)}
+                        disabled={updating === user.id}
+                        size="sm"
+                        className="bg-green-600 text-white hover:bg-green-700"
+                      >
+                        {updating === user.id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            처리 중...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            승인하기
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleToggleSubscriber(user.id, user.subscriber_verified)}
+                        disabled={updating === user.id}
+                        size="sm"
+                        className={
+                          user.subscriber_verified
+                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }
+                      >
+                        {updating === user.id ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            처리 중...
+                          </>
+                        ) : user.subscriber_verified ? (
+                          '인증 해제'
+                        ) : (
+                          '구독자 설정'
+                        )}
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))
@@ -244,7 +301,7 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
 
       {/* 통계 */}
       <div className="p-6 border-t border-gray-200 bg-gray-50">
-        <div className="flex gap-6 text-sm">
+        <div className="flex gap-6 text-sm flex-wrap">
           <div>
             <span className="text-gray-600">전체 사용자: </span>
             <span className="font-semibold text-gray-900">{users.length}명</span>
@@ -256,9 +313,15 @@ export function UsersList({ initialUsers, searchQuery = '' }: UsersListProps) {
             </span>
           </div>
           <div>
+            <span className="text-gray-600">인증 요청 대기: </span>
+            <span className="font-semibold text-orange-600">
+              {users.filter(u => u.subscriber_verification_request && !u.subscriber_verified).length}명
+            </span>
+          </div>
+          <div>
             <span className="text-gray-600">미인증: </span>
             <span className="font-semibold text-gray-600">
-              {users.filter(u => !u.subscriber_verified).length}명
+              {users.filter(u => !u.subscriber_verified && !u.subscriber_verification_request).length}명
             </span>
           </div>
         </div>

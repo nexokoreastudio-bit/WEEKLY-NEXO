@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Database } from '@/types/database'
 
@@ -104,7 +104,7 @@ export async function getSubscriberStatus(userId: string) {
 
     const { data: userData, error } = await supabase
       .from('users')
-      .select('subscriber_verified, purchase_serial_number, verified_at')
+      .select('subscriber_verified, purchase_serial_number, verified_at, subscriber_verification_request, verification_requested_at')
       .eq('id', userId)
       .single()
 
@@ -112,15 +112,84 @@ export async function getSubscriberStatus(userId: string) {
       return { verified: false, error: error.message }
     }
 
-    const data = userData as Pick<UserRow, 'subscriber_verified' | 'purchase_serial_number' | 'verified_at'> | null
+    const data = userData as {
+      subscriber_verified?: boolean
+      purchase_serial_number?: string | null
+      verified_at?: string | null
+      subscriber_verification_request?: boolean
+      verification_requested_at?: string | null
+    } | null
 
     return {
       verified: data?.subscriber_verified || false,
       serialNumber: data?.purchase_serial_number || null,
       verifiedAt: data?.verified_at || null,
+      requestPending: data?.subscriber_verification_request || false,
+      requestedAt: data?.verification_requested_at || null,
     }
   } catch (error: any) {
     return { verified: false, error: error.message }
+  }
+}
+
+/**
+ * 구독자 인증 요청
+ */
+export async function requestSubscriberVerification(userId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    // 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user || user.id !== userId) {
+      return { success: false, error: '인증되지 않은 사용자입니다.' }
+    }
+
+    // 이미 인증된 사용자인지 확인
+    const { data: existingUserData } = await supabase
+      .from('users')
+      .select('subscriber_verified, subscriber_verification_request')
+      .eq('id', userId)
+      .single()
+
+    const existingUser = existingUserData as {
+      subscriber_verified?: boolean
+      subscriber_verification_request?: boolean
+    } | null
+
+    if (existingUser?.subscriber_verified) {
+      return { success: false, error: '이미 구독자 인증이 완료된 계정입니다.' }
+    }
+
+    if (existingUser?.subscriber_verification_request) {
+      return { success: false, error: '이미 구독자 인증 요청이 접수되었습니다. 관리자 승인을 기다려주세요.' }
+    }
+
+    // 구독자 인증 요청 업데이트
+    const updateData: any = {
+      subscriber_verification_request: true,
+      verification_requested_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    
+    const { error: updateError } = await supabase
+      .from('users')
+      .update(updateData as any as never)
+      .eq('id', userId)
+
+    if (updateError) {
+      console.error('구독자 인증 요청 실패:', updateError)
+      return { success: false, error: '인증 요청 처리 중 오류가 발생했습니다.' }
+    }
+
+    // 캐시 무효화
+    revalidatePath('/mypage')
+    revalidatePath('/admin/users')
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('구독자 인증 요청 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
   }
 }
 
@@ -153,18 +222,26 @@ export async function setSubscriberStatus(
       return { success: false, error: '관리자 권한이 필요합니다.' }
     }
 
+    // 관리자 클라이언트로 RLS 우회하여 업데이트
+    const adminSupabase = await createAdminClient()
+
     // 구독자 상태 업데이트
-    const updateData: UserUpdate = {
+    const updateData: any = {
       subscriber_verified: verified,
       verified_at: verified ? new Date().toISOString() : null,
       updated_at: new Date().toISOString(),
+    }
+
+    // 인증 완료 시 요청 상태 초기화
+    if (verified) {
+      updateData.subscriber_verification_request = false
     }
 
     if (serialNumber) {
       updateData.purchase_serial_number = serialNumber
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await adminSupabase
       .from('users')
       .update(updateData as any as never)
       .eq('id', targetUserId)
@@ -174,9 +251,10 @@ export async function setSubscriberStatus(
       return { success: false, error: '구독자 상태 업데이트 중 오류가 발생했습니다.' }
     }
 
-    // 캐시 무효화
+    // 캐시 무효화 (승인된 사용자의 마이페이지도 무효화)
     revalidatePath('/admin/users')
     revalidatePath('/mypage')
+    revalidatePath(`/mypage`, 'layout') // 레이아웃 캐시도 무효화
 
     return { success: true }
   } catch (error: any) {
@@ -217,7 +295,7 @@ export async function getUsersList(searchQuery?: string) {
     
     let query = adminSupabase
       .from('users')
-      .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, created_at')
+      .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, subscriber_verification_request, verification_requested_at, created_at')
       .order('created_at', { ascending: false })
       .limit(100)
 
@@ -229,14 +307,14 @@ export async function getUsersList(searchQuery?: string) {
       // 더 안정적인 방법: 각 필드에 대해 별도로 필터링 후 결과 합치기
       const emailQuery = adminSupabase
         .from('users')
-        .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, created_at')
+        .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, subscriber_verification_request, verification_requested_at, created_at')
         .ilike('email', searchTerm)
         .order('created_at', { ascending: false })
         .limit(100)
       
       const nicknameQuery = adminSupabase
         .from('users')
-        .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, created_at')
+        .select('id, email, nickname, subscriber_verified, purchase_serial_number, verified_at, subscriber_verification_request, verification_requested_at, created_at')
         .ilike('nickname', searchTerm)
         .order('created_at', { ascending: false })
         .limit(100)
@@ -271,6 +349,8 @@ export async function getUsersList(searchQuery?: string) {
         subscriber_verified: Boolean(user.subscriber_verified),
         purchase_serial_number: user.purchase_serial_number ? String(user.purchase_serial_number) : null,
         verified_at: user.verified_at ? String(user.verified_at) : null,
+        subscriber_verification_request: Boolean(user.subscriber_verification_request),
+        verification_requested_at: user.verification_requested_at ? String(user.verification_requested_at) : null,
         created_at: String(user.created_at || ''),
       }))
 
@@ -292,6 +372,8 @@ export async function getUsersList(searchQuery?: string) {
       subscriber_verified: Boolean(user.subscriber_verified),
       purchase_serial_number: user.purchase_serial_number ? String(user.purchase_serial_number) : null,
       verified_at: user.verified_at ? String(user.verified_at) : null,
+      subscriber_verification_request: Boolean(user.subscriber_verification_request),
+      verification_requested_at: user.verification_requested_at ? String(user.verification_requested_at) : null,
       created_at: String(user.created_at || ''),
     }))
 
