@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Database } from '@/types/database'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 type CommentRow = Database['public']['Tables']['comments']['Row']
 type CommentInsert = Database['public']['Tables']['comments']['Insert']
@@ -164,7 +165,7 @@ export async function deleteComment(
     }
 
     // 관리자인 경우 Service Role Key를 사용하여 RLS 우회
-    let deleteClient = supabase
+    let deleteClient: SupabaseClient<Database> = supabase
     if (isAdmin) {
       const { createAdminClient } = await import('@/lib/supabase/server')
       deleteClient = await createAdminClient()
