@@ -219,6 +219,7 @@ export interface Database {
           access_level: 'bronze' | 'silver' | 'gold'
           download_cost: number
           downloads_count: number
+          thumbnail_url: string | null
           created_at: string
           updated_at: string
         }
@@ -231,6 +232,7 @@ export interface Database {
           access_level?: 'bronze' | 'silver' | 'gold'
           download_cost?: number
           downloads_count?: number
+          thumbnail_url?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -243,6 +245,7 @@ export interface Database {
           access_level?: 'bronze' | 'silver' | 'gold'
           download_cost?: number
           downloads_count?: number
+          thumbnail_url?: string | null
           created_at?: string
           updated_at?: string
         }

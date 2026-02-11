@@ -79,6 +79,14 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
   // 실험적 기능 (Next.js 14에서는 serverActions가 기본 활성화됨)
+  // Server Actions body 크기 제한 설정 (기본값: 1MB)
+  // 파일 업로드를 위해 60MB로 증가 (최대 파일 크기 50MB + 여유 공간)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '60mb',
+    },
+  },
+  
   // 기존 HTML 파일과 병행 사용
   async rewrites() {
     return [

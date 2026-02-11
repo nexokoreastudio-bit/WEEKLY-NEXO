@@ -22,32 +22,33 @@ export function DeletePostButton({ postId }: DeletePostButtonProps) {
 
     setIsDeleting(true)
     try {
+      console.log('게시글 삭제 시도:', { postId })
       const result = await deletePost(postId)
+      console.log('게시글 삭제 결과:', result)
       
-      // redirect가 발생하면 result가 undefined일 수 있음
-      if (result && !result.success) {
+      if (!result) {
+        console.error('게시글 삭제 실패: 응답 없음')
+        alert('게시글 삭제에 실패했습니다. (응답 없음)')
+        setIsDeleting(false)
+        setShowConfirm(false)
+        return
+      }
+      
+      if (!result.success) {
+        console.error('게시글 삭제 실패:', result.error)
         alert(result.error || '게시글 삭제에 실패했습니다.')
         setIsDeleting(false)
         setShowConfirm(false)
         return
       }
       
-      // 성공 시 (redirect가 발생하거나 result.success가 true인 경우)
-      // redirect가 발생하면 예외가 throw되므로 여기까지 오지 않음
-      // 하지만 안전하게 리다이렉트 처리
-      router.push('/community')
-      router.refresh()
+      // 성공 시 리다이렉트
+      console.log('게시글 삭제 성공, 리다이렉트')
+      // 페이지 새로고침 후 리다이렉트
+      window.location.href = '/community'
     } catch (error: any) {
-      // Next.js redirect는 특별한 예외를 throw하므로 이를 처리
-      if (error?.message?.includes('NEXT_REDIRECT')) {
-        // redirect가 발생한 경우 정상 처리
-        router.push('/community')
-        router.refresh()
-        return
-      }
-      
       console.error('게시글 삭제 오류:', error)
-      alert('게시글 삭제 중 오류가 발생했습니다.')
+      alert('게시글 삭제 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'))
       setIsDeleting(false)
       setShowConfirm(false)
     }

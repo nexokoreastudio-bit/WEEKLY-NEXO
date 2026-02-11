@@ -71,18 +71,22 @@ export async function deletePost(postId: number): Promise<{ success: boolean; er
       revalidatePath(`/community/${postId}`)
       revalidatePath('/mypage')
       
-      // 커뮤니티 목록 페이지로 리다이렉트
-      redirect('/community')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('게시글 삭제 성공:', { postId, userId: user.id })
+      }
+      
+      // 성공 반환 (클라이언트에서 리다이렉트 처리)
+      return { success: true }
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.error('게시글 삭제 실패:', { postId, userId: user.id, error: result.error })
     }
 
     return result
   } catch (error: any) {
-    // redirect는 throw하므로 여기서는 다른 에러만 처리
-    if (error.message && !error.message.includes('NEXT_REDIRECT')) {
-      console.error('게시글 삭제 오류:', error)
-      return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
-    }
-    throw error // redirect는 다시 throw
+    console.error('게시글 삭제 오류:', error)
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
   }
 }
 

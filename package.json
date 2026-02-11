@@ -22,7 +22,9 @@
     "seed:daily": "node scripts/seed-daily-editions.js",
     "generate:insight-images": "node scripts/auto-generate-insight-images.js",
     "generate:insight-images:all": "node scripts/auto-generate-insight-images.js --all",
-    "generate:insight-images:unsplash": "node scripts/auto-generate-insight-images.js --unsplash-only"
+    "generate:insight-images:unsplash": "node scripts/auto-generate-insight-images.js --unsplash-only",
+    "create:community": "tsx scripts/create-natural-community-posts.ts",
+    "create:resources-bucket": "node scripts/create-resources-bucket.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -64,6 +66,7 @@
     "@types/react-dom": "^18.2.18",
     "autoprefixer": "^10.4.17",
     "browserify": "^17.0.1",
+    "esbuild": "^0.27.3",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.33",

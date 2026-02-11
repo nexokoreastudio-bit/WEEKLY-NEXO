@@ -201,65 +201,70 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 히어로 섹션 - 좌우 분할 레이아웃 */}
+      {/* 히어로 섹션 - 이미지 오버레이 레이아웃 */}
       {latestArticle && (
         <section className="border-b border-gray-200 bg-white">
-          <div className="container mx-auto max-w-7xl px-4 py-20 md:py-28">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
-              {/* 좌측: 텍스트 콘텐츠 */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 text-sm text-gray-500 tracking-wide">
-                  <Badge variant="outline" className="border-nexo-navy text-nexo-navy font-normal rounded-none px-3 py-1">
-                    최신호
-                  </Badge>
-                  <span className="font-medium">{formatEditionDate(latestArticle.edition_id)}</span>
+          <div className="relative w-full">
+            {/* 배경 이미지 */}
+            <div className="relative h-[500px] md:h-[600px] lg:h-[700px] w-full overflow-hidden">
+              {latestArticle.thumbnail_url ? (
+                <Image
+                  src={latestArticle.thumbnail_url}
+                  alt={latestArticle.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <Image
+                  src="/assets/images/아이와 엄마가 함께 공부하는 사진.png"
+                  alt="어머니와 아이가 함께 태블릿으로 학습하는 모습"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              )}
+              {/* 그라데이션 오버레이 */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40"></div>
+              
+              {/* 텍스트 콘텐츠 오버레이 */}
+              <div className="absolute inset-0 flex items-center">
+                <div className="container mx-auto max-w-7xl px-4 md:px-8">
+                  <div className="max-w-3xl space-y-6">
+                    {/* 최신호 배지 및 날짜 */}
+                    <div className="flex items-center gap-4 text-base md:text-lg text-white/90 tracking-wide">
+                      <Badge variant="outline" className="border-white/50 text-white bg-white/10 backdrop-blur-sm font-medium rounded-none px-4 py-1.5 text-sm md:text-base">
+                        최신호
+                      </Badge>
+                      <span className="font-semibold">{formatEditionDate(latestArticle.edition_id)}</span>
+                    </div>
+                    
+                    {/* 메인 제목 */}
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-[1.3] tracking-tight break-keep drop-shadow-lg">
+                      {latestArticle.title}
+                    </h1>
+                    
+                    {/* 부제목 */}
+                    {latestArticle.subtitle && (
+                      <p className="text-lg md:text-xl lg:text-2xl text-white/90 leading-relaxed font-normal mt-4 drop-shadow-md">
+                        {latestArticle.subtitle}
+                      </p>
+                    )}
+                    
+                    {/* 버튼 */}
+                    <div className="pt-4">
+                      <Link href={`/news/${latestArticle.edition_id}`}>
+                        <Button 
+                          size="lg" 
+                          className="bg-white hover:bg-white/90 text-nexo-navy rounded-none px-8 py-6 text-base font-semibold tracking-wide shadow-lg"
+                        >
+                          기사 읽기
+                          <ArrowRight className="ml-2 w-5 h-5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight">
-                  {latestArticle.title}
-                </h1>
-                
-                {latestArticle.subtitle && (
-                  <p className="text-xl md:text-2xl text-gray-600 leading-relaxed font-light">
-                    {latestArticle.subtitle}
-                  </p>
-                )}
-                
-                <div className="pt-4">
-                  <Link href={`/news/${latestArticle.edition_id}`}>
-                    <Button 
-                      size="lg" 
-                      className="bg-nexo-navy hover:bg-nexo-navy/90 text-white rounded-none px-10 py-7 text-base font-semibold tracking-wide shadow-sm"
-                    >
-                      기사 읽기
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* 우측: 썸네일 이미지 */}
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 group shadow-lg">
-                {latestArticle.thumbnail_url ? (
-                  <Image
-                    src={latestArticle.thumbnail_url}
-                    alt={latestArticle.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                    priority
-                  />
-                ) : (
-                  <>
-                    <Image
-                      src="/assets/images/아이와 엄마가 함께 공부하는 사진.png"
-                      alt="어머니와 아이가 함께 태블릿으로 학습하는 모습"
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-                  </>
-                )}
               </div>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Download, Lock, FileText, FileSpreadsheet, File, FileImage } from 'lucide-react'
 import { DownloadResourceButton } from '@/components/resources/download-button'
+import { SafeImage } from '@/components/safe-image'
 import styles from './resources.module.css'
 
 type UserRow = Database['public']['Tables']['users']['Row']
@@ -87,6 +88,8 @@ export default async function ResourcesPage() {
               ? FILE_TYPE_ICONS[resource.file_type] || File
               : File
 
+            const thumbnailUrl = (resource as any).thumbnail_url
+
             return (
               <div
                 key={resource.id}
@@ -94,6 +97,18 @@ export default async function ResourcesPage() {
                   !resource.canAccess ? styles.locked : ''
                 }`}
               >
+                {/* 썸네일 이미지 */}
+                {thumbnailUrl && (
+                  <div className={styles.thumbnailContainer}>
+                    <SafeImage
+                      src={thumbnailUrl}
+                      alt={resource.title}
+                      className={styles.thumbnail}
+                      fill
+                    />
+                  </div>
+                )}
+
                 <div className={styles.cardHeader}>
                   <div className={styles.fileType}>
                     <FileIcon className={styles.fileIcon} />

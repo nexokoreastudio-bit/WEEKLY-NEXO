@@ -195,16 +195,26 @@ export async function deletePost(
 
     // 현재 사용자 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user || user.id !== userId) {
+    if (authError || !user) {
       return { success: false, error: '인증되지 않은 사용자입니다.' }
     }
 
+    // 전달받은 userId와 현재 사용자 ID가 일치하는지 확인
+    if (user.id !== userId) {
+      return { success: false, error: '사용자 ID가 일치하지 않습니다.' }
+    }
+
     // 게시글 정보 조회
-    const { data: postData } = await supabase
+    const { data: postData, error: postError } = await supabase
       .from('posts')
       .select('author_id')
       .eq('id', postId)
       .single()
+
+    if (postError || !postData) {
+      console.error('게시글 조회 실패:', postError)
+      return { success: false, error: '게시글을 찾을 수 없습니다.' }
+    }
 
     const post = postData as Pick<PostRow, 'author_id'> | null
 
@@ -213,11 +223,15 @@ export async function deletePost(
     }
 
     // 관리자 권한 확인
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('role')
       .eq('id', userId)
       .single()
+
+    if (profileError) {
+      console.error('사용자 프로필 조회 실패:', profileError)
+    }
 
     const profileData = profile as { role: string | null } | null
     const isAdmin = profileData?.role === 'admin'
@@ -225,27 +239,84 @@ export async function deletePost(
 
     // 작성자 본인 또는 관리자만 삭제 가능
     if (!isAuthor && !isAdmin) {
-      return { success: false, error: '권한이 없습니다.' }
+      console.error('삭제 권한 없음:', { 
+        userId, 
+        authorId: post.author_id, 
+        isAuthor, 
+        isAdmin,
+        role: profileData?.role 
+      })
+      return { success: false, error: '삭제 권한이 없습니다. 작성자 본인 또는 관리자만 삭제할 수 있습니다.' }
     }
 
-    const { error } = await supabase
+    // 관리자인 경우 Service Role Key를 사용하여 RLS 우회
+    let deleteClient = supabase
+    if (isAdmin) {
+      const { createAdminClient } = await import('./server')
+      deleteClient = await createAdminClient()
+      console.log('관리자 삭제 모드: Service Role Key 사용')
+    }
+
+    // 권한 확인 로그
+    console.log('삭제 권한 확인:', { 
+      userId, 
+      authorId: post.author_id, 
+      isAuthor, 
+      isAdmin,
+      role: profileData?.role,
+      usingServiceRole: isAdmin
+    })
+
+    // 삭제 전 게시글 존재 확인
+    const { data: checkData, error: checkError } = await deleteClient
+      .from('posts')
+      .select('id')
+      .eq('id', postId)
+      .single()
+
+    if (checkError || !checkData) {
+      console.error('게시글 존재 확인 실패:', { postId, checkError })
+      return { success: false, error: '게시글을 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.' }
+    }
+
+    // 게시글 삭제 (관련 댓글과 좋아요는 CASCADE로 자동 삭제됨)
+    // 관리자인 경우 Service Role Key를 사용하여 RLS 우회
+    const { data: deletedData, error: deleteError } = await deleteClient
       .from('posts')
       .delete()
       .eq('id', postId)
+      .select()
 
-    if (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('게시글 삭제 실패:', error)
-      }
-      return { success: false, error: error.message }
+    if (deleteError) {
+      console.error('게시글 삭제 실패:', deleteError)
+      return { success: false, error: deleteError.message || '게시글 삭제에 실패했습니다.' }
     }
+
+    // 삭제된 행이 없으면 게시글이 존재하지 않음
+    if (!deletedData || deletedData.length === 0) {
+      console.error('게시글 삭제 실패: 삭제된 행이 없음', { postId, userId, checkData })
+      // 다시 한 번 확인
+      const { data: verifyData } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('id', postId)
+        .single()
+      
+      if (verifyData) {
+        return { success: false, error: '게시글 삭제에 실패했습니다. 권한을 확인해주세요.' }
+      } else {
+        return { success: false, error: '게시글을 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.' }
+      }
+    }
+
+    console.log('게시글 삭제 성공:', { postId, deletedCount: deletedData.length })
 
     return { success: true }
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('게시글 삭제 오류:', error)
     }
-    return { success: false, error: error.message || '알 수 없는 오류' }
+    return { success: false, error: error.message || '알 수 없는 오류가 발생했습니다.' }
   }
 }
 

@@ -19,7 +19,7 @@ export async function uploadImageToStorage(
     // 현재 사용자 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return { success: false, error: '인증되지 않은 사용자입니다.' }
+      return { success: false, error: String('인증되지 않은 사용자입니다.') }
     }
 
     // 관리자 권한 확인
@@ -32,13 +32,13 @@ export async function uploadImageToStorage(
     const profile = profileData as Pick<UserRow, 'role'> | null
 
     if (profile?.role !== 'admin') {
-      return { success: false, error: '관리자 권한이 필요합니다.' }
+      return { success: false, error: String('관리자 권한이 필요합니다.') }
     }
 
     // base64 데이터에서 MIME 타입과 데이터 추출
     const base64Match = base64Data.match(/^data:image\/(\w+);base64,(.+)$/)
     if (!base64Match) {
-      return { success: false, error: '잘못된 이미지 형식입니다.' }
+      return { success: false, error: String('잘못된 이미지 형식입니다.') }
     }
     
     const imageType = base64Match[1].toLowerCase() // jpeg, png, webp 등
@@ -49,12 +49,12 @@ export async function uploadImageToStorage(
     try {
       buffer = Buffer.from(base64String, 'base64')
     } catch (error) {
-      return { success: false, error: '이미지 데이터 변환에 실패했습니다.' }
+      return { success: false, error: String('이미지 데이터 변환에 실패했습니다.') }
     }
     
     // 빈 버퍼 체크
     if (!buffer || buffer.length === 0) {
-      return { success: false, error: '이미지 데이터가 비어있습니다.' }
+      return { success: false, error: String('이미지 데이터가 비어있습니다.') }
     }
     
     // Content-Type 결정
@@ -148,7 +148,7 @@ export async function uploadImageToStorage(
       if (uploadError.message?.includes('Bucket not found') || uploadError.error === 'Bucket not found') {
         return {
           success: false,
-          error: 'Storage 버킷이 없습니다. Supabase 대시보드에서 "field-news" 버킷을 생성해주세요.',
+          error: String('Storage 버킷이 없습니다. Supabase 대시보드에서 "field-news" 버킷을 생성해주세요.'),
         }
       }
       
@@ -156,13 +156,14 @@ export async function uploadImageToStorage(
       if (uploadError.statusCode === 400 || uploadError.message?.includes('Bad Request')) {
         return {
           success: false,
-          error: `이미지 업로드 실패: 잘못된 요청입니다. (파일 크기: ${(buffer.length / 1024).toFixed(2)}KB, 타입: ${contentType})`,
+          error: String(`이미지 업로드 실패: 잘못된 요청입니다. (파일 크기: ${(buffer.length / 1024).toFixed(2)}KB, 타입: ${contentType})`),
         }
       }
       
+      const errorMessage = uploadError?.message || uploadError?.error || '이미지 업로드에 실패했습니다.'
       return {
         success: false,
-        error: uploadError.message || uploadError.error || '이미지 업로드에 실패했습니다.',
+        error: String(errorMessage),
       }
     }
 
@@ -171,15 +172,22 @@ export async function uploadImageToStorage(
       .from('field-news')
       .getPublicUrl(finalFileName)
 
+    // Supabase urlData를 plain object로 변환
+    const plainUrlData = urlData ? {
+      publicUrl: String(urlData.publicUrl || ''),
+    } : { publicUrl: '' }
+
+    // plain object로 명시적 반환
     return {
       success: true,
-      url: urlData.publicUrl,
+      url: String(plainUrlData.publicUrl),
     }
   } catch (error: any) {
     console.error('❌ 이미지 업로드 오류:', error)
+    const errorMessage = error?.message || '이미지 업로드 중 오류가 발생했습니다.'
     return {
       success: false,
-      error: error.message || '이미지 업로드 중 오류가 발생했습니다.',
+      error: String(errorMessage),
     }
   }
 }

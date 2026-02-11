@@ -77,18 +77,26 @@ export async function createComment(
       return { success: false, error: error?.message || '댓글 작성 실패' }
     }
 
-    // posts 테이블의 comments_count 업데이트
-    const { data: postData } = await supabase
-      .from('posts')
-      .select('comments_count')
-      .eq('id', postId)
-      .single()
+    // 실제 댓글 수를 카운트하여 정확하게 업데이트
+    const { count: actualCommentCount, error: countError } = await supabase
+      .from('comments')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId)
 
-    if (postData) {
-      const currentCount = (postData as any)?.comments_count || 0
-      await (supabase.from('posts') as any)
-        .update({ comments_count: currentCount + 1 })
-        .eq('id', postId)
+    if (countError) {
+      console.error('댓글 수 카운트 실패:', countError)
+    }
+
+    // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
+    const { error: updateError } = await supabase
+      .from('posts')
+      .update({ comments_count: actualCommentCount || 0 })
+      .eq('id', postId)
+
+    if (updateError) {
+      console.error('댓글 수 업데이트 실패:', updateError)
+    } else {
+      console.log('댓글 수 업데이트 성공:', { postId, commentsCount: actualCommentCount })
     }
 
     revalidatePath(`/community/${postId}`)
@@ -143,11 +151,36 @@ export async function deleteComment(
 
     // 작성자 본인 또는 관리자만 삭제 가능
     if (!isAuthor && !isAdmin) {
+      console.error('댓글 삭제 권한 없음:', { 
+        userId: user.id, 
+        authorId: comment.author_id, 
+        isAuthor, 
+        isAdmin,
+        role: profileData?.role 
+      })
       return { success: false, error: '권한이 없습니다.' }
     }
 
+    // 관리자인 경우 Service Role Key를 사용하여 RLS 우회
+    let deleteClient = supabase
+    if (isAdmin) {
+      const { createAdminClient } = await import('@/lib/supabase/server')
+      deleteClient = await createAdminClient()
+      console.log('관리자 댓글 삭제 모드: Service Role Key 사용')
+    }
+
+    // 권한 확인 로그
+    console.log('댓글 삭제 권한 확인:', { 
+      userId: user.id, 
+      authorId: comment.author_id, 
+      isAuthor, 
+      isAdmin,
+      role: profileData?.role,
+      usingServiceRole: isAdmin
+    })
+
     // 댓글 삭제
-    const { error } = await supabase
+    const { error } = await deleteClient
       .from('comments')
       .delete()
       .eq('id', commentId)
@@ -157,18 +190,29 @@ export async function deleteComment(
       return { success: false, error: error.message }
     }
 
-    // posts 테이블의 comments_count 업데이트
-    const { data: postData } = await supabase
-      .from('posts')
-      .select('comments_count')
-      .eq('id', postId)
-      .single()
+    // 실제 댓글 수를 카운트하여 정확하게 업데이트
+    const { count: actualCommentCount, error: countError } = await deleteClient
+      .from('comments')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId)
 
-    if (postData) {
-      const currentCount = (postData as any)?.comments_count || 0
-      await (supabase.from('posts') as any)
-        .update({ comments_count: Math.max(currentCount - 1, 0) })
-        .eq('id', postId)
+    if (countError) {
+      console.error('댓글 수 카운트 실패:', countError)
+      // 카운트 실패해도 삭제는 성공했으므로 계속 진행
+    }
+
+    // posts 테이블의 comments_count를 실제 댓글 수로 업데이트
+    const updateClient = isAdmin ? deleteClient : supabase
+    const { error: updateError } = await updateClient
+      .from('posts')
+      .update({ comments_count: actualCommentCount || 0 })
+      .eq('id', postId)
+
+    if (updateError) {
+      console.error('댓글 수 업데이트 실패:', updateError)
+      // 업데이트 실패해도 삭제는 성공했으므로 계속 진행
+    } else {
+      console.log('댓글 수 업데이트 성공:', { postId, commentsCount: actualCommentCount })
     }
 
     revalidatePath(`/community/${postId}`)
