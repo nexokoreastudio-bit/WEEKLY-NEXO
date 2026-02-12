@@ -122,15 +122,16 @@ async function generateInsightImage(title: string, summary: string): Promise<str
 
     const imageBuffer = await imageResponse.arrayBuffer()
     
-    // Supabase Storage에 업로드
-    const supabase = await createClient()
+    // Supabase Storage에 업로드 (관리자 클라이언트 사용하여 RLS 우회)
+    const { createAdminClient } = await import('@/lib/supabase/server')
+    const adminSupabase = await createAdminClient()
     const fileName = `insights/gemini-${imageId}-${Date.now()}.jpg`
     
     // Node.js 환경에서는 Buffer를 사용
     const buffer = Buffer.from(imageBuffer)
     
     console.log(`📤 Supabase Storage에 업로드 중: ${fileName}`)
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await adminSupabase.storage
       .from('insights')
       .upload(fileName, buffer, {
         contentType: 'image/jpeg',
@@ -148,7 +149,7 @@ async function generateInsightImage(title: string, summary: string): Promise<str
     }
 
     // 공개 URL 생성 (Supabase v2에서는 직접 publicUrl 속성 반환)
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = adminSupabase.storage
       .from('insights')
       .getPublicUrl(fileName)
 
