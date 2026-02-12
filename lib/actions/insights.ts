@@ -665,6 +665,27 @@ export async function createInsight(
       console.warn('⚠️ 이미지 생성 실패 (계속 진행):', error)
     }
 
+    // 중복 URL 체크 (삽입 전에 확인하여 불필요한 작업 방지)
+    const { data: existingInsight } = await supabase
+      .from('insights')
+      .select('id, title, url, is_published, created_at')
+      .eq('url', url)
+      .maybeSingle()
+
+    if (existingInsight) {
+      const existingData = existingInsight as {
+        id: number
+        title: string
+        url: string
+        is_published: boolean
+        created_at: string
+      }
+      return { 
+        error: `이미 등록된 링크입니다. (ID: ${existingData.id}, 제목: ${existingData.title})`,
+        existingInsight: existingData
+      }
+    }
+
     // 발행 날짜 처리
     let publishedAt: string | null = null
     let isPublished = false
@@ -709,6 +730,26 @@ export async function createInsight(
       console.error('인사이트 생성 실패:', error)
       // 더 상세한 에러 메시지 제공
       if (error.code === '23505') {
+        // 중복 URL인 경우 기존 인사이트 정보 조회
+        const { data: existingInsight } = await supabase
+          .from('insights')
+          .select('id, title, url, is_published, created_at')
+          .eq('url', url)
+          .maybeSingle()
+        
+        if (existingInsight) {
+          const existingData = existingInsight as {
+            id: number
+            title: string
+            url: string
+            is_published: boolean
+            created_at: string
+          }
+          return { 
+            error: `이미 등록된 링크입니다. (ID: ${existingData.id}, 제목: ${existingData.title})`,
+            existingInsight: existingData
+          }
+        }
         return { error: '이미 등록된 링크입니다.' }
       }
       if (error.code === '42P01') {
